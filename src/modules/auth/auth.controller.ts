@@ -9,6 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { Role } from '@prisma/client';
 import { Roles } from './decorators/roles.decorators';
@@ -28,6 +29,17 @@ export class AuthController {
   @Post('login')
   login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
+  }
+
+  @Post('refresh')
+  refresh(@Body() refreshDto: RefreshDto): Promise<AuthResponseDto> {
+    return this.authService.refresh(refreshDto);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  logout(@Request() req: { user: AuthUser }): Promise<{ message: string }> {
+    return this.authService.logout(req.user.id);
   }
 
   @Get('me')

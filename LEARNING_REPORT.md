@@ -207,7 +207,7 @@ Check off steps in [Progress log](#progress-log) as we complete them.
 - [x] **B3** — `passport-jwt` + complete `JwtStrategy`
 - [x] **B4** — Register `JwtStrategy` in `AuthModule`
 - [x] **B5** — `JwtAuthGuard` + `GET /auth/me`
-- [ ] **B6** — Refresh token storage + refresh endpoint (stretch)
+- [x] **B6** — Refresh token storage + refresh endpoint + logout
 
 ### Phase C — Authorization
 
@@ -217,9 +217,9 @@ Check off steps in [Progress log](#progress-log) as we complete them.
 
 ### Phase D — Domain modules
 
-- [ ] **D1** — CategoriesModule
-- [ ] **D2** — ProductsModule
-- [ ] **D3** — CartModule
+- [x] **D1** — CategoriesModule (list, create, PATCH update, DELETE soft delete)
+- [x] **D2** — ProductsModule (list, create, PATCH, DELETE deactivate)
+- [x] **D3** — CartModule
 - [ ] **D4** — OrdersModule (+ `$transaction`)
 - [ ] **D5** — PaymentsModule
 
@@ -249,10 +249,11 @@ _Update this section after every completed step._
 | 2026-05-25 | B3+B4 | `JwtStrategy` with `super()` + `validate()`; registered in `AuthModule` | Verify in passport; `validate` loads user → `req.user`; method must be class member |
 | 2026-05-25 | B5 | `JwtAuthGuard` + `GET /auth/me` → `req.user` | Guard = switch for passport `'jwt'`; 401 without valid Bearer |
 | 2026-05-25 | C1–C3 | `@Roles` metadata + `RolesGuard` + `GET /admin-only` | 401 = no/invalid JWT; 403 = JWT ok but wrong role |
+| 2026-05-25 | B6 | Hash refresh in DB; `POST /refresh`, `POST /logout` | Rotation: new refresh invalidates old hash; logout clears DB |
 
 ### Current focus
 
-**Phase A complete.** Auth through **B5**; **Phase C** done (roles). **Next:** **D1** CategoriesModule or **B6** refresh/logout.
+**D1–D3 done.** **Now:** Postman run → see `POSTMAN_TESTING.md`. **Then:** **D4** Orders. **Later:** Phase E tests (`*.spec.ts`).
 
 ### Notes & questions (your scratchpad)
 

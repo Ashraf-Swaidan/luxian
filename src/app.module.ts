@@ -3,12 +3,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { ProductsModule } from './modules/products/products.module';
+import { CartModule } from './modules/cart/cart.module';
 import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     PrismaModule,
-     AuthModule,
-     ConfigModule.forRoot({
+    AuthModule,
+    CategoriesModule,
+    ProductsModule,
+    CartModule,
+    ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
     }),

@@ -50,4 +50,5 @@ Expected direction:
 Start by scanning the repo and giving me a clear report before editing files.
 
 **Living report:** `LEARNING_REPORT.md` (update after each completed step).  
-**Mentor rule:** `.cursor/rules/nestjs-learning-mentor.mdc`
+**Postman:** `POSTMAN_TESTING.md`  
+**Mentor rule:** `api/rules/nestjs-learning-mentor.mdc`
