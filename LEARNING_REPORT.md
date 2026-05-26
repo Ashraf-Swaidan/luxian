@@ -220,7 +220,7 @@ Check off steps in [Progress log](#progress-log) as we complete them.
 - [x] **D1** — CategoriesModule (list, create, PATCH update, DELETE soft delete)
 - [x] **D2** — ProductsModule (list, create, PATCH, DELETE deactivate)
 - [x] **D3** — CartModule
-- [ ] **D4** — OrdersModule (+ `$transaction`)
+- [x] **D4** — OrdersModule (checkout + `$transaction`, list/detail)
 - [ ] **D5** — PaymentsModule
 
 ### Phase E — Polish
@@ -250,10 +250,12 @@ _Update this section after every completed step._
 | 2026-05-25 | B5 | `JwtAuthGuard` + `GET /auth/me` → `req.user` | Guard = switch for passport `'jwt'`; 401 without valid Bearer |
 | 2026-05-25 | C1–C3 | `@Roles` metadata + `RolesGuard` + `GET /admin-only` | 401 = no/invalid JWT; 403 = JWT ok but wrong role |
 | 2026-05-25 | B6 | Hash refresh in DB; `POST /refresh`, `POST /logout` | Rotation: new refresh invalidates old hash; logout clears DB |
+| 2026-05-25 | — | Full Postman pass (auth, catalog, cart) — all green | End-to-end manual QA before checkout |
+| 2026-05-26 | D4 | OrdersModule: checkout, stock decrement in `$transaction`, `checkedOut`, GET orders | Cart = draft; order = receipt; commit-time validation; `updateMany` + `gte` for stock races |
 
 ### Current focus
 
-**D1–D3 done.** **Now:** Postman run → see `POSTMAN_TESTING.md`. **Then:** **D4** Orders. **Later:** Phase E tests (`*.spec.ts`).
+**D4 done** (Postman Phase 7 passed). **Next:** **D5** PaymentsModule, then **Phase E** polish.
 
 ### Notes & questions (your scratchpad)
 

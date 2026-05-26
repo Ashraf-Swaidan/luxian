@@ -7,6 +7,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ProductsModule } from './modules/products/products.module';
 import { CartModule } from './modules/cart/cart.module';
 import { ConfigModule } from '@nestjs/config';
+import { OrdersModule } from './modules/orders/orders.module';
+
 @Module({
   imports: [
     PrismaModule,
@@ -14,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
     CategoriesModule,
     ProductsModule,
     CartModule,
+    OrdersModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,

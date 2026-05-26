@@ -15,6 +15,7 @@ Create environment **`local`**:
 | `refreshToken` | *(empty)* |
 | `categoryId` | *(empty)* |
 | `productId` | *(empty)* |
+| `orderId` | *(empty)* |
 | `adminAccessToken` | *(empty — optional second user)* |
 
 **Collection auth (for protected routes):**  
@@ -191,6 +192,38 @@ Use **normal user** Bearer (`accessToken`), not admin.
 
 ---
 
+### Phase 7 — Orders (checkout)
+
+**Setup:** Log in as USER, add at least one product to cart (Phase 6, steps 20–21). Save `productId` with stock ≥ 1.
+
+Optional body for checkout:
+
+```json
+{
+  "shippingAddress": "123 Main St, City"
+}
+```
+
+**Tests** on checkout (save `orderId`):
+
+```javascript
+const res = pm.response.json();
+if (res.id) pm.environment.set('orderId', res.id);
+```
+
+| # | Method | URL | Body | Expect |
+|---|--------|-----|------|--------|
+| 27 | POST | `{{baseUrl}}/orders/checkout` | `{ "shippingAddress": "123 Main St" }` or `{}` | **201/200**, `status: PENDING`, `orderItems`, `totalAmount`, cart `checkedOut` via relation |
+| 28 | GET | `{{baseUrl}}/orders` | — | Array with the new order |
+| 29 | GET | `{{baseUrl}}/orders/{{orderId}}` | — | Same order; includes `orderItems` + `product` |
+| 30 | GET | `{{baseUrl}}/cart` | — | New **empty** open cart (`cartItems: []`) |
+| 31 | POST | `{{baseUrl}}/orders/checkout` | — | **400** Cart is empty (no lines in new cart) |
+| 32 | GET | `{{baseUrl}}/orders/not-a-uuid` | — | **404** Order not found |
+
+**Stock check:** Note product `stock` before checkout; after checkout it should decrease by line `quantity`.
+
+---
+
 ## 4. Quick error reference
 
 | Status | Usual cause |
@@ -220,5 +253,6 @@ Use **normal user** Bearer (`accessToken`), not admin.
 - [ ] Phase 4 — categories CRUD  
 - [ ] Phase 5 — products CRUD  
 - [ ] Phase 6 — cart add/update/remove  
+- [ ] Phase 7 — checkout + list orders + new empty cart  
 
-When all pass, you're ready for **D4 Orders (checkout)**.
+When all pass, you're ready for **D5 Payments**.
