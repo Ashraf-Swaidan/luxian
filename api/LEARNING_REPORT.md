@@ -1,4 +1,4 @@
-# NestJS E-Commerce API — Learning Report
+# Luxian — API Learning Report
 
 > **Living document.** This file is the single source of truth for project status, discoveries, and progress.  
 > **Update after every completed step** (see [Progress log](#progress-log) at the bottom).

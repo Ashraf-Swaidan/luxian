@@ -1,10 +1,25 @@
-# compiled output
-/dist
-/node_modules
-/build
+# Dependencies
+node_modules/
+
+# Environment (keep templates tracked)
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!**/.env.example
+
+# Build output
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -14,57 +29,49 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Tests
-/coverage
-/.nyc_output
-
-# IDEs and editors
-/.idea
+# IDE
+.idea/
 .project
 .classpath
 .c9/
 *.launch
 .settings/
 *.sublime-workspace
-
-# IDE - VSCode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.cursor/
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# Test / coverage
+coverage/
+.nyc_output/
 
-# temp directory
+# Temp / runtime
 .temp
+.temp/
 .tmp
-
-# Runtime data
-pids
+.tmp/
+pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
+# Tool caches
+.eslintcache
+
+# Node diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-/generated/prisma
-# TypeScript incremental build info
-*.tsbuildinfo
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-.cursor/
-
-# Prisma local SQLite (you use Postgres — harmless either way)
+# Prisma / API generated output
+api/generated/
 *.db
 *.db-journal
+
+# Misc
+*.pem

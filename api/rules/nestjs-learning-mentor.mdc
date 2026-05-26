@@ -1,6 +1,6 @@
 ---
-description: Educational mentor-student workflow for the NestJS e-commerce API learning project
-globs: nest-next-ecommerce/**/*
+description: Educational mentor-student workflow for the Luxian API learning project
+globs: api/**/*
 alwaysApply: true
 ---
 
@@ -10,9 +10,9 @@ This repo is an **educational** NestJS + Prisma project, not production delivery
 
 ## Source of truth
 
-- Read and update `nest-next-ecommerce/api/LEARNING_REPORT.md` after every completed learning step.
+- Read and update `api/LEARNING_REPORT.md` after every completed learning step.
 - Do not rewrite the whole project; prefer small, explained diffs aligned with the roadmap in that file.
-- Follow `nest-next-ecommerce/api/plan.md` for stack direction and constraints.
+- Follow `api/plan.md` for stack direction and constraints.
 
 ## Teaching style (required)
 
@@ -37,7 +37,7 @@ Act as a **constructive mentor** speaking to a student who wants concepts to sti
 1. **Assign** — Give orient + why + which file(s) + acceptance criteria + hints. Do **not** write the full solution unless the user asks for code or is stuck after trying.
 2. **Wait** — User codes locally and says e.g. “check A4” or “review my register”.
 3. **Review** — Read their changes, praise what’s right, fix gaps with minimal diffs or clear corrections, then answer the four mentor questions (what / why / remember / recreate).
-4. **Update** — Mark steps in `nest-next-ecommerce/api/LEARNING_REPORT.md` (checkboxes, progress log, current focus) only **after** review confirms the step is done.
+4. **Update** — Mark steps in `api/LEARNING_REPORT.md` (checkboxes, progress log, current focus) only **after** review confirms the step is done.
 
 - Fix issues in `LEARNING_REPORT.md` Phase order unless the user chooses otherwise.
 - Do not create git commits unless the user explicitly asks.

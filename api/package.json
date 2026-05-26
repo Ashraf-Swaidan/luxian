@@ -1,7 +1,7 @@
 {
-  "name": "api",
+  "name": "luxian-api",
   "version": "0.0.1",
-  "description": "",
+  "description": "Luxian storefront API (NestJS)",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

@@ -1,4 +1,4 @@
-# Postman testing guide — nest-next-ecommerce API
+# Postman testing guide — Luxian API
 
 > Run with `npm run dev` in `api/`. Base URL: **`http://localhost:3000/api/v1`**
 
