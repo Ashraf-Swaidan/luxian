@@ -3,7 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckoutDto } from './dto/checkout.dto';
 
@@ -14,6 +15,7 @@ const orderWithItems = Prisma.validator<Prisma.OrderDefaultArgs>()({
       orderBy: { product: { name: 'asc' } },
     },
     cart: true,
+    payment: true,
   },
 });
 
@@ -23,6 +25,10 @@ export type OrderWithItems = Prisma.OrderGetPayload<typeof orderWithItems>;
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Place order = pay in one step (stub). No order row and no stock change
+   * unless the full transaction succeeds. There are no unpaid PENDING orders.
+   */
   async checkout(userId: string, dto: CheckoutDto): Promise<OrderWithItems> {
     const cart = await this.prisma.cart.findFirst({
       where: { userId, checkedOut: false },
@@ -64,7 +70,7 @@ export class OrdersService {
         data: {
           userId,
           cartId: cart.id,
-          status: OrderStatus.PENDING,
+          status: OrderStatus.PROCESSING,
           totalAmount,
           shippingAddress: dto.shippingAddress,
           orderItems: {
@@ -74,8 +80,16 @@ export class OrdersService {
               price: line.product.price,
             })),
           },
+          payment: {
+            create: {
+              userId,
+              amount: totalAmount,
+              status: PaymentStatus.COMPLETED,
+              paymentMethod: 'stub',
+              transactionId: `stub_${randomUUID()}`,
+            },
+          },
         },
-        ...orderWithItems,
       });
 
       await tx.cart.update({
@@ -83,7 +97,10 @@ export class OrdersService {
         data: { checkedOut: true },
       });
 
-      return order;
+      return tx.order.findUniqueOrThrow({
+        where: { id: order.id },
+        ...orderWithItems,
+      });
     });
   }
 

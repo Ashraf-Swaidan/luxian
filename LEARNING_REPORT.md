@@ -221,7 +221,7 @@ Check off steps in [Progress log](#progress-log) as we complete them.
 - [x] **D2** — ProductsModule (list, create, PATCH, DELETE deactivate)
 - [x] **D3** — CartModule
 - [x] **D4** — OrdersModule (checkout + `$transaction`, list/detail)
-- [ ] **D5** — PaymentsModule
+- [x] **D5** — PaymentsModule (stub pay, no Stripe)
 
 ### Phase E — Polish
 
@@ -252,10 +252,11 @@ _Update this section after every completed step._
 | 2026-05-25 | B6 | Hash refresh in DB; `POST /refresh`, `POST /logout` | Rotation: new refresh invalidates old hash; logout clears DB |
 | 2026-05-25 | — | Full Postman pass (auth, catalog, cart) — all green | End-to-end manual QA before checkout |
 | 2026-05-26 | D4 | OrdersModule: checkout, stock decrement in `$transaction`, `checkedOut`, GET orders | Cart = draft; order = receipt; commit-time validation; `updateMany` + `gte` for stock races |
+| 2026-05-26 | D5 | Stub payments; then merged **place order = pay** on `POST /orders/checkout` | No unpaid PENDING orders; stock + order + payment in one `$transaction`; avoids inventory abuse |
 
 ### Current focus
 
-**D4 done** (Postman Phase 7 passed). **Next:** **D5** PaymentsModule, then **Phase E** polish.
+**Phases A–D done** (pay-to-place checkout). **Next:** **Phase E** polish (E1–E3); skip E4 e2e if not testing.
 
 ### Notes & questions (your scratchpad)
 

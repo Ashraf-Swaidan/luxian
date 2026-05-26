@@ -192,11 +192,13 @@ Use **normal user** Bearer (`accessToken`), not admin.
 
 ---
 
-### Phase 7 — Orders (checkout)
+### Phase 7 — Place order (checkout + stub pay, one step)
+
+**Design:** `POST /orders/checkout` creates the order **and** payment in one `$transaction`. No unpaid orders; stock decrements only when this succeeds. There is no separate pay endpoint.
 
 **Setup:** Log in as USER, add at least one product to cart (Phase 6, steps 20–21). Save `productId` with stock ≥ 1.
 
-Optional body for checkout:
+Optional body:
 
 ```json
 {
@@ -213,14 +215,24 @@ if (res.id) pm.environment.set('orderId', res.id);
 
 | # | Method | URL | Body | Expect |
 |---|--------|-----|------|--------|
-| 27 | POST | `{{baseUrl}}/orders/checkout` | `{ "shippingAddress": "123 Main St" }` or `{}` | **201/200**, `status: PENDING`, `orderItems`, `totalAmount`, cart `checkedOut` via relation |
+| 27 | POST | `{{baseUrl}}/orders/checkout` | `{ "shippingAddress": "123 Main St" }` or `{}` | `status: PROCESSING`, `payment.status: COMPLETED`, `paymentMethod: stub`, `orderItems`, `totalAmount` |
 | 28 | GET | `{{baseUrl}}/orders` | — | Array with the new order |
-| 29 | GET | `{{baseUrl}}/orders/{{orderId}}` | — | Same order; includes `orderItems` + `product` |
+| 29 | GET | `{{baseUrl}}/orders/{{orderId}}` | — | Same order; `payment` included |
 | 30 | GET | `{{baseUrl}}/cart` | — | New **empty** open cart (`cartItems: []`) |
-| 31 | POST | `{{baseUrl}}/orders/checkout` | — | **400** Cart is empty (no lines in new cart) |
+| 31 | POST | `{{baseUrl}}/orders/checkout` | — | **400** Cart is empty |
 | 32 | GET | `{{baseUrl}}/orders/not-a-uuid` | — | **404** Order not found |
 
-**Stock check:** Note product `stock` before checkout; after checkout it should decrease by line `quantity`.
+**Stock check:** Note product `stock` before step 27; after checkout it should decrease by line `quantity`.
+
+---
+
+### Phase 8 — Payment record (read-only)
+
+**Setup:** `{{orderId}}` from Phase 7 step 27.
+
+| # | Method | URL | Body | Expect |
+|---|--------|-----|------|--------|
+| 33 | GET | `{{baseUrl}}/payments/orders/{{orderId}}` | — | `COMPLETED`, `stub_` transactionId, nested `order` |
 
 ---
 
@@ -253,6 +265,7 @@ if (res.id) pm.environment.set('orderId', res.id);
 - [ ] Phase 4 — categories CRUD  
 - [ ] Phase 5 — products CRUD  
 - [ ] Phase 6 — cart add/update/remove  
-- [ ] Phase 7 — checkout + list orders + new empty cart  
+- [ ] Phase 7 — place order (pay + stock in one step)  
+- [ ] Phase 8 — GET payment for order  
 
-When all pass, you're ready for **D5 Payments**.
+When all pass, you're ready for **Phase E** polish.
