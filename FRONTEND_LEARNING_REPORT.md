@@ -1,219 +1,409 @@
 # Luxian — Frontend Learning Report
 
-> **Living document.** Mirror of the API learning workflow — status, roadmap, progress log.  
-> **API base URL:** `http://localhost:3000/api/v1` (Nest runs on port 3000 by default)  
-> **Update after every completed step.**
+> **Living document.** Single source of truth for storefront status, discoveries, and progress.  
+> **Update after every completed step** (see [Progress log](#progress-log) at the bottom).
 
 ---
 
 ## How we work together (mentor ↔ student)
 
-Same contract as `api/LEARNING_REPORT.md`:
+Same contract as the API track (`api/LEARNING_REPORT.md`). Speed is not the goal — **understanding that sticks** is.
 
-| Principle | Meaning |
-|-----------|---------|
-| **Orient first** | What we build, which files, how it talks to the Nest API |
-| **Why before how** | React/Next concepts, not “copy Tailwind template” |
-| **One concept per step** | Small diffs |
-| **After every change, four questions** | What / Why / Remember / Recreate |
-| **You code, mentor reviews** | Unless you say **“do F2”** |
+| Principle | What it means for you |
+|-----------|------------------------|
+| **Orient first** | Before code: *what* we build, *where* in `web/`, *how* it talks to the Nest API. |
+| **Why before how** | Tie choices to Next/React/HTTP concepts — not vague “best practice.” |
+| **Elaborate, don’t skim** | Full sentences; analogies welcome (e.g. Query cache = pantry, Context = wallet for tokens). |
+| **One concept per step** | Small diffs. Don’t wire auth + checkout in one step unless you ask. |
+| **After every change, four questions** | 1) What changed? 2) Why? 3) What to remember? 4) How to rebuild from scratch? |
+| **No silent rewrites** | Explain plan before multi-file changes. |
+| **Honest about gaps** | Call out stubs (localStorage XSS tradeoff, no Stripe UI, etc.). |
+| **You can challenge** | “Why not cookies?” / “Why TanStack Query?” — fair game. |
 
-**Cursor rule:** Reuse `api/rules/nestjs-learning-mentor.mdc` mindset for `web/` (or add `web/rules/` later).
+### Workflow: you code, mentor reviews
 
----
+| Phase | Who does what |
+|-------|----------------|
+| **Before** | Mentor explains step (orient, why, files, hints — **no full solution paste** unless you ask). |
+| **During** | **You** edit locally. |
+| **After** | You say e.g. *“check F2”* or *“done with B4”* → mentor reviews, corrects, updates this report. |
 
-## Stack (target)
-
-| Layer | Choice | Why |
-|-------|--------|-----|
-| Framework | **Next.js** (App Router) | Matches project name; SSR + file-based routes |
-| Language | **TypeScript** | Same as API |
-| Styling | **Tailwind CSS** (default from `create-next-app`) | Fast UI for learning |
-| Data fetching | **`fetch`** first, optional **TanStack Query** later | Learn HTTP before abstractions |
-| Auth storage | **httpOnly cookies** (goal) or **localStorage** (simpler v1) | JWT access token from Nest |
-| API | Existing Nest monolith | No Next.js API routes for business logic in v1 |
+**Cursor rule:** `web/rules/nextjs-learning-mentor.mdc`
 
 ---
 
-## Repo layout (target)
+## Stack (agreed)
 
-```text
-luxian/          ← one Git repo (recommended)
-├── api/                      ← Nest (already built)
-├── web/                      ← Next.js (to create)
-├── FRONTEND_LEARNING_REPORT.md
-└── README.md                 ← how to run api + web
+| Layer | Choice | Why it fits the API |
+|-------|--------|---------------------|
+| Framework | **Next.js (App Router) + TypeScript** | Same language as Nest; routes match store flows; RSC for catalog reads. |
+| UI | **Tailwind + shadcn/ui** (your preset theme) | Fast forms, tables, toasts; matches luxury/minimal direction. |
+| Server state | **TanStack Query** | Cache products; mutate cart; invalidate after checkout. |
+| Auth | **React Context + `localStorage`** | API returns JWTs in JSON body — matches Postman flow; document XSS tradeoff. |
+| HTTP | **`fetch` wrapper** in `lib/api-client.ts` | Bearer header, JSON parse, unified errors from `HttpExceptionFilter`. |
+| Forms | **React Hook Form + Zod** | Mirror Nest DTO rules (password, slug, quantity). |
+| API | **Existing Nest** at `http://localhost:3000/api/v1` | No Prisma on frontend; no duplicate business rules. |
+
+**Ports:** API `3000`, Next dev **`3001`** (avoid clash).
+
+---
+
+## 0. Bootstrap — create `web/` (do once)
+
+### Why this matters
+
+Luxian is one **git repo** at the root (`luxian/`). The storefront must live in `web/` as a normal folder — **not** a second git repository inside it.
+
+### Scaffold command (from repo root)
+
+Run from `luxian/` (parent of `api/`), **not** inside `api/`:
+
+```bash
+npx shadcn@latest init --preset b1G2AXDzm --template next --pointer --no-monorepo -n web -y
 ```
 
-**Not** two separate GitHub repos unless you explicitly want that for portfolio reasons.
+> **If init complains that `web/` is not empty:** this repo may already contain `web/rules/` (mentor Cursor rule). Either temporarily move `web/rules` aside, run init, then move it back — or delete `web/` entirely first (only if it has no app code yet).
+
+| Flag | Purpose |
+|------|---------|
+| `--preset b1G2AXDzm` | Your theme (colors, radius, fonts). |
+| `--template next` | Next.js App Router app. |
+| `--pointer` | Pointer cursor on buttons (your preference). |
+| `--no-monorepo` | **Important:** do **not** scaffold shadcn’s Turborepo (`apps/web` + `packages/ui`). We already have a monorepo: `api/` + `web/`. |
+| `-n web` | Project folder name → `luxian/web/`. |
+| `-y` | Non-interactive; skip prompts. |
+
+> **Note:** The shadcn CLI has **no `--no-git` flag**. It may run `git init` inside `web/` as post-install. That creates a **nested repo**, which is awkward with the root repo.
+
+### After scaffold — remove nested git (required check)
+
+**PowerShell (repo root):**
+
+```powershell
+if (Test-Path web\.git) { Remove-Item -Recurse -Force web\.git }
+```
+
+**Bash:**
+
+```bash
+rm -rf web/.git
+```
+
+Then confirm only the root repo exists:
+
+```bash
+git status
+```
+
+You should see `web/` files as untracked/new under the **root** repo — not a submodule.
+
+### If the CLI asks about monorepo interactively
+
+Choose **No** — single Next app in `web/`, not shadcn’s `apps/web` + `packages/ui` layout.
+
+### Post-scaffold checklist (F0)
+
+- [x] **F0.1** — Run init command above; `web/` exists with `app/`, `components.json`, Tailwind, shadcn theme.
+- [x] **F0.2** — Delete `web/.git` if present; verify root `git status` lists `web/`.
+- [x] **F0.3** — Set dev port **3001** in `web/package.json` (`"dev": "next dev -p 3001"`).
+- [x] **F0.4** — Add `web/.env.example` with `NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1`; copy to `web/.env.local` (gitignored).
+- [x] **F0.5** — **API:** enable CORS in `api/src/main.ts` for `http://localhost:3001` (browser blocks cross-origin without it).
+- [x] **F0.6** — Install TanStack Query + React Hook Form + Zod:  
+  `cd web && npm install @tanstack/react-query @tanstack/react-query-devtools react-hook-form @hookform/resolvers zod`
+- [x] **F0.7** — Add shadcn pieces you’ll need early:  
+  `npx shadcn@latest add button input label card form sonner skeleton -c web`
+
+**Acceptance:** With API running (`cd api && npm run dev`), open `http://localhost:3001` — default Next page loads; no CORS errors once F0.5 is done and you add a test `fetch` in a client component.
 
 ---
 
-## What the frontend must do (maps to API)
+## 1. Target project structure
 
-| User story | API endpoints |
-|------------|----------------|
-| Browse products | `GET /products`, categories filter optional |
-| Register / login | `POST /auth/register`, `POST /auth/login` |
-| Stay logged in | `GET /auth/me`, `POST /auth/refresh`, `POST /auth/logout` |
-| Cart | `GET /cart`, `POST /cart/items`, `PATCH/DELETE ...` |
-| Place order (pay) | `POST /orders/checkout` (order + payment in one step) |
-| Order history | `GET /orders`, `GET /orders/:id` |
-| Admin catalog (optional phase) | Categories/products CRUD + `RolesGuard` routes |
+```
+luxian/
+├── api/                          # Nest — done (see api/LEARNING_REPORT.md)
+├── web/                          # Next storefront (this track)
+│   ├── app/
+│   │   ├── layout.tsx            # Root layout, providers, fonts
+│   │   ├── page.tsx              # Home / featured products
+│   │   ├── (auth)/
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   ├── products/
+│   │   │   ├── page.tsx          # Catalog
+│   │   │   └── [id]/page.tsx     # Detail
+│   │   ├── cart/page.tsx
+│   │   ├── checkout/page.tsx
+│   │   ├── account/
+│   │   │   └── orders/
+│   │   │       ├── page.tsx
+│   │   │       └── [id]/page.tsx
+│   │   └── admin/                # ADMIN role only (UI gate + API 403)
+│   │       ├── layout.tsx
+│   │       ├── categories/page.tsx
+│   │       └── products/page.tsx
+│   ├── components/               # UI + feature components
+│   ├── lib/
+│   │   ├── api-client.ts         # fetch + auth header + errors
+│   │   ├── auth-storage.ts       # localStorage read/write
+│   │   ├── format-price.ts       # Prisma Decimal → display string
+│   │   └── query-keys.ts         # TanStack Query key factory
+│   ├── features/                 # Optional: group by domain
+│   │   ├── auth/
+│   │   ├── products/
+│   │   ├── cart/
+│   │   └── orders/
+│   ├── providers/
+│   │   ├── query-provider.tsx
+│   │   └── auth-provider.tsx
+│   ├── .env.example
+│   └── rules/
+│       └── nextjs-learning-mentor.mdc
+└── FRONTEND_LEARNING_REPORT.md   # ← this file
+```
 
----
-
-## Phase F0 — Project setup
-
-- [ ] **F0.1** — Create `web/` with `create-next-app` (TypeScript, App Router, Tailwind) — **use `--no-git`** if parent repo will own Git
-- [ ] **F0.2** — `.env.local`: `NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1`
-- [ ] **F0.3** — Nest: enable **CORS** for `http://localhost:3000` (Next default port **3000** conflicts — run Next on **3001** or change Nest `PORT`)
-- [ ] **F0.4** — Shared `lib/api.ts`: `fetch` wrapper (base URL, JSON, attach `Authorization` header)
-- [ ] **F0.5** — Home page: health check — fetch `GET {{API}}/` or list products; prove browser → Nest works
-
-**Remember:** Browser calls a **different origin** than the API → CORS required.
-
----
-
-## Phase F1 — Layout & catalog (public)
-
-- [ ] **F1.1** — Root `layout.tsx`: header, nav, footer
-- [ ] **F1.2** — `app/products/page.tsx` — list products from API (Server Component `fetch` or Client — pick one and stick to it for F1)
-- [ ] **F1.3** — `app/products/[id]/page.tsx` — product detail (if API exposes single product; else use list + filter)
-- [ ] **F1.4** — Loading + error UI for failed fetch
-- [ ] **F1.5** — Categories: filter or `/categories` page using `GET /categories`
-
-**Concepts:** App Router folders = routes; Server vs Client Components; `NEXT_PUBLIC_*` env vars.
-
----
-
-## Phase F2 — Auth UI
-
-- [ ] **F2.1** — `app/login/page.tsx`, `app/register/page.tsx` — forms + DTO-shaped bodies (match API validation rules)
-- [ ] **F2.2** — On success: store `accessToken` (+ `refreshToken` if using localStorage approach)
-- [ ] **F2.3** — `AuthProvider` (client context): user from `GET /auth/me` on load
-- [ ] **F2.4** — Header: Login / Logout; show email when logged in
-- [ ] **F2.5** — Optional: refresh flow before access token expires
-
-**Concepts:** Controlled forms; context; protected vs public routes.
-
----
-
-## Phase F3 — Cart
-
-- [ ] **F3.1** — “Add to cart” on product page — `POST /cart/items` (requires JWT)
-- [ ] **F3.2** — `app/cart/page.tsx` — `GET /cart`, show lines, quantities
-- [ ] **F3.3** — Update quantity / remove line
-- [ ] **F3.4** — Redirect to login if 401
-
-**Concepts:** Auth header on mutating requests; optimistic UI optional later.
+**Mental model:** **Page** (route) → **components** → **hooks / Query** → **api-client** → **Nest** → **Postgres**.  
+The frontend never touches the database.
 
 ---
 
-## Phase F4 — Checkout & orders
+## 2. API contract (what the UI must respect)
 
-- [ ] **F4.1** — Checkout page: optional `shippingAddress`, button → `POST /orders/checkout`
-- [ ] **F4.2** — Thank-you / order detail page — show `orderNumber`, items, `payment`
-- [ ] **F4.3** — `app/orders/page.tsx` — order history (`GET /orders`)
-- [ ] **F4.4** — `app/orders/[id]/page.tsx` — single order
+Base URL: `NEXT_PUBLIC_API_URL` → `http://localhost:3000/api/v1`
 
-**Concepts:** One-step checkout matches API (no separate pay page).
+### Auth
+
+| Method | Path | Auth | Response / notes |
+|--------|------|------|------------------|
+| POST | `/auth/register` | — | `{ accessToken, refreshToken, user }` |
+| POST | `/auth/login` | — | same |
+| POST | `/auth/refresh` | body `{ refreshToken }` | new tokens |
+| POST | `/auth/logout` | Bearer | `{ message }` |
+| GET | `/auth/me` | Bearer | `AuthUser` (no password) |
+| GET | `/auth/admin-only` | Bearer ADMIN | 403 if USER |
+
+**Token flow (client):**
+
+1. Save tokens on login/register.
+2. Send `Authorization: Bearer <accessToken>` on protected routes.
+3. On **401**, call `/auth/refresh` once, retry request; if still 401 → clear storage → redirect login.
+4. On app load, if tokens exist → `GET /auth/me` to hydrate user.
+
+**Learning tradeoff:** `localStorage` is simple and matches your API; it is **vulnerable to XSS**. Production apps often use `httpOnly` cookies — that requires API changes later.
+
+### Catalog (mostly public reads)
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| GET | `/categories` | — | Active categories |
+| POST/PATCH/DELETE | `/categories` | ADMIN | Writes |
+| GET | `/products` | — | Query `?categoryId=` optional |
+| POST/PATCH/DELETE | `/products` | ADMIN | Writes |
+
+**Prices:** JSON may return `price` as **string** (Prisma `Decimal`). Use a formatter; don’t do `price * 1.1` as raw float without care.
+
+### Cart (authenticated shopper)
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/cart` | Full cart + nested `product` |
+| POST | `/cart/items` | `{ productId, quantity }` |
+| PATCH | `/cart/items/:productId` | `{ quantity }` |
+| DELETE | `/cart/items/:productId` | Remove line |
+
+**Common bug:** `GET /cart/items` does **not** exist (404).
+
+### Orders & payments
+
+| Method | Path | Notes |
+|--------|------|-------|
+| POST | `/orders/checkout` | Optional `{ shippingAddress }`; pay + stock in one step |
+| GET | `/orders` | User’s orders |
+| GET | `/orders/:id` | Detail + payment |
+| GET | `/payments/orders/:orderId` | Payment record |
+
+After checkout, cart is empty; order `status` is `PROCESSING`, payment `COMPLETED` (stub).
+
+### Errors (global filter)
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed" ,
+  "path": "/api/v1/...",
+  "timestamp": "..."
+}
+```
+
+`message` may be a **string** or **string[]** — normalize in the UI for toasts and form errors.
+
+| Status | Usual meaning in UI |
+|--------|---------------------|
+| 400 | Show field errors / toast |
+| 401 | Refresh or redirect login |
+| 403 | “Not allowed” (e.g. non-admin on admin page) |
+| 404 | Not found page or empty state |
+| 409 | Duplicate email / slug / SKU |
+
+**Reference:** `api/POSTMAN_TESTING.md` — same flows, manual QA.
+
+### Demo data (after `npm run db:seed` in `api/`)
+
+| Email | Password | Role |
+|-------|----------|------|
+| `user@demo.com` | `Secret1!` | USER |
+| `admin@demo.com` | `Secret1!` | ADMIN |
 
 ---
 
-## Phase F5 — Admin (optional, after shop works)
+## 3. Gap vs “real” storefront (expected)
 
-- [ ] **F5.1** — Login as `admin@demo.com` (seed)
-- [ ] **F5.2** — Admin layout + role check (hide if not ADMIN — API still enforces 403)
-- [ ] **F5.3** — CRUD UI for categories & products
-
-**Concepts:** RBAC on both sides; never trust frontend alone.
+| Gap | Notes |
+|-----|--------|
+| No OpenAPI / shared types package | Hand-write TS types from DTOs; optional later. |
+| No httpOnly cookies | Bearer + localStorage for learning. |
+| No Stripe UI | Checkout hits stub pay on API. |
+| No image CDN | Use `imageUrl` from seed as-is. |
+| No SSR auth | `me` fetched client-side; acceptable for learning. |
+| CORS | Must add on API before browser testing (F0.5). |
 
 ---
 
-## Phase F6 — Polish
+## 4. Learning roadmap (phases)
 
-- [ ] **F6.1** — Parse API error shape from `HttpExceptionFilter` (`statusCode`, `message`, `path`)
-- [ ] **F6.2** — Product images via `imageUrl` + placeholder component
-- [ ] **F6.3** — Basic responsive layout
-- [ ] **F6.4** — README: run api + web + seed
+Check off in [Progress log](#progress-log) as you complete steps.
+
+### Phase F — Bootstrap
+
+See [§0. Bootstrap](#0-bootstrap--create-web-do-once) (F0.1–F0.7).
+
+### Phase A — Foundations (API client + Query)
+
+- [x] **A1** — `lib/api-client.ts`: `baseUrl`, `get/post/patch/delete`, JSON headers, parse `HttpExceptionFilter` shape, throw typed `ApiError`.
+- [x] **A2** — `lib/query-keys.ts` + `providers/query-provider.tsx` wrap app in `QueryClientProvider` (devtools in dev).
+- [x] **A3** — `app/providers.tsx` compose Query + future Auth; wire in root `layout.tsx`.
+- [x] **A4** — Dev-only “API ping” on home: `GET /api/v1` → show hello string (proves CORS + env).
+- [x] **A5** — `components/site-header.tsx`: logo, nav links (placeholders), no auth yet.
+
+**Remember:** `NEXT_PUBLIC_*` is baked in at **build** time — restart dev server after env changes.
+
+### Phase B — Auth
+
+- [ ] **B1** — Types: `AuthUser`, `AuthResponse`, `Role`; `lib/auth-storage.ts` get/set/clear tokens + user snapshot.
+- [ ] **B2** — `providers/auth-provider.tsx`: state, `login`, `register`, `logout`, `refreshSession`, `loadMe` on mount.
+- [ ] **B3** — Extend api-client: attach Bearer from storage; optional `onUnauthorized` callback for refresh loop.
+- [ ] **B4** — `app/(auth)/login/page.tsx` + register page: React Hook Form + Zod (password rules match API).
+- [ ] **B5** — On success → save tokens, set user, redirect `/` or `?redirect=`.
+- [ ] **B6** — Header: show email + logout; hide login when session exists.
+- [ ] **B7** — `components/require-auth.tsx` (client): redirect to `/login` if no session (cart, checkout, account).
+- [ ] **B8** — Optional: `middleware.ts` only for coarse redirects — **JWT in middleware is limited**; prefer client guard + `me` for learning.
+
+### Phase C — Catalog (shopper)
+
+- [ ] **C1** — `features/products/api.ts`: `getProducts`, `getProduct` (if you add by-id route later, or filter client-side from list).
+- [ ] **C2** — `app/products/page.tsx`: grid, loading skeleton, error toast.
+- [ ] **C3** — `app/products/[id]/page.tsx`: detail, price, stock, add-to-cart button (disabled if stock 0).
+- [ ] **C4** — `lib/format-price.ts` + use on all price displays.
+- [ ] **C5** — Home `page.tsx`: featured section (e.g. first N products from query).
+
+### Phase D — Cart
+
+- [ ] **D1** — `useCart` query: `GET /cart`, key `['cart']`.
+- [ ] **D2** — Mutations: add / update / remove; `invalidateQueries(['cart'])` on success.
+- [ ] **D3** — `app/cart/page.tsx`: line items, qty stepper, subtotal (sum line `quantity * price`).
+- [ ] **D4** — Header cart badge (item count from cart query).
+- [ ] **D5** — Require auth for cart routes (guest → login with return URL).
+
+### Phase E — Checkout & orders
+
+- [ ] **E1** — `app/checkout/page.tsx`: shipping address (optional), review lines, place order button.
+- [ ] **E2** — `POST /orders/checkout` mutation; on success → redirect `/account/orders/[id]`.
+- [ ] **E3** — `app/account/orders/page.tsx`: list orders (`GET /orders`).
+- [ ] **E4** — `app/account/orders/[id]/page.tsx`: detail + payment status.
+- [ ] **E5** — Handle 400 “Cart is empty” with friendly message.
+
+### Phase G — Admin (after shopper path works)
+
+- [ ] **G1** — `app/admin/layout.tsx`: check `user.role === 'ADMIN'`; else redirect or 403 page.
+- [ ] **G2** — Categories: table + create/edit dialog (POST/PATCH/DELETE).
+- [ ] **G3** — Products: table + form (category select, sku, price, stock).
+- [ ] **G4** — Smoke test: login as `admin@demo.com`, create category + product, see on public catalog.
+
+### Phase H — Polish
+
+- [ ] **H1** — `sonner` toasts for API errors (normalize `message` array).
+- [ ] **H2** — Empty states (empty cart, no orders, no products).
+- [ ] **H3** — `loading.tsx` / skeletons on main routes.
+- [ ] **H4** — Update root `README.md` with web quick start.
+- [ ] **H5** — Optional: extract shared API types to `packages/types` — **only if you want extra monorepo practice**.
+
+---
+
+## 5. Suggested build order (one path through the store)
+
+```mermaid
+flowchart TD
+  F0[F0 Bootstrap web/]
+  A[Phase A API client]
+  B[Phase B Auth]
+  C[Phase C Catalog]
+  D[Phase D Cart]
+  E[Phase E Checkout]
+  G[Phase G Admin]
+  H[Phase H Polish]
+  F0 --> A --> B --> C --> D --> E --> G --> H
+```
+
+**Milestone 1 (MVP shopper):** F0 → A → B → C → D → E — browse, login, cart, checkout, view orders.  
+**Milestone 2:** G — admin CRUD.  
+**Milestone 3:** H — UX polish.
+
+---
+
+## 6. API change for F0.5 (CORS) — snippet to add
+
+In `api/src/main.ts`, after `NestFactory.create`:
+
+```typescript
+app.enableCors({
+  origin: process.env.CORS_ORIGIN ?? 'http://localhost:3001',
+  credentials: true,
+});
+```
+
+Add to `api/.env.example`: `CORS_ORIGIN=http://localhost:3001`
+
+**Why:** Browsers enforce same-origin policy. Postman ignores CORS; the Next app does not.
+
+---
+
+## 7. Four questions template (copy per step)
+
+After each step, answer:
+
+1. **What changed?** (files + behavior)
+2. **Why?** (concept: e.g. Query cache, Context, Server vs Client Component)
+3. **What should I remember?**
+4. **How would I rebuild it without the repo?**
 
 ---
 
 ## Progress log
 
+_Update after every reviewed step._
+
 | Date | Step | Summary | Concepts to remember |
 |------|------|---------|----------------------|
-| — | — | Frontend plan created | Monorepo: one repo for `api` + `web` |
+| 2026-05-26 | — | Frontend plan written; stack aligned with Nest API | Thin client; no nested git in `web/`; port 3001; Bearer + refresh |
+| 2026-05-26 | F0 + A1–A5 | API client, Query provider, home ping, site header | `api.get`; Query keys factory; CORS + env for browser fetch |
 
 ### Current focus
 
-**Not started.** Begin **F0** (create `web/`, CORS, env, first fetch).
+**Next:** **Phase B — Auth** (B1 types + storage → B4 login/register pages).
 
-### Notes & questions (scratchpad)
+### Notes & questions (your scratchpad)
 
-_Add aha moments here._
-
----
-
-## Git strategy (read this before `create-next-app`)
-
-### Current state
-
-- Git lives **only inside** `api/` (`api/.git`).
-- Parent folder `luxian/` is **not** a Git repo yet.
-- Your `master` branch has **5 commits**; no `origin` remote was configured from the CLI scan — publishing fails until you add a GitHub remote.
-
-### Recommended: one monorepo
-
-| Approach | Structure | Fit for this project |
-|----------|-----------|----------------------|
-| **Monorepo** (recommended) | `luxian/.git` with `api/` + `web/` | Matches folder name; one clone; one PR history |
-| **Two repos** | `nestjs-ecommerce-api` + `nestjs-ecommerce-web` | More ops; only if you want separate portfolios |
-
-### Will Next.js create its own repo?
-
-`create-next-app` runs `git init` **by default**. That would give you `web/.git` **nested inside** `api/.git`’s parent — messy.
-
-**Use:**
-
-```bash
-npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --no-git
-```
-
-### End state (one repo)
-
-```text
-luxian/     ← git root
-  .git/
-  api/                   ← Nest (no nested .git)
-  web/                   ← Next (no nested .git)
-```
-
-**Migration (when you’re ready — not automatic):**
-
-1. Backup / push `api` commits somewhere safe.
-2. Remove `api/.git` (or move repo root up with `git subtree` / re-init — mentor can walk you through).
-3. `git init` at `luxian`, commit `api/` + `web/`.
-4. `git remote add origin <github-url>` → `git push -u origin main`.
-
-### Why publish might be blocked in the UI
-
-Common causes:
-
-- No **remote** configured (`git remote -v` empty).
-- Remote exists but **no permission** / wrong account / repo not created on GitHub.
-- Branch name mismatch (`master` vs `main`).
-- Large files or auth (HTTPS token / SSH key).
-
-**Quick check in `api/` folder:**
-
-```bash
-git remote -v
-git status
-```
-
-If `remote` is empty: create empty GitHub repo → `git remote add origin https://github.com/you/luxian.git` → `git push -u origin master` (or rename to `main` first).
+_Add “aha” moments and blockers here._
 
 ---
 
@@ -221,4 +411,4 @@ If `remote` is empty: create empty GitHub repo → `git remote add origin https:
 
 | Version | Date | Change |
 |---------|------|--------|
-| 1.0 | 2026-05-26 | Initial frontend learning plan + git notes |
+| 1.0 | 2026-05-26 | Initial frontend learning plan + bootstrap instructions |

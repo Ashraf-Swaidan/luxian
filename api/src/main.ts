@@ -8,6 +8,11 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3001',
+    credentials: true,
+  });
+
   app.useGlobalFilters(new HttpExceptionFilter());
 
   // class-validator + class-transformer on every DTO (steps A1 + A2)
