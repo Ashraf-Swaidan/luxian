@@ -225,9 +225,9 @@ Check off steps in [Progress log](#progress-log) as we complete them.
 
 ### Phase E — Polish
 
-- [ ] **E1** — Global exception filter
-- [ ] **E2** — Nest `Logger` in PrismaService
-- [ ] **E3** — Prisma seed script
+- [x] **E1** — Global exception filter
+- [x] **E2** — Nest `Logger` in PrismaService
+- [x] **E3** — Prisma seed script
 - [ ] **E4** — E2E tests for auth
 
 ---
@@ -253,10 +253,13 @@ _Update this section after every completed step._
 | 2026-05-25 | — | Full Postman pass (auth, catalog, cart) — all green | End-to-end manual QA before checkout |
 | 2026-05-26 | D4 | OrdersModule: checkout, stock decrement in `$transaction`, `checkedOut`, GET orders | Cart = draft; order = receipt; commit-time validation; `updateMany` + `gte` for stock races |
 | 2026-05-26 | D5 | Stub payments; then merged **place order = pay** on `POST /orders/checkout` | No unpaid PENDING orders; stock + order + payment in one `$transaction`; avoids inventory abuse |
+| 2026-05-26 | E1 | `HttpExceptionFilter` global in `main.ts` | All errors → `{ statusCode, message, path, timestamp }`; Prisma P2002 → 409 |
+| 2026-05-26 | E3 | `prisma/seed.ts` + `npm run db:seed` | Upsert demo users/categories/products; Prisma 7 needs adapter in seed too |
+| 2026-05-26 | E2 | `Logger` in `PrismaService` | Replace `console.log`; namespaced logs in Nest format |
 
 ### Current focus
 
-**Phases A–D done** (pay-to-place checkout). **Next:** **Phase E** polish (E1–E3); skip E4 e2e if not testing.
+**Phase E done** (E1–E3; E4 e2e skipped). API learning track complete unless adding frontend or Stripe.
 
 ### Notes & questions (your scratchpad)
 
