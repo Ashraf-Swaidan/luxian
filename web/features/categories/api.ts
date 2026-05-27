@@ -13,7 +13,9 @@ export type CreateCategoryInput = {
   isActive?: boolean
 }
 
-export type UpdateCategoryInput = Partial<CreateCategoryInput>
+export type UpdateCategoryInput = Partial<Omit<CreateCategoryInput, "imageUrl">> & {
+  imageUrl?: string | null
+}
 
 export function createCategory(body: CreateCategoryInput) {
   return api.post<Category>("categories", body)

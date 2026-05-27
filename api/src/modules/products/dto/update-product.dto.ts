@@ -7,6 +7,7 @@ import {
   IsUrl,
   IsUUID,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
 export class UpdateProductDto {
@@ -36,9 +37,10 @@ export class UpdateProductDto {
   @IsOptional()
   description?: string;
 
+  @ValidateIf((_, value) => value != null && value !== '')
   @IsUrl()
   @IsOptional()
-  imageUrl?: string;
+  imageUrl?: string | null;
 
   @IsBoolean()
   @IsOptional()

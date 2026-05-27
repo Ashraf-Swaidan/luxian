@@ -9,6 +9,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { ConfigModule } from '@nestjs/config';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     CartModule,
     OrdersModule,
     PaymentsModule,
+    UploadsModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,

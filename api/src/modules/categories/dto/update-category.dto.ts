@@ -4,6 +4,7 @@ import {
   IsString,
   IsUrl,
   Matches,
+  ValidateIf,
 } from 'class-validator';
 
 export class UpdateCategoryDto {
@@ -22,9 +23,10 @@ export class UpdateCategoryDto {
   @IsOptional()
   description?: string;
 
+  @ValidateIf((_, value) => value != null && value !== '')
   @IsUrl()
   @IsOptional()
-  imageUrl?: string;
+  imageUrl?: string | null;
 
   @IsBoolean()
   @IsOptional()

@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 
+import { StoreImage } from "@/components/store-image"
 import { formatPrice } from "@/lib/format-price"
 import type { Product } from "@/lib/types/product"
 import { cn } from "@/lib/utils"
@@ -17,7 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <article className="overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-md">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
           {product.imageUrl ? (
-            <Image
+            <StoreImage
               src={product.imageUrl}
               alt={product.name}
               fill

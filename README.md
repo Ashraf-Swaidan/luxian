@@ -59,9 +59,16 @@ npm run dev
 | `/account/orders/[id]` | Order detail |
 | `/admin` | Admin dashboard (ADMIN only) |
 
+## Image uploads (UploadThing)
+
+Admin product/category images upload via **UploadThing** from the Next.js app; Nest stores the URL only. See [`web/UPLOADTHING_SETUP.md`](web/UPLOADTHING_SETUP.md).
+
+Optional **Cloudflare R2** via the API is documented in [`api/CLOUDFLARE_R2_SETUP.md`](api/CLOUDFLARE_R2_SETUP.md) but not required.
+
 ## Docs
 
 - [`api/LEARNING_REPORT.md`](api/LEARNING_REPORT.md) — API learning track (complete)
+- [`api/CLOUDFLARE_R2_SETUP.md`](api/CLOUDFLARE_R2_SETUP.md) — R2 bucket + env setup
 - [`FRONTEND_LEARNING_REPORT.md`](FRONTEND_LEARNING_REPORT.md) — Frontend learning track
 - [`api/POSTMAN_TESTING.md`](api/POSTMAN_TESTING.md) — Manual API testing
 

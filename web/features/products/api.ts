@@ -17,7 +17,9 @@ export type CreateProductInput = {
   isActive?: boolean
 }
 
-export type UpdateProductInput = Partial<CreateProductInput>
+export type UpdateProductInput = Partial<Omit<CreateProductInput, "imageUrl">> & {
+  imageUrl?: string | null
+}
 
 export function createProduct(body: CreateProductInput) {
   return api.post<Product>("products", body)

@@ -137,6 +137,57 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return parseBody<T>(response)
 }
 
+export type UploadImageResponse = {
+  url: string
+  key: string
+}
+
+async function uploadRequest<T>(
+  path: string,
+  formData: FormData,
+  options: Omit<RequestOptions, "method" | "body" | "headers"> = {},
+): Promise<T> {
+  const { token, auth = true, _retry = false } = options
+  const base = getBaseUrl()
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  const url = `${base}${normalizedPath}`
+
+  const requestHeaders = new Headers()
+  const bearer = token ?? (auth ? getAccessToken() : null)
+  if (bearer) {
+    requestHeaders.set("Authorization", `Bearer ${bearer}`)
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: requestHeaders,
+    body: formData,
+  })
+
+  if (response.status === 401 && auth && !_retry) {
+    const refreshed = await refreshTokens()
+    if (refreshed) {
+      return uploadRequest<T>(path, formData, { ...options, _retry: true })
+    }
+  }
+
+  if (!response.ok) {
+    try {
+      const errorBody = (await parseBody<ApiErrorBody>(response)) as ApiErrorBody
+      if (errorBody?.statusCode && errorBody?.message) {
+        throw new ApiError(errorBody)
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+    }
+    throw new Error(`POST ${url} failed with ${response.status}`)
+  }
+
+  return parseBody<T>(response)
+}
+
 export const api = {
   get: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
     request<T>(path, { ...options, method: "GET" }),
@@ -149,6 +200,9 @@ export const api = {
 
   delete: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
     request<T>(path, { ...options, method: "DELETE" }),
+
+  upload: <T>(path: string, formData: FormData, options?: Omit<RequestOptions, "method" | "body" | "headers">) =>
+    uploadRequest<T>(path, formData, options),
 }
 
 /** `GET /api/v1` health check — returns plain string from Nest */

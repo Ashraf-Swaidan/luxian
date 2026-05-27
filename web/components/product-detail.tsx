@@ -1,7 +1,8 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
+
+import { StoreImage } from "@/components/store-image"
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 
@@ -67,7 +68,7 @@ export function ProductDetail() {
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-border/60 bg-muted">
         {product.imageUrl ? (
-          <Image
+          <StoreImage
             src={product.imageUrl}
             alt={product.name}
             fill

@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono, Outfit } from "next/font/google"
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin"
+import { extractRouterConfig } from "uploadthing/server"
 
+import { uploadRouter } from "@/app/api/uploadthing/core"
 import "./globals.css"
 import { Providers } from "@/app/providers"
 import { SiteFooter } from "@/components/site-footer"
@@ -26,6 +29,7 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", outfit.variable)}
     >
       <body className="flex min-h-svh flex-col">
+        <NextSSRPlugin routerConfig={extractRouterConfig(uploadRouter)} />
         <ThemeProvider>
           <Providers>
             <SiteHeader />
