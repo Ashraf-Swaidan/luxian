@@ -18,6 +18,14 @@ export function SiteHeaderNav() {
 
   return (
     <nav className="hidden items-center gap-6 sm:flex">
+      {user?.role === "ADMIN" && (
+        <Link
+          href="/admin"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Admin
+        </Link>
+      )}
       {navLinks.map((link) => (
         <Link
           key={link.href}

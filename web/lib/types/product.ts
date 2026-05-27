@@ -1,10 +1,6 @@
-export type Category = {
-  id: string
-  name: string
-  slug: string
-  description: string | null
-  isActive: boolean
-}
+import type { Category } from "@/lib/types/category"
+
+export type { Category }
 
 export type Product = {
   id: string

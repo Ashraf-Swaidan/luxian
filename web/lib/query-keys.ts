@@ -1,5 +1,8 @@
 export const queryKeys = {
   health: ["health"] as const,
+  categories: {
+    all: ["categories"] as const,
+  },
   products: {
     all: ["products"] as const,
     list: (categoryId?: string) =>

@@ -324,10 +324,10 @@ See [§0. Bootstrap](#0-bootstrap--create-web-do-once) (F0.1–F0.7).
 
 ### Phase G — Admin (after shopper path works)
 
-- [ ] **G1** — `app/admin/layout.tsx`: check `user.role === 'ADMIN'`; else redirect or 403 page.
-- [ ] **G2** — Categories: table + create/edit dialog (POST/PATCH/DELETE).
-- [ ] **G3** — Products: table + form (category select, sku, price, stock).
-- [ ] **G4** — Smoke test: login as `admin@demo.com`, create category + product, see on public catalog.
+- [x] **G1** — `app/admin/layout.tsx`: check `user.role === 'ADMIN'`; else redirect or 403 page.
+- [x] **G2** — Categories: table + create/edit dialog (POST/PATCH/DELETE).
+- [x] **G3** — Products: table + form (category select, sku, price, stock).
+- [x] **G4** — Smoke test: login as `admin@demo.com`, create category + product, see on public catalog.
 
 ### Phase H — Polish
 
@@ -400,10 +400,11 @@ _Update after every reviewed step._
 | 2026-05-26 | C1–C5 | Product types, grid, detail, formatPrice, home featured | `GET /products` public; detail finds id from list (no GET by id on API yet) |
 | 2026-05-26 | D1–D5 | Cart API, hooks, line items, badge, add-to-cart | `useMutation` + invalidate `queryKeys.cart`; JWT required on `/cart` |
 | 2026-05-26 | E1–E5 | Checkout, orders list/detail | `POST /orders/checkout` invalidates cart + orders; stub pay COMPLETED |
+| 2026-05-26 | G1–G4 | Admin layout, categories/products CRUD | `RequireAdmin` + ADMIN nav link; 403 for non-admin |
 
 ### Current focus
 
-**Next:** **Phase G — Admin** (categories/products CRUD) or **Phase H — Polish**.
+**Next:** **Phase H — Polish** (toasts, empty states, README).
 
 ### Notes & questions (your scratchpad)
 
