@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
@@ -22,11 +23,13 @@ export function ProductDetail() {
 
   if (isPending) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="aspect-square max-w-lg rounded-2xl" />
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-24 w-full max-w-xl" />
+      <div className="grid gap-10 lg:grid-cols-2">
+        <Skeleton className="aspect-[4/5] rounded-2xl" />
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-24 w-full" />
+        </div>
       </div>
     )
   }
@@ -61,22 +64,36 @@ export function ProductDetail() {
   const outOfStock = product.stock < 1
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
-      <div className="flex aspect-square items-center justify-center rounded-2xl bg-muted ring-1 ring-foreground/10">
-        <span className="text-sm text-muted-foreground">
-          {product.category?.name ?? "Product"}
-        </span>
+    <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-border/60 bg-muted">
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+            {product.category?.name ?? "Product"}
+          </div>
+        )}
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-2">
+      <div className="flex flex-col justify-center space-y-6">
+        <div className="space-y-3">
           {product.category && (
-            <p className="text-sm text-muted-foreground">{product.category.name}</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--luxian-teal)]">
+              {product.category.name}
+            </p>
           )}
-          <h1 className="text-3xl font-medium tracking-tight">{product.name}</h1>
-          <p className="text-2xl font-medium">{formatPrice(product.price)}</p>
+          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">{product.name}</h1>
+          <p className="text-2xl font-medium tabular-nums">{formatPrice(product.price)}</p>
           <p className="text-sm text-muted-foreground">
-            SKU {product.sku} · {outOfStock ? "Out of stock" : `${product.stock} available`}
+            {outOfStock ? "Out of stock" : `${product.stock} available`}
+            {product.sku ? ` · ${product.sku}` : ""}
           </p>
         </div>
 
@@ -86,10 +103,10 @@ export function ProductDetail() {
           </p>
         )}
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <AddToCartButton productId={product.id} disabled={outOfStock} />
-          <Button variant="outline" asChild>
-            <Link href="/products">Continue shopping</Link>
+          <Button variant="ghost" asChild className="text-muted-foreground">
+            <Link href="/products">← Continue shopping</Link>
           </Button>
         </div>
       </div>

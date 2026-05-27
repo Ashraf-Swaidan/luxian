@@ -147,8 +147,11 @@
     @apply border-border outline-ring/50;
     }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     }
+  ::selection {
+    background: color-mix(in oklch, var(--luxian-teal) 35%, transparent);
+  }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
     }

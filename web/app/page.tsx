@@ -1,14 +1,14 @@
 import { HomeHero } from "@/components/home-hero"
 import { ProductsGrid } from "@/components/products-grid"
+import { StoreShell } from "@/components/store-shell"
 
 export default function Page() {
   return (
-    <main className="mx-auto flex min-h-[calc(100svh-3.5rem)] max-w-6xl flex-col gap-14 px-6 py-10">
-      <HomeHero />
-
-      <section className="space-y-1 border-t border-border/60 pt-10">
-        <ProductsGrid title="Featured" limit={3} />
-      </section>
+    <main className="py-8 sm:py-12">
+      <StoreShell className="flex flex-col gap-14">
+        <HomeHero />
+        <ProductsGrid title="Featured" limit={4} />
+      </StoreShell>
     </main>
   )
 }

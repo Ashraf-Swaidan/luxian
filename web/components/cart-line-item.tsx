@@ -3,18 +3,12 @@
 import Link from "next/link"
 import { toast } from "sonner"
 
-import { Button } from "@/components/ui/button"
 import { useRemoveCartItem, useUpdateCartItem } from "@/features/cart/hooks"
 import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import type { CartItem } from "@/lib/types/cart"
-
 type CartLineItemProps = {
   item: CartItem
-}
-
-function showError(error: unknown) {
-  toastApiError(error)
 }
 
 export function CartLineItem({ item }: CartLineItemProps) {
@@ -26,80 +20,77 @@ export function CartLineItem({ item }: CartLineItemProps) {
     return null
   }
 
-  const lineTotal = Number.parseFloat(product.price) * item.quantity
+  const unitPrice = Number.parseFloat(product.price)
+  const lineTotal = unitPrice * item.quantity
   const maxQty = product.stock
-  const categoryLabel = product.category?.name
+
+  const mutateOpts = {
+    onError: (error: unknown) => toastApiError(error),
+  }
 
   const changeQty = (next: number) => {
     if (next < 1) {
-      removeItem.mutate({ productId: item.productId }, { onError: showError })
+      removeItem.mutate({ productId: item.productId }, mutateOpts)
       return
     }
     if (next > maxQty) {
       toast.error(`Only ${maxQty} in stock`)
       return
     }
-    updateItem.mutate({ productId: item.productId, quantity: next }, { onError: showError })
+    updateItem.mutate({ productId: item.productId, quantity: next }, mutateOpts)
   }
 
-  const busy = updateItem.isPending || removeItem.isPending
-
   return (
-    <li className="flex flex-col gap-4 border-b border-border/60 py-6 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-1">
+    <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-border/50 py-5 sm:grid-cols-[minmax(0,1fr)_140px_100px_80px] sm:items-center">
+      <div className="min-w-0 space-y-1">
         <Link
           href={`/products/${item.productId}`}
-          className="font-medium hover:underline"
+          className="font-medium hover:text-[var(--luxian-teal)]"
         >
           {product.name}
         </Link>
         <p className="text-sm text-muted-foreground">
-          {formatPrice(product.price)} each
-          {categoryLabel ? ` · ${categoryLabel}` : ""}
+          {formatPrice(product.price)}
+          {product.category?.name ? ` · ${product.category.name}` : ""}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Button
+      <div className="flex items-center justify-end sm:justify-center">
+        <div className="inline-flex items-center rounded-lg border border-border/80 bg-muted/30 p-0.5">
+          <button
             type="button"
-            variant="outline"
-            size="icon-sm"
-            disabled={busy}
+            className="flex size-8 items-center justify-center rounded-md text-sm transition-colors hover:bg-background"
             onClick={() => changeQty(item.quantity - 1)}
             aria-label="Decrease quantity"
           >
             −
-          </Button>
-          <span className="w-8 text-center text-sm tabular-nums">{item.quantity}</span>
-          <Button
+          </button>
+          <span className="min-w-8 text-center text-sm font-medium tabular-nums">
+            {item.quantity}
+          </span>
+          <button
             type="button"
-            variant="outline"
-            size="icon-sm"
-            disabled={busy || item.quantity >= maxQty}
+            className="flex size-8 items-center justify-center rounded-md text-sm transition-colors hover:bg-background disabled:opacity-40"
+            disabled={item.quantity >= maxQty}
             onClick={() => changeQty(item.quantity + 1)}
             aria-label="Increase quantity"
           >
             +
-          </Button>
+          </button>
         </div>
-
-        <span className="min-w-20 text-right font-medium tabular-nums">
-          {formatPrice(lineTotal)}
-        </span>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={busy}
-          onClick={() =>
-            removeItem.mutate({ productId: item.productId }, { onError: showError })
-          }
-        >
-          Remove
-        </Button>
       </div>
-    </li>
+
+      <p className="text-right text-sm font-medium tabular-nums sm:text-base">
+        {formatPrice(lineTotal)}
+      </p>
+
+      <button
+        type="button"
+        className="text-right text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline sm:text-left"
+        onClick={() => removeItem.mutate({ productId: item.productId }, mutateOpts)}
+      >
+        Remove
+      </button>
+    </div>
   )
 }

@@ -1,9 +1,10 @@
 import { ProductDetail } from "@/components/product-detail"
+import { StorePage } from "@/components/store-page"
 
 export default function ProductPage() {
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <StorePage>
       <ProductDetail />
-    </main>
+    </StorePage>
   )
 }

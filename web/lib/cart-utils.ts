@@ -7,6 +7,9 @@ export function getCartSubtotal(cart: Cart | undefined) {
   }
 
   return cart.cartItems.reduce((sum, item) => {
+    if (!item.product) {
+      return sum
+    }
     const unit = Number.parseFloat(item.product.price)
     if (Number.isNaN(unit)) {
       return sum

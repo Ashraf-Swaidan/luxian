@@ -1,27 +1,27 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { useAddToCart } from "@/features/cart/hooks"
 import { toastApiError } from "@/lib/error-message"
 import { useAuth } from "@/providers/auth-provider"
+import { cn } from "@/lib/utils"
 
 type AddToCartButtonProps = {
   productId: string
   disabled?: boolean
+  className?: string
 }
 
-export function AddToCartButton({ productId, disabled }: AddToCartButtonProps) {
+export function AddToCartButton({ productId, disabled, className }: AddToCartButtonProps) {
   const { user } = useAuth()
-  const router = useRouter()
   const addToCart = useAddToCart()
 
   if (!user) {
     return (
-      <Button asChild disabled={disabled}>
+      <Button asChild disabled={disabled} className={cn("w-full sm:w-auto", className)}>
         <Link href={`/login?redirect=/products/${productId}`}>Sign in to add to cart</Link>
       </Button>
     )
@@ -29,18 +29,19 @@ export function AddToCartButton({ productId, disabled }: AddToCartButtonProps) {
 
   return (
     <Button
-      disabled={disabled || addToCart.isPending}
+      className={cn("luxian-cta w-full sm:w-auto", className)}
+      disabled={disabled}
       onClick={() => {
-        addToCart.mutate({ productId }, {
-          onSuccess: () => {
-            toast.success("Added to cart")
-            router.push("/cart")
+        addToCart.mutate(
+          { productId },
+          {
+            onSuccess: () => toast.success("Added to bag"),
+            onError: (error) => toastApiError(error, "Could not add to cart"),
           },
-          onError: (error) => toastApiError(error, "Could not add to cart"),
-        })
+        )
       }}
     >
-      {addToCart.isPending ? "Adding…" : "Add to cart"}
+      Add to bag
     </Button>
   )
 }

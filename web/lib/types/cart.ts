@@ -5,7 +5,7 @@ export type CartItem = {
   quantity: number
   productId: string
   cartId: string
-  product: Product
+  product?: Product
 }
 
 export type Cart = {
