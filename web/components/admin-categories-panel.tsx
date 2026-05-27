@@ -15,19 +15,9 @@ import {
   getCategories,
   updateCategory,
 } from "@/features/categories/api"
-import { ApiError } from "@/lib/api-client"
+import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 import type { Category } from "@/lib/types/category"
-
-function showError(error: unknown) {
-  const message =
-    error instanceof ApiError
-      ? error.messages.join(", ")
-      : error instanceof Error
-        ? error.message
-        : "Request failed"
-  toast.error(message)
-}
 
 export function AdminCategoriesPanel() {
   const queryClient = useQueryClient()
@@ -54,7 +44,7 @@ export function AdminCategoriesPanel() {
       setDescription("")
       invalidate()
     },
-    onError: showError,
+    onError: (e) => toastApiError(e),
   })
 
   const updateMutation = useMutation({
@@ -64,7 +54,7 @@ export function AdminCategoriesPanel() {
       toast.success("Category updated")
       invalidate()
     },
-    onError: showError,
+    onError: (e) => toastApiError(e),
   })
 
   const deleteMutation = useMutation({
@@ -73,7 +63,7 @@ export function AdminCategoriesPanel() {
       toast.success("Category deactivated")
       invalidate()
     },
-    onError: showError,
+    onError: (e) => toastApiError(e),
   })
 
   return (

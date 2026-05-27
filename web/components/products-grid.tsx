@@ -1,12 +1,13 @@
 "use client"
 
+import { useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { toast } from "sonner"
 
+import { EmptyState } from "@/components/empty-state"
 import { ProductCard } from "@/components/product-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getProducts } from "@/features/products/api"
-import { ApiError } from "@/lib/api-client"
+import { getErrorMessage, toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 
 type ProductsGridProps = {
@@ -20,6 +21,12 @@ export function ProductsGrid({ categoryId, limit, title }: ProductsGridProps) {
     queryKey: queryKeys.products.list(categoryId),
     queryFn: () => getProducts(categoryId),
   })
+
+  useEffect(() => {
+    if (isError) {
+      toastApiError(error, "Failed to load products")
+    }
+  }, [isError, error])
 
   if (isPending) {
     return (
@@ -35,19 +42,12 @@ export function ProductsGrid({ categoryId, limit, title }: ProductsGridProps) {
   }
 
   if (isError) {
-    const message =
-      error instanceof ApiError
-        ? error.messages.join(", ")
-        : error instanceof Error
-          ? error.message
-          : "Failed to load products"
-
-    toast.error(message)
-
     return (
-      <section className="space-y-2">
+      <section className="space-y-4">
         {title && <h2 className="text-lg font-medium">{title}</h2>}
-        <p className="text-sm text-destructive">{message}</p>
+        <p className="text-sm text-destructive">
+          {getErrorMessage(error, "Failed to load products")}
+        </p>
       </section>
     )
   }
@@ -56,9 +56,14 @@ export function ProductsGrid({ categoryId, limit, title }: ProductsGridProps) {
 
   if (!products?.length) {
     return (
-      <section className="space-y-2">
+      <section className="space-y-4">
         {title && <h2 className="text-lg font-medium">{title}</h2>}
-        <p className="text-sm text-muted-foreground">No products available yet.</p>
+        <EmptyState
+          title="No products yet"
+          description="Check back soon, or sign in as admin to add catalog items."
+          actionLabel="Browse shop"
+          actionHref="/products"
+        />
       </section>
     )
   }

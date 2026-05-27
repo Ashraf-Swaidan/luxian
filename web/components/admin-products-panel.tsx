@@ -16,20 +16,10 @@ import {
   getProducts,
   updateProduct,
 } from "@/features/products/api"
-import { ApiError } from "@/lib/api-client"
+import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import { queryKeys } from "@/lib/query-keys"
 import type { Product } from "@/lib/types/product"
-
-function showError(error: unknown) {
-  const message =
-    error instanceof ApiError
-      ? error.messages.join(", ")
-      : error instanceof Error
-        ? error.message
-        : "Request failed"
-  toast.error(message)
-}
 
 export function AdminProductsPanel() {
   const queryClient = useQueryClient()
@@ -65,7 +55,7 @@ export function AdminProductsPanel() {
       setDescription("")
       invalidate()
     },
-    onError: showError,
+    onError: (e) => toastApiError(e),
   })
 
   const updateMutation = useMutation({
@@ -80,7 +70,7 @@ export function AdminProductsPanel() {
       toast.success("Product updated")
       invalidate()
     },
-    onError: showError,
+    onError: (e) => toastApiError(e),
   })
 
   const deleteMutation = useMutation({
@@ -89,7 +79,7 @@ export function AdminProductsPanel() {
       toast.success("Product deactivated")
       invalidate()
     },
-    onError: showError,
+    onError: (e) => toastApiError(e),
   })
 
   const defaultCategory = categoryId || categories?.[0]?.id || ""

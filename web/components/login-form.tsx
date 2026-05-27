@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ApiError } from "@/lib/api-client"
+import { toastApiError } from "@/lib/error-message"
 import { loginSchema, type LoginFormValues } from "@/lib/validations/auth"
 import { useAuth } from "@/providers/auth-provider"
 
@@ -34,13 +34,7 @@ export function LoginForm() {
       toast.success("Welcome back")
       router.replace(redirect)
     } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? error.messages.join(", ")
-          : error instanceof Error
-            ? error.message
-            : "Something went wrong"
-      toast.error(message)
+      toastApiError(error)
     }
   })
 

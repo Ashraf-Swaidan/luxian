@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useOrders } from "@/features/orders/hooks"
 import { formatPrice } from "@/lib/format-price"
@@ -59,12 +59,12 @@ export function OrdersList() {
 
   if (!orders?.length) {
     return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">You have not placed any orders yet.</p>
-        <Button asChild>
-          <Link href="/products">Start shopping</Link>
-        </Button>
-      </div>
+      <EmptyState
+        title="No orders yet"
+        description="When you complete checkout, your orders will appear here."
+        actionLabel="Start shopping"
+        actionHref="/products"
+      />
     )
   }
 

@@ -5,7 +5,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { useRemoveCartItem, useUpdateCartItem } from "@/features/cart/hooks"
-import { ApiError } from "@/lib/api-client"
+import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import type { CartItem } from "@/lib/types/cart"
 
@@ -14,13 +14,7 @@ type CartLineItemProps = {
 }
 
 function showError(error: unknown) {
-  const message =
-    error instanceof ApiError
-      ? error.messages.join(", ")
-      : error instanceof Error
-        ? error.message
-        : "Something went wrong"
-  toast.error(message)
+  toastApiError(error)
 }
 
 export function CartLineItem({ item }: CartLineItemProps) {

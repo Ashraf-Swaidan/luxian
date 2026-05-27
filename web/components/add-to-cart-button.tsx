@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { useAddToCart } from "@/features/cart/hooks"
-import { ApiError } from "@/lib/api-client"
+import { toastApiError } from "@/lib/error-message"
 import { useAuth } from "@/providers/auth-provider"
 
 type AddToCartButtonProps = {
@@ -36,15 +36,7 @@ export function AddToCartButton({ productId, disabled }: AddToCartButtonProps) {
             toast.success("Added to cart")
             router.push("/cart")
           },
-          onError: (error) => {
-            const message =
-              error instanceof ApiError
-                ? error.messages.join(", ")
-                : error instanceof Error
-                  ? error.message
-                  : "Could not add to cart"
-            toast.error(message)
-          },
+          onError: (error) => toastApiError(error, "Could not add to cart"),
         })
       }}
     >

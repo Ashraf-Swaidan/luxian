@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/features/cart/hooks"
 import { useCheckout } from "@/features/orders/hooks"
-import { ApiError } from "@/lib/api-client"
+import { EmptyState } from "@/components/empty-state"
+import { toastApiError } from "@/lib/error-message"
 import { formatCartSubtotal } from "@/lib/cart-utils"
 import { formatPrice } from "@/lib/format-price"
 
@@ -49,12 +50,12 @@ export function CheckoutForm() {
 
   if (items.length === 0) {
     return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Your cart is empty.</p>
-        <Button asChild>
-          <Link href="/products">Browse products</Link>
-        </Button>
-      </div>
+      <EmptyState
+        title="Cart is empty"
+        description="Add items before checkout, or you may have already placed your order."
+        actionLabel="Back to shop"
+        actionHref="/products"
+      />
     )
   }
 
@@ -62,15 +63,7 @@ export function CheckoutForm() {
     checkout.mutate(
       { shippingAddress: shippingAddress.trim() || undefined },
       {
-        onError: (error) => {
-          const message =
-            error instanceof ApiError
-              ? error.messages.join(", ")
-              : error instanceof Error
-                ? error.message
-                : "Checkout failed"
-          toast.error(message)
-        },
+        onError: (error) => toastApiError(error, "Checkout failed"),
       },
     )
   }

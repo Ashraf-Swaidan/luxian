@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ApiError } from "@/lib/api-client"
+import { toastApiError } from "@/lib/error-message"
 import {
   registerSchema,
   type RegisterFormValues,
@@ -41,13 +41,7 @@ export function RegisterForm() {
       toast.success("Account created")
       router.replace("/")
     } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? error.messages.join(", ")
-          : error instanceof Error
-            ? error.message
-            : "Something went wrong"
-      toast.error(message)
+      toastApiError(error)
     }
   })
 

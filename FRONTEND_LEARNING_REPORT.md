@@ -331,10 +331,10 @@ See [§0. Bootstrap](#0-bootstrap--create-web-do-once) (F0.1–F0.7).
 
 ### Phase H — Polish
 
-- [ ] **H1** — `sonner` toasts for API errors (normalize `message` array).
-- [ ] **H2** — Empty states (empty cart, no orders, no products).
-- [ ] **H3** — `loading.tsx` / skeletons on main routes.
-- [ ] **H4** — Update root `README.md` with web quick start.
+- [x] **H1** — `sonner` toasts for API errors (normalize `message` array).
+- [x] **H2** — Empty states (empty cart, no orders, no products).
+- [x] **H3** — `loading.tsx` / skeletons on main routes.
+- [x] **H4** — Update root `README.md` with web quick start.
 - [ ] **H5** — Optional: extract shared API types to `packages/types` — **only if you want extra monorepo practice**.
 
 ---
@@ -401,10 +401,11 @@ _Update after every reviewed step._
 | 2026-05-26 | D1–D5 | Cart API, hooks, line items, badge, add-to-cart | `useMutation` + invalidate `queryKeys.cart`; JWT required on `/cart` |
 | 2026-05-26 | E1–E5 | Checkout, orders list/detail | `POST /orders/checkout` invalidates cart + orders; stub pay COMPLETED |
 | 2026-05-26 | G1–G4 | Admin layout, categories/products CRUD | `RequireAdmin` + ADMIN nav link; 403 for non-admin |
+| 2026-05-26 | H1–H4 | `toastApiError`, `EmptyState`, route `loading.tsx`, README | Centralized error messages; products grid toast in `useEffect` |
 
 ### Current focus
 
-**Next:** **Phase H — Polish** (toasts, empty states, README).
+**Next:** Frontend MVP complete (H1–H4). Optional: H5 shared types, Stripe, `GET /products/:id`.
 
 ### Notes & questions (your scratchpad)
 

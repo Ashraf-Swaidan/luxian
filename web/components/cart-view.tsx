@@ -3,7 +3,7 @@
 import Link from "next/link"
 
 import { CartLineItem } from "@/components/cart-line-item"
-import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/features/cart/hooks"
 import { formatCartSubtotal } from "@/lib/cart-utils"
@@ -32,12 +32,12 @@ export function CartView() {
 
   if (items.length === 0) {
     return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Your cart is empty.</p>
-        <Button asChild>
-          <Link href="/products">Browse products</Link>
-        </Button>
-      </div>
+      <EmptyState
+        title="Your cart is empty"
+        description="Add something from the shop, then return here to checkout."
+        actionLabel="Browse products"
+        actionHref="/products"
+      />
     )
   }
 

@@ -1,59 +1,76 @@
 # Luxian
 
-Learning monorepo: NestJS API + Next.js storefront (in progress).
+Learning monorepo: NestJS API + Next.js storefront.
 
 ## Structure
 
-| Path | Stack |
-|------|--------|
-| `api/` | NestJS, Prisma, PostgreSQL |
-| `web/` | Next.js (App Router), Tailwind, shadcn/ui — see [frontend plan](#frontend-bootstrap) |
+| Path | Stack | Port (dev) |
+|------|--------|------------|
+| `api/` | NestJS, Prisma, PostgreSQL | **3000** |
+| `web/` | Next.js (App Router), Tailwind, shadcn/ui | **3001** |
 
-## Quick start (API)
+## Run locally
+
+Use **two terminals** — API first, then web.
+
+### 1. API
 
 ```bash
 cd api
-cp .env.example .env   # fill DATABASE_URL, JWT_SECRET
+cp .env.example .env   # set DATABASE_URL, JWT_SECRET
 npm install
 npx prisma migrate dev
 npm run db:seed
 npm run dev
 ```
 
-Base URL: `http://localhost:3000/api/v1`
+- Base URL: `http://localhost:3000/api/v1`
+- CORS allows `http://localhost:3001` (see `CORS_ORIGIN` in `api/.env.example`)
 
-Demo logins (after seed): `admin@demo.com` / `user@demo.com` — password `Secret1!`
+### 2. Web storefront
 
-## Frontend bootstrap
+```bash
+cd web
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
+npm install
+npm run dev
+```
 
-From the **repo root** (creates `web/`, does not use shadcn’s Turborepo layout):
+- Storefront: `http://localhost:3001`
+
+## Demo accounts (after seed)
+
+| Email | Password | Role |
+|-------|----------|------|
+| `user@demo.com` | `Secret1!` | Shopper |
+| `admin@demo.com` | `Secret1!` | Admin (catalog CRUD at `/admin`) |
+
+## Storefront routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Home + featured products |
+| `/products` | Shop catalog |
+| `/products/[id]` | Product detail |
+| `/login`, `/register` | Auth |
+| `/cart` | Cart (login required) |
+| `/checkout` | Place order (stub payment) |
+| `/account/orders` | Order history |
+| `/account/orders/[id]` | Order detail |
+| `/admin` | Admin dashboard (ADMIN only) |
+
+## Docs
+
+- [`api/LEARNING_REPORT.md`](api/LEARNING_REPORT.md) — API learning track (complete)
+- [`FRONTEND_LEARNING_REPORT.md`](FRONTEND_LEARNING_REPORT.md) — Frontend learning track
+- [`api/POSTMAN_TESTING.md`](api/POSTMAN_TESTING.md) — Manual API testing
+
+## Frontend scaffold (one-time)
+
+If `web/` is missing, from repo root:
 
 ```bash
 npx shadcn@latest init --preset b1G2AXDzm --template next --pointer --no-monorepo -n web -y
 ```
 
-**Nested git:** shadcn has no `--no-git`. If `web/.git` exists, remove it so only the root repo tracks `web/`:
-
-```powershell
-# PowerShell, from repo root
-if (Test-Path web\.git) { Remove-Item -Recurse -Force web\.git }
-```
-
-Then: set Next to port **3001**, add `web/.env.local` from `web/.env.example`, enable CORS on the API — see `FRONTEND_LEARNING_REPORT.md` §0 (F0).
-
-## Quick start (Web, after F0)
-
-```bash
-cd web
-cp .env.example .env.local
-npm install
-npm run dev
-```
-
-Storefront: `http://localhost:3001` (API must be running on `3000`).
-
-## Docs
-
-- `api/LEARNING_REPORT.md` — API roadmap & progress
-- `FRONTEND_LEARNING_REPORT.md` — frontend roadmap
-- `api/POSTMAN_TESTING.md` — manual API tests
+Remove nested git if created: `Remove-Item -Recurse -Force web\.git` (PowerShell).
