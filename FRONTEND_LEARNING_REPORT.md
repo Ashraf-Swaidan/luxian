@@ -316,11 +316,11 @@ See [§0. Bootstrap](#0-bootstrap--create-web-do-once) (F0.1–F0.7).
 
 ### Phase E — Checkout & orders
 
-- [ ] **E1** — `app/checkout/page.tsx`: shipping address (optional), review lines, place order button.
-- [ ] **E2** — `POST /orders/checkout` mutation; on success → redirect `/account/orders/[id]`.
-- [ ] **E3** — `app/account/orders/page.tsx`: list orders (`GET /orders`).
-- [ ] **E4** — `app/account/orders/[id]/page.tsx`: detail + payment status.
-- [ ] **E5** — Handle 400 “Cart is empty” with friendly message.
+- [x] **E1** — `app/checkout/page.tsx`: shipping address (optional), review lines, place order button.
+- [x] **E2** — `POST /orders/checkout` mutation; on success → redirect `/account/orders/[id]`.
+- [x] **E3** — `app/account/orders/page.tsx`: list orders (`GET /orders`).
+- [x] **E4** — `app/account/orders/[id]/page.tsx`: detail + payment status.
+- [x] **E5** — Handle 400 “Cart is empty” with friendly message.
 
 ### Phase G — Admin (after shopper path works)
 
@@ -399,10 +399,11 @@ _Update after every reviewed step._
 | 2026-05-26 | B1–B7 | Auth storage, provider, login/register, header, require-auth | Bearer + refresh on 401; localStorage session; demo `user@demo.com` / `Secret1!` |
 | 2026-05-26 | C1–C5 | Product types, grid, detail, formatPrice, home featured | `GET /products` public; detail finds id from list (no GET by id on API yet) |
 | 2026-05-26 | D1–D5 | Cart API, hooks, line items, badge, add-to-cart | `useMutation` + invalidate `queryKeys.cart`; JWT required on `/cart` |
+| 2026-05-26 | E1–E5 | Checkout, orders list/detail | `POST /orders/checkout` invalidates cart + orders; stub pay COMPLETED |
 
 ### Current focus
 
-**Next:** **Phase E — Checkout & orders** (`POST /orders/checkout`, order history).
+**Next:** **Phase G — Admin** (categories/products CRUD) or **Phase H — Polish**.
 
 ### Notes & questions (your scratchpad)
 

@@ -55,12 +55,9 @@ export function CartView() {
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-medium">{formatCartSubtotal(cart)}</span>
         </div>
-        <Button className="w-full" asChild>
-          <Link href="/checkout">Proceed to checkout</Link>
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          Checkout is wired in the next phase.
-        </p>
+        <Link href="/checkout" className="luxian-cta luxian-cta-ring w-full text-center">
+          Proceed to checkout
+        </Link>
       </aside>
     </div>
   )
