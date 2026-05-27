@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
+import { SiteHeaderAuth } from "@/components/site-header-auth"
 
 const navLinks = [
   { href: "/products", label: "Shop" },
@@ -28,14 +28,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">Log in</Link>
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/register">Sign up</Link>
-          </Button>
-        </div>
+        <SiteHeaderAuth />
       </div>
     </header>
   )

@@ -289,22 +289,22 @@ See [§0. Bootstrap](#0-bootstrap--create-web-do-once) (F0.1–F0.7).
 
 ### Phase B — Auth
 
-- [ ] **B1** — Types: `AuthUser`, `AuthResponse`, `Role`; `lib/auth-storage.ts` get/set/clear tokens + user snapshot.
-- [ ] **B2** — `providers/auth-provider.tsx`: state, `login`, `register`, `logout`, `refreshSession`, `loadMe` on mount.
-- [ ] **B3** — Extend api-client: attach Bearer from storage; optional `onUnauthorized` callback for refresh loop.
-- [ ] **B4** — `app/(auth)/login/page.tsx` + register page: React Hook Form + Zod (password rules match API).
-- [ ] **B5** — On success → save tokens, set user, redirect `/` or `?redirect=`.
-- [ ] **B6** — Header: show email + logout; hide login when session exists.
-- [ ] **B7** — `components/require-auth.tsx` (client): redirect to `/login` if no session (cart, checkout, account).
+- [x] **B1** — Types: `AuthUser`, `AuthResponse`, `Role`; `lib/auth-storage.ts` get/set/clear tokens + user snapshot.
+- [x] **B2** — `providers/auth-provider.tsx`: state, `login`, `register`, `logout`, `loadMe` on mount.
+- [x] **B3** — Extend api-client: attach Bearer from storage; refresh on 401 via `auth/refresh`.
+- [x] **B4** — `app/(auth)/login/page.tsx` + register page: React Hook Form + Zod (password rules match API).
+- [x] **B5** — On success → save tokens, set user, redirect `/` or `?redirect=`.
+- [x] **B6** — Header: show email + logout; hide login when session exists.
+- [x] **B7** — `components/require-auth.tsx` (client): redirect to `/login` if no session (cart placeholder).
 - [ ] **B8** — Optional: `middleware.ts` only for coarse redirects — **JWT in middleware is limited**; prefer client guard + `me` for learning.
 
 ### Phase C — Catalog (shopper)
 
-- [ ] **C1** — `features/products/api.ts`: `getProducts`, `getProduct` (if you add by-id route later, or filter client-side from list).
-- [ ] **C2** — `app/products/page.tsx`: grid, loading skeleton, error toast.
-- [ ] **C3** — `app/products/[id]/page.tsx`: detail, price, stock, add-to-cart button (disabled if stock 0).
-- [ ] **C4** — `lib/format-price.ts` + use on all price displays.
-- [ ] **C5** — Home `page.tsx`: featured section (e.g. first N products from query).
+- [x] **C1** — `features/products/api.ts`: `getProducts`, `getProduct` (if you add by-id route later, or filter client-side from list).
+- [x] **C2** — `app/products/page.tsx`: grid, loading skeleton, error toast.
+- [x] **C3** — `app/products/[id]/page.tsx`: detail, price, stock, add-to-cart button (disabled if stock 0).
+- [x] **C4** — `lib/format-price.ts` + use on all price displays.
+- [x] **C5** — Home `page.tsx`: featured section (e.g. first N products from query).
 
 ### Phase D — Cart
 
@@ -396,10 +396,12 @@ _Update after every reviewed step._
 |------|------|---------|----------------------|
 | 2026-05-26 | — | Frontend plan written; stack aligned with Nest API | Thin client; no nested git in `web/`; port 3001; Bearer + refresh |
 | 2026-05-26 | F0 + A1–A5 | API client, Query provider, home ping, site header | `api.get`; Query keys factory; CORS + env for browser fetch |
+| 2026-05-26 | B1–B7 | Auth storage, provider, login/register, header, require-auth | Bearer + refresh on 401; localStorage session; demo `user@demo.com` / `Secret1!` |
+| 2026-05-26 | C1–C5 | Product types, grid, detail, formatPrice, home featured | `GET /products` public; detail finds id from list (no GET by id on API yet) |
 
 ### Current focus
 
-**Next:** **Phase B — Auth** (B1 types + storage → B4 login/register pages).
+**Next:** **Phase D — Cart** (GET cart, add/update/remove, cart page).
 
 ### Notes & questions (your scratchpad)
 

@@ -1,3 +1,6 @@
+import { clearAuth, getAccessToken, getRefreshToken, saveAuth } from "@/lib/auth-storage"
+import type { AuthResponse } from "@/lib/types/auth"
+
 /** Matches Nest `HttpExceptionFilter` error body */
 export type ApiErrorBody = {
   statusCode: number
@@ -37,6 +40,10 @@ type RequestOptions = {
   body?: unknown
   token?: string | null
   headers?: HeadersInit
+  /** Skip Bearer header (login, register, refresh) */
+  auth?: boolean
+  /** Internal: prevent infinite refresh loops */
+  _retry?: boolean
 }
 
 async function parseBody<T>(response: Response): Promise<T> {
@@ -53,8 +60,39 @@ async function parseBody<T>(response: Response): Promise<T> {
   return text as T
 }
 
+let refreshInFlight: Promise<boolean> | null = null
+
+async function refreshTokens(): Promise<boolean> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) {
+    clearAuth()
+    return false
+  }
+
+  if (!refreshInFlight) {
+    refreshInFlight = request<AuthResponse>("auth/refresh", {
+      method: "POST",
+      body: { refreshToken },
+      auth: false,
+    })
+      .then((response) => {
+        saveAuth(response)
+        return true
+      })
+      .catch(() => {
+        clearAuth()
+        return false
+      })
+      .finally(() => {
+        refreshInFlight = null
+      })
+  }
+
+  return refreshInFlight
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token, headers } = options
+  const { method = "GET", body, token, headers, auth = true, _retry = false } = options
   const base = getBaseUrl()
   const normalizedPath = path.startsWith("/") ? path : path ? `/${path}` : ""
   const url = `${base}${normalizedPath}`
@@ -63,8 +101,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (body !== undefined && !requestHeaders.has("Content-Type")) {
     requestHeaders.set("Content-Type", "application/json")
   }
-  if (token) {
-    requestHeaders.set("Authorization", `Bearer ${token}`)
+
+  const bearer = token ?? (auth ? getAccessToken() : null)
+  if (bearer) {
+    requestHeaders.set("Authorization", `Bearer ${bearer}`)
   }
 
   const response = await fetch(url, {
@@ -72,6 +112,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     headers: requestHeaders,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
+
+  if (response.status === 401 && auth && !_retry) {
+    const refreshed = await refreshTokens()
+    if (refreshed) {
+      return request<T>(path, { ...options, _retry: true })
+    }
+  }
 
   if (!response.ok) {
     try {
@@ -94,17 +141,11 @@ export const api = {
   get: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
     request<T>(path, { ...options, method: "GET" }),
 
-  post: <T>(
-    path: string,
-    body?: unknown,
-    options?: Omit<RequestOptions, "method" | "body">,
-  ) => request<T>(path, { ...options, method: "POST", body }),
+  post: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) =>
+    request<T>(path, { ...options, method: "POST", body }),
 
-  patch: <T>(
-    path: string,
-    body?: unknown,
-    options?: Omit<RequestOptions, "method" | "body">,
-  ) => request<T>(path, { ...options, method: "PATCH", body }),
+  patch: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) =>
+    request<T>(path, { ...options, method: "PATCH", body }),
 
   delete: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
     request<T>(path, { ...options, method: "DELETE" }),
@@ -112,5 +153,5 @@ export const api = {
 
 /** `GET /api/v1` health check — returns plain string from Nest */
 export function pingApi() {
-  return api.get<string>("")
+  return api.get<string>("", { auth: false })
 }
