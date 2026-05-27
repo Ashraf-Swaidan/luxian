@@ -26,13 +26,15 @@ export function ProductCard({ product }: ProductCardProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              {product.category.name}
+              {product.category?.name ?? "Product"}
             </div>
           )}
         </div>
         <CardHeader className="pb-2">
           <CardTitle className="line-clamp-1">{product.name}</CardTitle>
-          <CardDescription className="line-clamp-1">{product.category.name}</CardDescription>
+          <CardDescription className="line-clamp-1">
+            {product.category?.name ?? "Uncategorized"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between pt-0">
           <span className="font-medium">{formatPrice(product.price)}</span>

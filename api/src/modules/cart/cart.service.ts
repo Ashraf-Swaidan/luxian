@@ -11,7 +11,11 @@ import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 const cartWithItems = Prisma.validator<Prisma.CartDefaultArgs>()({
   include: {
     cartItems: {
-      include: { product: true },
+      include: {
+        product: {
+          include: { category: true },
+        },
+      },
       orderBy: { product: { name: 'asc' } },
     },
   },

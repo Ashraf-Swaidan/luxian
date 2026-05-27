@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 
+import { AddToCartButton } from "@/components/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getProducts } from "@/features/products/api"
@@ -62,12 +63,16 @@ export function ProductDetail() {
   return (
     <div className="grid gap-10 lg:grid-cols-2">
       <div className="flex aspect-square items-center justify-center rounded-2xl bg-muted ring-1 ring-foreground/10">
-        <span className="text-sm text-muted-foreground">{product.category.name}</span>
+        <span className="text-sm text-muted-foreground">
+          {product.category?.name ?? "Product"}
+        </span>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{product.category.name}</p>
+          {product.category && (
+            <p className="text-sm text-muted-foreground">{product.category.name}</p>
+          )}
           <h1 className="text-3xl font-medium tracking-tight">{product.name}</h1>
           <p className="text-2xl font-medium">{formatPrice(product.price)}</p>
           <p className="text-sm text-muted-foreground">
@@ -82,19 +87,11 @@ export function ProductDetail() {
         )}
 
         <div className="flex flex-wrap gap-3">
-          <Button disabled={outOfStock} title={outOfStock ? "Out of stock" : undefined}>
-            Add to cart
-          </Button>
+          <AddToCartButton productId={product.id} disabled={outOfStock} />
           <Button variant="outline" asChild>
             <Link href="/products">Continue shopping</Link>
           </Button>
         </div>
-
-        {!outOfStock && (
-          <p className="text-xs text-muted-foreground">
-            Cart wiring comes in the next step — button is ready.
-          </p>
-        )}
       </div>
     </div>
   )

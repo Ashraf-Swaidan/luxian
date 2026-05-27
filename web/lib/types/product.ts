@@ -16,5 +16,5 @@ export type Product = {
   imageUrl: string | null
   isActive: boolean
   categoryId: string
-  category: Category
+  category?: Category
 }

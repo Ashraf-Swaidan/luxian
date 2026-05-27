@@ -45,17 +45,23 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --color-luxian-teal: var(--luxian-teal);
+    --color-luxian-coral: var(--luxian-coral);
+    --color-luxian-amber: var(--luxian-amber);
 }
 
 :root {
+    --luxian-teal: oklch(0.72 0.14 195);
+    --luxian-coral: oklch(0.68 0.18 25);
+    --luxian-amber: oklch(0.82 0.16 85);
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.55 0.14 195);
+    --primary-foreground: oklch(0.99 0 0);
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
@@ -83,14 +89,17 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
+    --luxian-teal: oklch(0.75 0.14 195);
+    --luxian-coral: oklch(0.72 0.18 25);
+    --luxian-amber: oklch(0.85 0.16 85);
+    --background: oklch(0.12 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
+    --primary: oklch(0.72 0.14 195);
+    --primary-foreground: oklch(0.12 0 0);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
@@ -114,6 +123,23 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer components {
+  .luxian-cta {
+    @apply inline-flex h-10 items-center justify-center rounded-full px-6 text-sm font-medium transition-all;
+    background: var(--luxian-teal);
+    color: oklch(0.12 0 0);
+  }
+  .luxian-cta:hover {
+    filter: brightness(1.08);
+  }
+  .luxian-cta-ring:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--luxian-teal);
+  }
 }
 
 @layer base {

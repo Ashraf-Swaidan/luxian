@@ -36,9 +36,9 @@ export function SiteHeaderAuth() {
       <Button variant="ghost" size="sm" asChild>
         <Link href="/login">Log in</Link>
       </Button>
-      <Button size="sm" asChild>
-        <Link href="/register">Sign up</Link>
-      </Button>
+      <Link href="/register" className="luxian-cta luxian-cta-ring h-8 px-4 text-xs">
+        Sign up
+      </Link>
     </div>
   )
 }

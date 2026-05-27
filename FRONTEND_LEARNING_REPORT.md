@@ -308,11 +308,11 @@ See [§0. Bootstrap](#0-bootstrap--create-web-do-once) (F0.1–F0.7).
 
 ### Phase D — Cart
 
-- [ ] **D1** — `useCart` query: `GET /cart`, key `['cart']`.
-- [ ] **D2** — Mutations: add / update / remove; `invalidateQueries(['cart'])` on success.
-- [ ] **D3** — `app/cart/page.tsx`: line items, qty stepper, subtotal (sum line `quantity * price`).
-- [ ] **D4** — Header cart badge (item count from cart query).
-- [ ] **D5** — Require auth for cart routes (guest → login with return URL).
+- [x] **D1** — `useCart` query: `GET /cart`, key `['cart']`.
+- [x] **D2** — Mutations: add / update / remove; `invalidateQueries(['cart'])` on success.
+- [x] **D3** — `app/cart/page.tsx`: line items, qty stepper, subtotal (sum line `quantity * price`).
+- [x] **D4** — Header cart badge (item count from cart query).
+- [x] **D5** — Require auth for cart routes (guest → login with return URL).
 
 ### Phase E — Checkout & orders
 
@@ -398,10 +398,11 @@ _Update after every reviewed step._
 | 2026-05-26 | F0 + A1–A5 | API client, Query provider, home ping, site header | `api.get`; Query keys factory; CORS + env for browser fetch |
 | 2026-05-26 | B1–B7 | Auth storage, provider, login/register, header, require-auth | Bearer + refresh on 401; localStorage session; demo `user@demo.com` / `Secret1!` |
 | 2026-05-26 | C1–C5 | Product types, grid, detail, formatPrice, home featured | `GET /products` public; detail finds id from list (no GET by id on API yet) |
+| 2026-05-26 | D1–D5 | Cart API, hooks, line items, badge, add-to-cart | `useMutation` + invalidate `queryKeys.cart`; JWT required on `/cart` |
 
 ### Current focus
 
-**Next:** **Phase D — Cart** (GET cart, add/update/remove, cart page).
+**Next:** **Phase E — Checkout & orders** (`POST /orders/checkout`, order history).
 
 ### Notes & questions (your scratchpad)
 
