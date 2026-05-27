@@ -1,6 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useCallback } from "react"
 
 import {
   bumpCartItemQuantity,
@@ -9,6 +10,7 @@ import {
   setCart,
   snapshotCart,
 } from "@/features/cart/cart-cache"
+import { scheduleCartLineQuantity } from "@/features/cart/cart-quantity-sync"
 import {
   addCartItem,
   getCart,
@@ -62,7 +64,6 @@ function useCartCacheMutation<TVariables>(
 }
 
 type AddToCartVariables = { productId: string; quantity?: number }
-type CartItemVariables = { productId: string; quantity: number }
 type RemoveCartItemVariables = { productId: string }
 
 export function useAddToCart() {
@@ -73,8 +74,9 @@ export function useAddToCart() {
   })
 }
 
+/** @deprecated Prefer useSetCartLineQuantity for +/- controls (avoids race on fast clicks) */
 export function useUpdateCartItem() {
-  return useCartCacheMutation<CartItemVariables>({
+  return useCartCacheMutation<{ productId: string; quantity: number }>({
     mutationFn: ({ productId, quantity }) => updateCartItem(productId, quantity),
     onOptimistic: (cart, { productId, quantity }) =>
       patchCartItemQuantity(cart, productId, quantity),
@@ -86,4 +88,15 @@ export function useRemoveCartItem() {
     mutationFn: ({ productId }) => removeCartItem(productId),
     onOptimistic: (cart, { productId }) => patchCartItemQuantity(cart, productId, 0),
   })
+}
+
+export function useSetCartLineQuantity() {
+  const queryClient = useQueryClient()
+
+  return useCallback(
+    (productId: string, quantity: number, handlers?: { onError?: (error: unknown) => void }) => {
+      scheduleCartLineQuantity(queryClient, productId, quantity, handlers)
+    },
+    [queryClient],
+  )
 }

@@ -1,27 +1,31 @@
 "use client"
 
 import Link from "next/link"
+import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-import { useRemoveCartItem, useUpdateCartItem } from "@/features/cart/hooks"
+import { getCartLineQuantity } from "@/features/cart/cart-quantity-sync"
+import { useSetCartLineQuantity } from "@/features/cart/hooks"
 import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import type { CartItem } from "@/lib/types/cart"
+
 type CartLineItemProps = {
   item: CartItem
 }
 
 export function CartLineItem({ item }: CartLineItemProps) {
-  const updateItem = useUpdateCartItem()
-  const removeItem = useRemoveCartItem()
+  const queryClient = useQueryClient()
+  const setLineQuantity = useSetCartLineQuantity()
 
   const product = item.product
   if (!product) {
     return null
   }
 
+  const quantity = getCartLineQuantity(queryClient, item.productId, item.quantity)
   const unitPrice = Number.parseFloat(product.price)
-  const lineTotal = unitPrice * item.quantity
+  const lineTotal = unitPrice * quantity
   const maxQty = product.stock
 
   const mutateOpts = {
@@ -29,15 +33,11 @@ export function CartLineItem({ item }: CartLineItemProps) {
   }
 
   const changeQty = (next: number) => {
-    if (next < 1) {
-      removeItem.mutate({ productId: item.productId }, mutateOpts)
-      return
-    }
     if (next > maxQty) {
       toast.error(`Only ${maxQty} in stock`)
       return
     }
-    updateItem.mutate({ productId: item.productId, quantity: next }, mutateOpts)
+    setLineQuantity(item.productId, next, mutateOpts)
   }
 
   return (
@@ -60,19 +60,19 @@ export function CartLineItem({ item }: CartLineItemProps) {
           <button
             type="button"
             className="flex size-8 items-center justify-center rounded-md text-sm transition-colors hover:bg-background"
-            onClick={() => changeQty(item.quantity - 1)}
+            onClick={() => changeQty(quantity - 1)}
             aria-label="Decrease quantity"
           >
             −
           </button>
           <span className="min-w-8 text-center text-sm font-medium tabular-nums">
-            {item.quantity}
+            {quantity}
           </span>
           <button
             type="button"
             className="flex size-8 items-center justify-center rounded-md text-sm transition-colors hover:bg-background disabled:opacity-40"
-            disabled={item.quantity >= maxQty}
-            onClick={() => changeQty(item.quantity + 1)}
+            disabled={quantity >= maxQty}
+            onClick={() => changeQty(quantity + 1)}
             aria-label="Increase quantity"
           >
             +
@@ -87,7 +87,7 @@ export function CartLineItem({ item }: CartLineItemProps) {
       <button
         type="button"
         className="text-right text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline sm:text-left"
-        onClick={() => removeItem.mutate({ productId: item.productId }, mutateOpts)}
+        onClick={() => setLineQuantity(item.productId, 0, mutateOpts)}
       >
         Remove
       </button>
