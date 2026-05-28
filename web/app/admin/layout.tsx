@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { RequireAdmin } from "@/components/require-admin"
+import { RequireAdmin } from "@/components/auth/require-admin"
 import { cn } from "@/lib/utils"
 
 const adminLinks = [

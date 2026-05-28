@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 
-import { CartLineItem } from "@/components/cart-line-item"
-import { EmptyState } from "@/components/empty-state"
+import { CartLineItem } from "@/components/cart/cart-line-item"
+import { EmptyState } from "@/components/common/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/features/cart/hooks"
 import { formatCartSubtotal } from "@/lib/cart-utils"

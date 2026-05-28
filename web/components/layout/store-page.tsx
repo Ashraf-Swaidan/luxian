@@ -1,4 +1,4 @@
-import { StoreShell } from "@/components/store-shell"
+import { StoreShell } from "@/components/layout/store-shell"
 import { cn } from "@/lib/utils"
 
 type StorePageProps = {

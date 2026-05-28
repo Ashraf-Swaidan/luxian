@@ -1,5 +1,5 @@
-import { AccountProfile } from "@/components/account-profile"
-import { StorePage } from "@/components/store-page"
+import { AccountProfile } from "@/components/auth/account-profile"
+import { StorePage } from "@/components/layout/store-page"
 
 export default function ProfilePage() {
   return (

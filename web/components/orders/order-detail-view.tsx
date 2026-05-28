@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 
+import { OrderLineRow } from "@/components/orders/order-line-row"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useOrder } from "@/features/orders/hooks"
@@ -59,22 +60,22 @@ export function OrderDetailView() {
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="space-y-4 rounded-2xl border border-border/60 bg-card p-6">
           <h2 className="font-medium">Items</h2>
-          <ul className="divide-y divide-border/60">
+          <ul className="space-y-4">
             {order.orderItems.map((item) => (
-              <li
-                key={item.id}
-                className="flex justify-between gap-4 py-3 text-sm first:pt-0 last:pb-0"
-              >
-                <span>
-                  {item.product?.name ?? "Product"} × {item.quantity}
-                </span>
-                <span className="tabular-nums">
-                  {formatPrice(Number.parseFloat(item.price) * item.quantity)}
-                </span>
+              <li key={item.id}>
+                <OrderLineRow
+                  productId={item.productId}
+                  name={item.product?.name ?? "Product"}
+                  imageUrl={item.product?.imageUrl}
+                  quantity={item.quantity}
+                  unitPrice={item.price}
+                  lineTotal={Number.parseFloat(item.price) * item.quantity}
+                  className="py-0"
+                />
               </li>
             ))}
           </ul>
-          <div className="flex justify-between border-t border-border/60 pt-4 font-medium">
+          <div className="flex justify-between border-t border-border/60 pt-5 font-medium">
             <span>Total</span>
             <span className="tabular-nums">{formatPrice(order.totalAmount)}</span>
           </div>

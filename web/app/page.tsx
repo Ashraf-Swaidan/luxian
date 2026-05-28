@@ -1,6 +1,6 @@
-import { HomeHero } from "@/components/home-hero"
-import { ProductsGrid } from "@/components/products-grid"
-import { StoreShell } from "@/components/store-shell"
+import { HomeHero } from "@/components/layout/home-hero"
+import { ProductsGrid } from "@/components/products/products-grid"
+import { StoreShell } from "@/components/layout/store-shell"
 
 export default function Page() {
   return (

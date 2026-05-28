@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/features/cart/hooks"
 import { useCheckout } from "@/features/orders/hooks"
-import { EmptyState } from "@/components/empty-state"
+import { EmptyState } from "@/components/common/empty-state"
+import { OrderLineRow } from "@/components/orders/order-line-row"
 import { toastApiError } from "@/lib/error-message"
 import { formatCartSubtotal } from "@/lib/cart-utils"
 import { formatPrice } from "@/lib/format-price"
@@ -95,21 +96,23 @@ export function CheckoutForm() {
           <CardHeader>
             <CardTitle>Review items</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="divide-y divide-border/60">
             {items.map((item) => {
-              const unit = Number.parseFloat(item.product?.price ?? "0")
+              const product = item.product
+              if (!product) {
+                return null
+              }
+              const unit = Number.parseFloat(product.price)
               return (
-                <div
+                <OrderLineRow
                   key={item.id}
-                  className="flex justify-between gap-4 text-sm"
-                >
-                  <span>
-                    {item.product?.name ?? "Product"} × {item.quantity}
-                  </span>
-                  <span className="shrink-0 tabular-nums">
-                    {formatPrice(unit * item.quantity)}
-                  </span>
-                </div>
+                  productId={item.productId}
+                  name={product.name}
+                  imageUrl={product.imageUrl}
+                  quantity={item.quantity}
+                  unitPrice={product.price}
+                  lineTotal={unit * item.quantity}
+                />
               )
             })}
           </CardContent>

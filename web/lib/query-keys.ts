@@ -5,8 +5,13 @@ export const queryKeys = {
   },
   products: {
     all: ["products"] as const,
-    list: (categoryId?: string) =>
-      [...queryKeys.products.all, "list", { categoryId }] as const,
+    list: (params?: {
+      search?: string
+      categoryId?: string
+      page?: number
+      limit?: number
+    }) => [...queryKeys.products.all, "list", params ?? {}] as const,
+    detail: (id: string) => [...queryKeys.products.all, id] as const,
   },
   cart: ["cart"] as const,
   orders: {

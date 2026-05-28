@@ -3,23 +3,25 @@
 import { useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import { EmptyState } from "@/components/empty-state"
-import { ProductCard } from "@/components/product-card"
+import { EmptyState } from "@/components/common/empty-state"
+import { ProductCard } from "@/components/products/product-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getProducts } from "@/features/products/api"
 import { getErrorMessage, toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 
 type ProductsGridProps = {
-  categoryId?: string
-  limit?: number
   title?: string
+  limit?: number
 }
 
-export function ProductsGrid({ categoryId, limit, title }: ProductsGridProps) {
+/** Simple product strip (e.g. home page featured) — no search/pagination UI */
+export function ProductsGrid({ limit = 4, title }: ProductsGridProps) {
+  const params = { page: 1, limit }
+
   const { data, isPending, isError, error } = useQuery({
-    queryKey: queryKeys.products.list(categoryId),
-    queryFn: () => getProducts(categoryId),
+    queryKey: queryKeys.products.list(params),
+    queryFn: () => getProducts(params),
   })
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function ProductsGrid({ categoryId, limit, title }: ProductsGridProps) {
       <section className="space-y-4">
         {title && <h2 className="text-lg font-medium">{title}</h2>}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: limit ?? 6 }).map((_, i) => (
+          {Array.from({ length: limit }).map((_, i) => (
             <Skeleton key={i} className="aspect-[4/5] w-full rounded-2xl" />
           ))}
         </div>
@@ -52,9 +54,9 @@ export function ProductsGrid({ categoryId, limit, title }: ProductsGridProps) {
     )
   }
 
-  const products = limit ? data?.slice(0, limit) : data
+  const products = data?.data ?? []
 
-  if (!products?.length) {
+  if (!products.length) {
     return (
       <section className="space-y-4">
         {title && <h2 className="text-lg font-medium">{title}</h2>}

@@ -1,7 +1,7 @@
 import Link from "next/link"
 
-import { LuxianLogo } from "@/components/luxian-logo"
-import { StoreShell } from "@/components/store-shell"
+import { LuxianLogo } from "@/components/layout/luxian-logo"
+import { StoreShell } from "@/components/layout/store-shell"
 
 export function SiteFooter() {
   return (

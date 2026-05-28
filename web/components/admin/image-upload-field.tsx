@@ -4,7 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Loading03Icon } from "@hugeicons/core-free-icons"
 import { useRef } from "react"
 
-import { StoreImage } from "@/components/store-image"
+import { StoreImage } from "@/components/common/store-image"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"

@@ -1,9 +1,44 @@
 import { api } from "@/lib/api-client"
 import type { Product } from "@/lib/types/product"
+import type { PaginatedProducts, ProductListParams } from "@/features/products/types"
 
-export function getProducts(categoryId?: string) {
-  const query = categoryId ? `?categoryId=${encodeURIComponent(categoryId)}` : ""
-  return api.get<Product[]>(`products${query}`, { auth: false })
+function buildProductsQuery(params?: ProductListParams) {
+  if (!params) {
+    return ""
+  }
+
+  const search = new URLSearchParams()
+
+  if (params.search?.trim()) {
+    search.set("search", params.search.trim())
+  }
+  if (params.categoryId) {
+    search.set("categoryId", params.categoryId)
+  }
+  if (params.page !== undefined) {
+    search.set("page", String(params.page))
+  }
+  if (params.limit !== undefined) {
+    search.set("limit", String(params.limit))
+  }
+
+  const qs = search.toString()
+  return qs ? `?${qs}` : ""
+}
+
+export function getProducts(params?: ProductListParams) {
+  return api.get<PaginatedProducts>(`products${buildProductsQuery(params)}`, {
+    auth: false,
+  })
+}
+
+export function getProduct(id: string) {
+  return api.get<Product>(`products/${id}`, { auth: false })
+}
+
+/** Admin — fetch first page at API max page size */
+export function getProductsBulk(limit = 48) {
+  return getProducts({ page: 1, limit })
 }
 
 export type CreateProductInput = {

@@ -1,5 +1,5 @@
-import { OrdersList } from "@/components/orders-list"
-import { RequireAuth } from "@/components/require-auth"
+import { OrdersList } from "@/components/orders/orders-list"
+import { RequireAuth } from "@/components/auth/require-auth"
 
 export default function AccountOrdersPage() {
   return (

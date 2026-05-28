@@ -1,5 +1,5 @@
-import { CheckoutForm } from "@/components/checkout-form"
-import { RequireAuth } from "@/components/require-auth"
+import { CheckoutForm } from "@/components/orders/checkout-form"
+import { RequireAuth } from "@/components/auth/require-auth"
 
 export default function CheckoutPage() {
   return (

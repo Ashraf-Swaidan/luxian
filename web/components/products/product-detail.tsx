@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 
-import { StoreImage } from "@/components/store-image"
+import { StoreImage } from "@/components/common/store-image"
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 
-import { AddToCartButton } from "@/components/add-to-cart-button"
+import { AddToCartButton } from "@/components/products/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getProducts } from "@/features/products/api"
+import { getProduct } from "@/features/products/api"
 import { formatPrice } from "@/lib/format-price"
 import { queryKeys } from "@/lib/query-keys"
 
@@ -17,9 +17,10 @@ export function ProductDetail() {
   const params = useParams()
   const id = typeof params.id === "string" ? params.id : ""
 
-  const { data: products, isPending, isError } = useQuery({
-    queryKey: queryKeys.products.list(),
-    queryFn: () => getProducts(),
+  const { data: product, isPending, isError } = useQuery({
+    queryKey: queryKeys.products.detail(id),
+    queryFn: () => getProduct(id),
+    enabled: Boolean(id),
   })
 
   if (isPending) {
@@ -35,26 +36,10 @@ export function ProductDetail() {
     )
   }
 
-  if (isError || !products) {
+  if (isError || !product) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-destructive">Could not load this product.</p>
-        <Button variant="outline" asChild>
-          <Link href="/products">Back to shop</Link>
-        </Button>
-      </div>
-    )
-  }
-
-  const product = products.find((p) => p.id === id)
-
-  if (!product) {
-    return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-medium">Product not found</h1>
-        <p className="text-sm text-muted-foreground">
-          It may have been removed or the link is invalid.
-        </p>
         <Button variant="outline" asChild>
           <Link href="/products">Back to shop</Link>
         </Button>

@@ -1,7 +1,7 @@
-import { LuxianLogo } from "@/components/luxian-logo"
-import { SiteHeaderAuth } from "@/components/site-header-auth"
-import { SiteHeaderNav } from "@/components/site-header-nav"
-import { StoreShell } from "@/components/store-shell"
+import { LuxianLogo } from "@/components/layout/luxian-logo"
+import { SiteHeaderAuth } from "@/components/layout/site-header-auth"
+import { SiteHeaderNav } from "@/components/layout/site-header-nav"
+import { StoreShell } from "@/components/layout/store-shell"
 
 export function SiteHeader() {
   return (

@@ -1,6 +1,6 @@
-import { CartView } from "@/components/cart-view"
-import { RequireAuth } from "@/components/require-auth"
-import { StorePage } from "@/components/store-page"
+import { CartView } from "@/components/cart/cart-view"
+import { RequireAuth } from "@/components/auth/require-auth"
+import { StorePage } from "@/components/layout/store-page"
 
 export default function CartPage() {
   return (

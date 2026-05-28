@@ -5,9 +5,9 @@ import { extractRouterConfig } from "uploadthing/server"
 import { uploadRouter } from "@/app/api/uploadthing/core"
 import "./globals.css"
 import { Providers } from "@/app/providers"
-import { SiteFooter } from "@/components/site-footer"
-import { SiteHeader } from "@/components/site-header"
-import { ThemeProvider } from "@/components/theme-provider"
+import { SiteFooter } from "@/components/layout/site-footer"
+import { SiteHeader } from "@/components/layout/site-header"
+import { ThemeProvider } from "@/components/layout/theme-provider"
 import { cn } from "@/lib/utils"
 
 const outfit = Outfit({subsets:['latin'],variable:'--font-sans'})

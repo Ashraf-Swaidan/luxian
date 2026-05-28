@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { LuxianLogo } from "@/components/luxian-logo"
+import { LuxianLogo } from "@/components/layout/luxian-logo"
 import { useAuth } from "@/providers/auth-provider"
 import { cn } from "@/lib/utils"
 

@@ -1,5 +1,5 @@
-import { OrderDetailView } from "@/components/order-detail-view"
-import { RequireAuth } from "@/components/require-auth"
+import { OrderDetailView } from "@/components/orders/order-detail-view"
+import { RequireAuth } from "@/components/auth/require-auth"
 
 export default function OrderDetailPage() {
   return (

@@ -1,5 +1,5 @@
-import { ProductDetail } from "@/components/product-detail"
-import { StorePage } from "@/components/store-page"
+import { ProductDetail } from "@/components/products/product-detail"
+import { StorePage } from "@/components/layout/store-page"
 
 export default function ProductPage() {
   return (

@@ -3,11 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 
-import { StoreImage } from "@/components/store-image"
+import { StoreImage } from "@/components/common/store-image"
 import { toast } from "sonner"
 
-import { AdminCollapsibleForm } from "@/components/admin-collapsible-form"
-import { ImageUploadField } from "@/components/image-upload-field"
+import { AdminCollapsibleForm } from "@/components/admin/admin-collapsible-form"
+import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,7 +16,7 @@ import { getCategories } from "@/features/categories/api"
 import {
   createProduct,
   deactivateProduct,
-  getProducts,
+  getProductsBulk,
   updateProduct,
 } from "@/features/products/api"
 import { toastApiError } from "@/lib/error-message"
@@ -141,8 +141,8 @@ export function AdminProductsPanel() {
   const [formReset, setFormReset] = useState(0)
 
   const { data: products, isPending: productsLoading } = useQuery({
-    queryKey: queryKeys.products.list(),
-    queryFn: () => getProducts(),
+    queryKey: queryKeys.products.list({ limit: 48 }),
+    queryFn: () => getProductsBulk(),
   })
 
   const { data: categories } = useQuery({
@@ -195,11 +195,11 @@ export function AdminProductsPanel() {
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Active products</h2>
         {productsLoading && <Skeleton className="h-24 w-full" />}
-        {!productsLoading && !products?.length && (
+        {!productsLoading && !products?.data?.length && (
           <p className="text-sm text-muted-foreground">No active products.</p>
         )}
         <ul className="space-y-2">
-          {products?.map((product) => (
+          {products?.data.map((product) => (
             <ProductRow
               key={product.id}
               product={product}

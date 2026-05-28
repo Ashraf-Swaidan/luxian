@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { LineItemThumb } from "@/components/common/line-item-thumb"
 import { getCartLineQuantity } from "@/features/cart/cart-quantity-sync"
 import { useSetCartLineQuantity } from "@/features/cart/hooks"
 import { toastApiError } from "@/lib/error-message"
@@ -41,21 +42,29 @@ export function CartLineItem({ item }: CartLineItemProps) {
   }
 
   return (
-    <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-border/50 py-5 sm:grid-cols-[minmax(0,1fr)_140px_100px_80px] sm:items-center">
-      <div className="min-w-0 space-y-1">
-        <Link
-          href={`/products/${item.productId}`}
-          className="font-medium hover:text-[var(--luxian-teal)]"
-        >
-          {product.name}
-        </Link>
-        <p className="text-sm text-muted-foreground">
-          {formatPrice(product.price)}
-          {product.category?.name ? ` · ${product.category.name}` : ""}
-        </p>
+    <div className="flex flex-col gap-4 border-b border-border/50 py-5 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 gap-4">
+        <LineItemThumb
+          productId={item.productId}
+          name={product.name}
+          imageUrl={product.imageUrl}
+          size="md"
+        />
+        <div className="min-w-0 space-y-1 self-center">
+          <Link
+            href={`/products/${item.productId}`}
+            className="font-medium hover:text-[var(--luxian-teal)]"
+          >
+            {product.name}
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            {formatPrice(product.price)}
+            {product.category?.name ? ` · ${product.category.name}` : ""}
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center justify-end sm:justify-center">
+      <div className="flex flex-wrap items-center justify-between gap-4 sm:justify-end sm:gap-6">
         <div className="inline-flex items-center rounded-lg border border-border/80 bg-muted/30 p-0.5">
           <button
             type="button"
@@ -78,19 +87,19 @@ export function CartLineItem({ item }: CartLineItemProps) {
             +
           </button>
         </div>
+
+        <p className="text-sm font-medium tabular-nums sm:min-w-[5rem] sm:text-right">
+          {formatPrice(lineTotal)}
+        </p>
+
+        <button
+          type="button"
+          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          onClick={() => setLineQuantity(item.productId, 0, mutateOpts)}
+        >
+          Remove
+        </button>
       </div>
-
-      <p className="text-right text-sm font-medium tabular-nums sm:text-base">
-        {formatPrice(lineTotal)}
-      </p>
-
-      <button
-        type="button"
-        className="text-right text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline sm:text-left"
-        onClick={() => setLineQuantity(item.productId, 0, mutateOpts)}
-      >
-        Remove
-      </button>
     </div>
   )
 }
