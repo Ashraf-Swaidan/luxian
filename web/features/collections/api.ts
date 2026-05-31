@@ -45,6 +45,10 @@ export function addCollectionProduct(collectionId: string, productId: string) {
   return api.post<Collection>(`collections/${collectionId}/products`, { productId })
 }
 
+export function addCollectionProducts(collectionId: string, productIds: string[]) {
+  return api.post<Collection>(`collections/${collectionId}/products/bulk`, { productIds })
+}
+
 export function removeCollectionProduct(collectionId: string, productId: string) {
   return api.delete<Collection>(`collections/${collectionId}/products/${productId}`)
 }

@@ -8,6 +8,7 @@ import { Collection, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   AddCollectionProductDto,
+  AddCollectionProductsDto,
   ReorderCollectionProductsDto,
 } from './dto/collection-product.dto';
 import { CreateCollectionDto } from './dto/create-collection.dto';
@@ -93,27 +94,39 @@ export class CollectionsService {
   }
 
   async addProduct(id: string, dto: AddCollectionProductDto) {
+    return this.addProducts(id, { productIds: [dto.productId] });
+  }
+
+  async addProducts(id: string, dto: AddCollectionProductsDto) {
     await this.ensureExists(id);
-    await this.ensureProductExists(dto.productId);
+    await Promise.all(
+      dto.productIds.map((productId) => this.ensureProductExists(productId)),
+    );
 
     const count = await this.prisma.collectionProduct.count({
       where: { collectionId: id },
     });
 
     try {
-      await this.prisma.collectionProduct.create({
-        data: {
-          collectionId: id,
-          productId: dto.productId,
-          position: count,
-        },
-      });
+      await this.prisma.$transaction(
+        dto.productIds.map((productId, index) =>
+          this.prisma.collectionProduct.create({
+            data: {
+              collectionId: id,
+              productId,
+              position: count + index,
+            },
+          }),
+        ),
+      );
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Product is already in this collection');
+        throw new ConflictException(
+          'One or more products are already in this collection',
+        );
       }
       throw new InternalServerErrorException('Failed to add product');
     }

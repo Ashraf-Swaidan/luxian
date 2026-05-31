@@ -1,10 +1,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import {
-  FASHION_CATEGORIES,
-  FASHION_PRODUCTS,
-} from './data/fashion-catalog';
+import { FASHION_CATEGORIES, FASHION_PRODUCTS } from './data/fashion-catalog';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,

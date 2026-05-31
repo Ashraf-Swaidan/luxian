@@ -5,6 +5,13 @@ export class AddCollectionProductDto {
   productId: string;
 }
 
+export class AddCollectionProductsDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
+  productIds: string[];
+}
+
 export class ReorderCollectionProductsDto {
   @IsArray()
   @ArrayNotEmpty()

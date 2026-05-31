@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import {
   AddCollectionProductDto,
+  AddCollectionProductsDto,
   ReorderCollectionProductsDto,
 } from './dto/collection-product.dto';
 import { CollectionsService } from './collections.service';
@@ -74,6 +75,16 @@ export class CollectionsController {
     @Body() dto: AddCollectionProductDto,
   ) {
     return this.collectionsService.addProduct(id, dto);
+  }
+
+  @Post(':id/products/bulk')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  addProducts(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AddCollectionProductsDto,
+  ) {
+    return this.collectionsService.addProducts(id, dto);
   }
 
   @Delete(':id/products/:productId')

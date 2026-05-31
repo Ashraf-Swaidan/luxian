@@ -9,7 +9,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryProvider>
       <AuthProvider>
         {children}
-        <Toaster richColors closeButton />
+        <Toaster />
       </AuthProvider>
     </QueryProvider>
   )
