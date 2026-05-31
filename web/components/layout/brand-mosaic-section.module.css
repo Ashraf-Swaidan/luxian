@@ -1,0 +1,87 @@
+.mosaicGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "collective collective"
+    "destination destination"
+    "shirt elegance"
+    "sunset sunset"
+    "accessories accessories";
+  gap: 16px;
+}
+
+.mosaicItem {
+  position: relative;
+  min-height: 14rem;
+  overflow: hidden;
+  background: rgb(38 38 38);
+}
+
+.mosaicItem:nth-child(1),
+.mosaicItem:nth-child(2),
+.mosaicItem:nth-child(5),
+.mosaicItem:nth-child(6) {
+  aspect-ratio: 16 / 9;
+}
+
+.mosaicItem:nth-child(3),
+.mosaicItem:nth-child(4) {
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+}
+
+.collective {
+  grid-area: collective;
+}
+
+.destination {
+  grid-area: destination;
+}
+
+.shirt {
+  grid-area: shirt;
+}
+
+.elegance {
+  grid-area: elegance;
+}
+
+.sunset {
+  grid-area: sunset;
+}
+
+.accessories {
+  grid-area: accessories;
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .mosaicGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "collective collective"
+      "destination shirt"
+      "elegance accessories"
+      "sunset sunset";
+  }
+}
+
+@media (min-width: 1024px) {
+  .mosaicGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      "collective collective destination destination"
+      "collective collective destination destination"
+      "shirt elegance destination destination"
+      "shirt elegance accessories accessories"
+      "shirt sunset accessories accessories"
+      "shirt sunset accessories accessories";
+    aspect-ratio: 16 / 9;
+    gap: 20px;
+  }
+
+  .mosaicGrid .mosaicItem {
+    aspect-ratio: unset;
+    min-height: unset;
+  }
+}

@@ -11,9 +11,8 @@ datasource db {
   provider = "postgresql"
 }
 
-
 enum Role {
-  USER 
+  USER
   ADMIN
 }
 
@@ -33,17 +32,17 @@ enum OrderStatus {
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  password String 
-  firstName String?
-  lastName String?
-  role Role @default(USER)
+  id           String  @id @default(uuid())
+  email        String  @unique
+  password     String
+  firstName    String?
+  lastName     String?
+  role         Role    @default(USER)
   refreshToken String?
 
   // relations
-  orders Order[]
-  carts Cart[]
+  orders   Order[]
+  carts    Cart[]
   payments Payment[]
 
   createdAt DateTime @default(now())
@@ -54,22 +53,22 @@ model User {
 }
 
 model Product {
-  id String @id @default(uuid())
-  name String
+  id          String  @id @default(uuid())
+  name        String
   description String?
-  price Decimal @db.Decimal(10,2)
-  stock Int @default(0)
-  sku String @unique
-  imageUrl String?
-  isActive Boolean @default(true)
+  price       Decimal @db.Decimal(10, 2)
+  stock       Int     @default(0)
+  sku         String  @unique
+  imageUrl    String?
+  isActive    Boolean @default(true)
 
   //relations
-  orderItems OrderItem[]
-  cartItems CartItem[]
+  orderItems         OrderItem[]
+  cartItems          CartItem[]
   collectionProducts CollectionProduct[]
 
   categoryId String
-  category Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
 
   // timestamps
   createdAt DateTime @default(now())
@@ -82,36 +81,35 @@ model Product {
 }
 
 model Category {
-   id String @id @default(uuid())
-   name String
-   description String?
-   slug String @unique
-   imageUrl String?
-   isActive Boolean @default(true)
-   
-   products Product[]
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  slug        String  @unique
+  imageUrl    String?
+  isActive    Boolean @default(true)
 
-   createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
+  products Product[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   @@index([slug])
-   @@index([isActive])
-   @@map("categories")
+  @@index([slug])
+  @@index([isActive])
+  @@map("categories")
 }
 
 model Collection {
-  id String @id @default(uuid())
-  name String
-  slug String @unique
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
   description String?
-  imageUrl String?
-  isActive Boolean @default(true)
+  imageUrl    String?
+  isActive    Boolean @default(true)
 
-  collectionProducts CollectionProduct[]
-  latestHomepageSettings HomepageSettings[] @relation("LatestCollection")
-  trendingHomepageSettings HomepageSettings[] @relation("TrendingCollection")
-  bannerHomepageSettings HomepageSettings[] @relation("BannerCollection")
+  collectionProducts       CollectionProduct[]
+  latestHomepageSettings   HomepageSettings[]  @relation("LatestCollection")
+  trendingHomepageSettings HomepageSettings[]  @relation("TrendingCollection")
+  bannerHomepageSettings   HomepageSettings[]  @relation("BannerCollection")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,14 +120,14 @@ model Collection {
 }
 
 model CollectionProduct {
-  id String @id @default(uuid())
-  position Int @default(0)
+  id       String @id @default(uuid())
+  position Int    @default(0)
 
   collectionId String
-  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
   productId String
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -145,16 +143,23 @@ model HomepageSettings {
   id String @id @default("homepage")
 
   latestCollectionId String?
-  latestCollection Collection? @relation("LatestCollection", fields: [latestCollectionId], references: [id], onDelete: SetNull)
+  latestCollection   Collection? @relation("LatestCollection", fields: [latestCollectionId], references: [id], onDelete: SetNull)
 
   trendingCollectionId String?
-  trendingCollection Collection? @relation("TrendingCollection", fields: [trendingCollectionId], references: [id], onDelete: SetNull)
+  trendingCollection   Collection? @relation("TrendingCollection", fields: [trendingCollectionId], references: [id], onDelete: SetNull)
 
   bannerCollectionId String?
-  bannerCollection Collection? @relation("BannerCollection", fields: [bannerCollectionId], references: [id], onDelete: SetNull)
+  bannerCollection   Collection? @relation("BannerCollection", fields: [bannerCollectionId], references: [id], onDelete: SetNull)
 
-  bannerImageUrl String?
-  bannerButtonText String @default("See Collection")
+  bannerImageUrl   String?
+  bannerButtonText String  @default("See Collection")
+
+  brandImage1Url String?
+  brandImage2Url String?
+  brandImage3Url String?
+  brandImage4Url String?
+  brandImage5Url String?
+  brandImage6Url String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -166,33 +171,31 @@ model HomepageSettings {
 }
 
 model OrderItem {
-  id String @id @default(uuid())
-  quantity Int
-  price Decimal @db.Decimal(10,2)
+  id        String  @id @default(uuid())
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
   productId String
-  product Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   orderId String
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
-
   @@index([productId])
   @@map("order_items")
-
 }
 
 model CartItem {
-  id String @id @default(uuid())
-  quantity Int @default(1)
+  id        String  @id @default(uuid())
+  quantity  Int     @default(1)
   productId String
-  product Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   cartId String
-  cart Cart @relation(fields: [cartId], references: [id])
+  cart   Cart   @relation(fields: [cartId], references: [id])
 
   @@unique([cartId, productId])
   @@index([cartId])
@@ -200,26 +203,25 @@ model CartItem {
   @@map("cart_items")
 }
 
-
 model Order {
-  id String @id @default(uuid())
-  orderNumber String @unique @default(cuid())
-  status OrderStatus
-  totalAmount Decimal @db.Decimal(10,2)
+  id          String      @id @default(uuid())
+  orderNumber String      @unique @default(cuid())
+  status      OrderStatus
+  totalAmount Decimal     @db.Decimal(10, 2)
 
-  userId String 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   cartId String
-  cart Cart? @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cart   Cart?  @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
-  shippingAddress String? 
+  shippingAddress String?
 
   orderItems OrderItem[]
-  payment Payment?
+  payment    Payment?
 
   createdAt DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([orderNumber])
@@ -228,11 +230,11 @@ model Order {
 }
 
 model Cart {
-  id String @id @default(uuid())
-  userId String 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  orders Order[]
+  orders     Order[]
   checkedOut Boolean @default(false)
 
   cartItems CartItem[]
@@ -242,29 +244,28 @@ model Cart {
 
   @@index([userId])
   @@map("carts")
-
 }
 
 model Payment {
-  id String @id @default(uuid())
-  amount Decimal @db.Decimal(10,2)
-  status PaymentStatus @default(PENDING)
-  currency String @default("usd")
-  paymentMethod String? 
+  id            String        @id @default(uuid())
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  currency      String        @default("usd")
+  paymentMethod String?
   transactionId String?
 
-  userId String 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   orderId String @unique
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   // timestamps
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@index([userId])
-    @@index([transactionId])
-    @@index([orderId])
-    @@map("payments")
+  @@index([userId])
+  @@index([transactionId])
+  @@index([orderId])
+  @@map("payments")
 }

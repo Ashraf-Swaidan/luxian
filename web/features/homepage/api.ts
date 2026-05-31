@@ -7,6 +7,12 @@ export type UpdateHomepageSettingsInput = {
   bannerCollectionId?: string | null
   bannerImageUrl?: string | null
   bannerButtonText?: string
+  brandImage1Url?: string | null
+  brandImage2Url?: string | null
+  brandImage3Url?: string | null
+  brandImage4Url?: string | null
+  brandImage5Url?: string | null
+  brandImage6Url?: string | null
 }
 
 export function getHomepageSettings() {

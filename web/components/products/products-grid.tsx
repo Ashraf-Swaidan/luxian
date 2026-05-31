@@ -23,13 +23,17 @@ const DEFAULT_COLLECTION_DESCRIPTION =
 export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: ProductsGridProps) {
   const params = { page: 1, limit }
 
-  const { data: homepage } = useQuery({
+  const { data: homepage, isPending: isHomepagePending } = useQuery({
     queryKey: queryKeys.homepage,
     queryFn: getHomepageSettings,
   })
+  const latestCollectionProducts =
+    homepage?.latestCollection?.collectionProducts?.map((item) => item.product).slice(0, 3) ?? []
+  const shouldLoadFallbackProducts = !isHomepagePending && latestCollectionProducts.length === 0
   const { data, isPending, isError, error } = useQuery({
     queryKey: queryKeys.products.list(params),
     queryFn: () => getProducts(params),
+    enabled: shouldLoadFallbackProducts,
   })
 
   useEffect(() => {
@@ -38,15 +42,12 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
     }
   }, [isError, error])
 
-  if (isPending) {
+  if (isHomepagePending || (shouldLoadFallbackProducts && isPending)) {
     return (
       <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
         <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
           {Array.from({ length: limit }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className="aspect-[4/5] w-[72vw] shrink-0 sm:w-[46vw] md:w-full"
-            />
+            <Skeleton key={i} className="aspect-[4/5] w-[72vw] shrink-0 sm:w-[46vw] md:w-full" />
           ))}
         </div>
       </CollectionSection>
@@ -56,20 +57,15 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
   if (isError) {
     return (
       <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
-        <p className="text-sm text-destructive">
-          {getErrorMessage(error, "Failed to load products")}
-        </p>
+        <p className="text-sm text-destructive">{getErrorMessage(error, "Failed to load products")}</p>
       </CollectionSection>
     )
   }
 
   const latestCollection = homepage?.latestCollection
-  const collectionProducts =
-    latestCollection?.collectionProducts?.map((item) => item.product).slice(0, 3) ?? []
-  const products = collectionProducts.length ? collectionProducts : (data?.data ?? [])
+  const products = latestCollectionProducts.length ? latestCollectionProducts : (data?.data ?? [])
   const sectionTitle = latestCollection?.name.toUpperCase() ?? title
-  const description =
-    latestCollection?.description ?? DEFAULT_COLLECTION_DESCRIPTION
+  const description = latestCollection?.description ?? DEFAULT_COLLECTION_DESCRIPTION
 
   if (!products.length) {
     return (
@@ -102,7 +98,7 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-muted p-6 text-center text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              <div className="flex h-full items-center justify-center bg-muted p-6 text-center text-sm font-medium tracking-wider text-muted-foreground uppercase">
                 {product.name}
               </div>
             )}
@@ -138,12 +134,10 @@ function CollectionSection({
 function CollectionHeader({ description, title }: { description: string; title: string }) {
   return (
     <header className="max-w-2xl space-y-4">
-      <h2 className="font-display text-5xl font-bold uppercase leading-none text-[oklch(0.32_0.09_178)] sm:text-6xl lg:text-7xl">
+      <h2 className="font-display text-5xl leading-none font-bold text-[oklch(0.32_0.09_178)] uppercase sm:text-6xl lg:text-7xl">
         {title}
       </h2>
-      <p className="max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-        {description}
-      </p>
+      <p className="max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">{description}</p>
     </header>
   )
 }

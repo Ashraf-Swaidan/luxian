@@ -4,7 +4,7 @@ import { RequireAuth } from "@/components/auth/require-auth"
 export default function AccountOrdersPage() {
   return (
     <RequireAuth>
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      <main className="mx-auto w-full max-w-7xl px-6 py-10">
         <div className="mb-8 space-y-2">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Account

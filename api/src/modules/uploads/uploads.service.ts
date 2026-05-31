@@ -14,6 +14,7 @@ const ALLOWED_FOLDERS = new Set([
   'categories',
   'collections',
   'banners',
+  'brand-assets',
   'uploads',
 ]);
 const ALLOWED_MIME = new Set([

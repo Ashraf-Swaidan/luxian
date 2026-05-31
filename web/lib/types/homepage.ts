@@ -10,6 +10,12 @@ export type HomepageSettings = {
   bannerCollection: Collection | null
   bannerImageUrl: string | null
   bannerButtonText: string
+  brandImage1Url: string | null
+  brandImage2Url: string | null
+  brandImage3Url: string | null
+  brandImage4Url: string | null
+  brandImage5Url: string | null
+  brandImage6Url: string | null
   createdAt: string
   updatedAt: string
 }

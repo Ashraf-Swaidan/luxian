@@ -23,7 +23,7 @@ export function AuthShowcaseLayout({
   title,
 }: AuthShowcaseLayoutProps) {
   return (
-    <main className="min-h-[calc(100svh-3.5rem)] bg-[#f6f2e8]">
+    <main className="w-full min-h-[calc(100svh-3.5rem)] bg-[#f6f2e8]">
       <div
         className={
           reverse

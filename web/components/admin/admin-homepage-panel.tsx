@@ -8,13 +8,7 @@ import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCollections } from "@/features/collections/api"
 import { getHomepageSettings, updateHomepageSettings } from "@/features/homepage/api"
@@ -24,6 +18,14 @@ import type { Collection } from "@/lib/types/collection"
 import type { HomepageSettings } from "@/lib/types/homepage"
 
 const NONE = "none"
+const BRAND_SLOTS = [
+  { key: "brandImage1Url", label: "01 / The Collective" },
+  { key: "brandImage2Url", label: "02 / Destination" },
+  { key: "brandImage3Url", label: "03 / Signature Shirt" },
+  { key: "brandImage4Url", label: "04 / Resort Elegance" },
+  { key: "brandImage5Url", label: "05 / Sunset Club" },
+  { key: "brandImage6Url", label: "06 / Accessories" },
+] as const
 
 export function AdminHomepagePanel() {
   const queryClient = useQueryClient()
@@ -59,21 +61,18 @@ function HomepageSettingsForm({
   queryClient: ReturnType<typeof useQueryClient>
   settings: HomepageSettings
 }) {
-  const [latestCollectionId, setLatestCollectionId] = useState(
-    settings.latestCollectionId ?? "",
+  const [latestCollectionId, setLatestCollectionId] = useState(settings.latestCollectionId ?? "")
+  const [trendingCollectionId, setTrendingCollectionId] = useState(settings.trendingCollectionId ?? "")
+  const [bannerCollectionId, setBannerCollectionId] = useState(settings.bannerCollectionId ?? "")
+  const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(settings.bannerImageUrl)
+  const [bannerButtonText, setBannerButtonText] = useState(settings.bannerButtonText || "See Collection")
+  const [brandImages, setBrandImages] = useState(
+    Object.fromEntries(BRAND_SLOTS.map((slot) => [slot.key, settings[slot.key]])) as Record<
+      (typeof BRAND_SLOTS)[number]["key"],
+      string | null
+    >
   )
-  const [trendingCollectionId, setTrendingCollectionId] = useState(
-    settings.trendingCollectionId ?? "",
-  )
-  const [bannerCollectionId, setBannerCollectionId] = useState(
-    settings.bannerCollectionId ?? "",
-  )
-  const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(
-    settings.bannerImageUrl,
-  )
-  const [bannerButtonText, setBannerButtonText] = useState(
-    settings.bannerButtonText || "See Collection",
-  )
+  const bannerCollection = collections.find((collection) => collection.id === bannerCollectionId)
 
   const updateMutation = useMutation({
     mutationFn: () =>
@@ -83,6 +82,7 @@ function HomepageSettingsForm({
         bannerCollectionId: bannerCollectionId || null,
         bannerImageUrl,
         bannerButtonText,
+        ...brandImages,
       }),
     onSuccess: (next) => {
       toast.success("Homepage saved")
@@ -96,12 +96,8 @@ function HomepageSettingsForm({
     <div className="space-y-8">
       <section className="bg-white p-6 ring-1 ring-border/60">
         <div className="mb-7">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Landing page
-          </p>
-          <h2 className="font-display text-5xl font-bold uppercase leading-none text-neutral-950">
-            Homepage slots
-          </h2>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Landing page</p>
+          <h2 className="font-display text-5xl leading-none font-bold text-neutral-950 uppercase">Homepage slots</h2>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -136,11 +132,9 @@ function HomepageSettingsForm({
         />
         <div className="space-y-5">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Campaign banner
-            </p>
-            <h2 className="font-display text-5xl font-bold uppercase leading-none text-neutral-950">
-              Summer slot
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Banner slot</p>
+            <h2 className="font-display text-5xl leading-none font-bold text-neutral-950 uppercase">
+              {bannerCollection?.name ?? "Choose collection"}
             </h2>
           </div>
           <div className="space-y-2">
@@ -152,10 +146,39 @@ function HomepageSettingsForm({
             />
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            The banner keeps the current visual layout. This controls the image, the button label,
-            and which collection the button opens.
+            The banner keeps the current visual layout. This controls the image, the button label, and which collection
+            the button opens.
           </p>
         </div>
+      </section>
+
+      <section className="space-y-6 bg-white p-6 ring-1 ring-border/60">
+        <div>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Brand collage</p>
+          <h2 className="font-display text-5xl leading-none font-bold text-neutral-950 uppercase">Visual slots</h2>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {BRAND_SLOTS.map((slot) => (
+            <ImageUploadField
+              key={slot.key}
+              id={`homepage-${slot.key}`}
+              label={slot.label}
+              folder="brand-assets"
+              value={brandImages[slot.key]}
+              onChange={(url) =>
+                setBrandImages((current) => ({
+                  ...current,
+                  [slot.key]: url,
+                }))
+              }
+              previewAlt={slot.label}
+            />
+          ))}
+        </div>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          These six images feed the homepage collage in order. Empty slots use the prepared Luxian brand assets as
+          fallbacks.
+        </p>
       </section>
 
       <Button
@@ -184,10 +207,7 @@ function CollectionSelect({
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <Select
-        value={value || NONE}
-        onValueChange={(next) => onChange(next === NONE ? "" : next)}
-      >
+      <Select value={value || NONE} onValueChange={(next) => onChange(next === NONE ? "" : next)}>
         <SelectTrigger className="h-10 w-full border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0">
           <SelectValue placeholder="Use fallback products" />
         </SelectTrigger>

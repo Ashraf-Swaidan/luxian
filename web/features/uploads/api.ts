@@ -1,6 +1,6 @@
 import { api, type UploadImageResponse } from "@/lib/api-client"
 
-export type UploadFolder = "products" | "categories" | "collections" | "banners" | "uploads"
+export type UploadFolder = "products" | "categories" | "collections" | "banners" | "brand-assets" | "uploads"
 
 export function uploadImage(file: File, folder: UploadFolder = "uploads") {
   const formData = new FormData()
