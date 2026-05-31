@@ -7,20 +7,10 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toastApiError } from "@/lib/error-message"
-import {
-  registerSchema,
-  type RegisterFormValues,
-} from "@/lib/validations/auth"
+import { registerSchema, type RegisterFormValues } from "@/lib/validations/auth"
 import { useAuth } from "@/providers/auth-provider"
 
 export function RegisterForm() {
@@ -46,65 +36,70 @@ export function RegisterForm() {
   })
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Create account</CardTitle>
-        <CardDescription>
-          Join Luxian to save your cart and order history.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4">
+    <div>
+      <form onSubmit={onSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-xs uppercase">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+            {...register("email")}
+          />
+          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-xs uppercase">
+            Password
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+            {...register("password")}
+          />
+          {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="firstName" className="text-xs uppercase">
+              First name
+            </Label>
             <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...register("email")}
+              id="firstName"
+              className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              {...register("firstName")}
             />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="lastName" className="text-xs uppercase">
+              Last name
+            </Label>
             <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              {...register("password")}
+              id="lastName"
+              className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              {...register("lastName")}
             />
-            {errors.password && (
-              <p className="text-sm text-destructive">
-                {errors.password.message}
-              </p>
-            )}
           </div>
+        </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First name</Label>
-              <Input id="firstName" {...register("firstName")} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last name</Label>
-              <Input id="lastName" {...register("lastName")} />
-            </div>
-          </div>
+        <Button type="submit" className="h-12 w-full bg-neutral-950 text-white" disabled={isSubmitting}>
+          {isSubmitting ? "Please wait..." : "Create account"}
+        </Button>
+      </form>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Please wait…" : "Create account"}
-          </Button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          <Link href="/login" className="text-foreground underline">
-            Already have an account? Log in
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+      <p className="mt-5 text-center text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
+          Sign in
+        </Link>
+      </p>
+    </div>
   )
 }
