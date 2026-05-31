@@ -24,7 +24,7 @@ export default function AdminPage() {
         <Link
           key={card.href}
           href={card.href}
-          className="group flex min-h-72 flex-col justify-between bg-white p-8 ring-1 ring-border/60 transition-colors hover:bg-muted/20"
+          className="group flex min-h-72 flex-col justify-between bg-white p-8 ring-1 ring-border/60 transition-colors hover:bg-neutral-100"
         >
           <div
             className={`flex size-20 items-center justify-center text-neutral-950 ${card.color}`}

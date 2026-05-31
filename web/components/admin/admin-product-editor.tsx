@@ -10,6 +10,13 @@ import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
 import { deactivateProduct, getProduct, updateProduct } from "@/features/products/api"
@@ -136,7 +143,7 @@ function AdminProductEditorForm({
         Back to products
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_26rem]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(22rem,34rem)_minmax(0,1fr)]">
         <ImageUploadField
           id={`edit-product-image-${product.id}`}
           label="Product image"
@@ -145,26 +152,28 @@ function AdminProductEditorForm({
           onChange={setImageUrl}
           mode="hero"
           previewAlt={name}
+          className="w-full min-w-0"
         />
 
         <div className="space-y-7">
           <div className="space-y-3">
-            <select
-              value={categoryId}
-              onChange={(event) => setCategoryId(event.target.value)}
-              className="border-x-0 border-t-0 bg-transparent px-0 text-xs font-medium uppercase tracking-wider text-[var(--luxian-teal)] outline-none"
-            >
-              {categories?.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger className="h-8 w-fit border-x-0 border-t-0 bg-transparent px-0 text-xs font-medium uppercase tracking-wider text-[var(--luxian-teal)] focus-visible:ring-0">
+                <SelectValue placeholder="Choose category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories?.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <textarea
               value={name}
               onChange={(event) => setName(event.target.value)}
-              rows={2}
-              className="min-h-28 w-full resize-none bg-transparent font-display text-5xl font-bold uppercase leading-none outline-none"
+              rows={3}
+              className="min-h-44 w-full resize-none bg-transparent font-display text-5xl font-bold uppercase leading-none outline-none"
             />
             <textarea
               value={description}

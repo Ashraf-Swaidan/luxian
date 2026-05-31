@@ -75,12 +75,12 @@ export function AdminProductsPanel() {
       <button
         type="button"
         onClick={() => setShowCreate((value) => !value)}
-        className="group flex min-h-56 w-full flex-col items-center justify-center gap-6 bg-white p-8 text-center ring-1 ring-border/60 transition-colors hover:bg-neutral-950"
+        className="group flex min-h-32 w-full items-center justify-center gap-4 bg-white px-5 py-6 text-center ring-1 ring-border/60 transition-transform hover:scale-[1.01] hover:bg-neutral-100"
       >
-        <span className="flex size-16 shrink-0 items-center justify-center bg-[oklch(0.82_0.16_85)] text-neutral-950 transition-transform group-hover:scale-105">
-          <HugeiconsIcon icon={PackageAddIcon} className="size-8" strokeWidth={1.7} />
+        <span className="flex size-12 shrink-0 items-center justify-center bg-[oklch(0.82_0.16_85)] text-neutral-950 transition-transform group-hover:scale-105">
+          <HugeiconsIcon icon={PackageAddIcon} className="size-6" strokeWidth={1.7} />
         </span>
-        <span className="block font-display text-5xl font-bold uppercase leading-none text-neutral-950 transition-colors group-hover:text-white sm:text-6xl">
+        <span className="block font-display text-4xl font-bold uppercase leading-none text-neutral-950 sm:text-5xl">
           Add New Product
         </span>
       </button>

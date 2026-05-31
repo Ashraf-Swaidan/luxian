@@ -57,7 +57,7 @@ export default function RootLayout({
         <ThemeProvider>
           <Providers>
             <SiteHeader />
-            <div className="flex-1">{children}</div>
+            <div className="flex min-h-svh flex-1 flex-col">{children}</div>
             <SiteFooter />
           </Providers>
         </ThemeProvider>

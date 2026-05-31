@@ -88,7 +88,7 @@ export function ImageUploadField({
 
   if (mode === "hero") {
     return (
-      <div className={cn("space-y-2", className)}>
+      <div className={cn("w-full space-y-2", className)}>
         <Label htmlFor={id} className="sr-only">
           {label}
         </Label>
@@ -102,7 +102,11 @@ export function ImageUploadField({
               pickFile()
             }
           }}
-          className={cn("group relative overflow-hidden bg-muted", isAdmin && "cursor-pointer", previewSize)}
+          className={cn(
+            "group relative min-h-[26rem] overflow-hidden bg-muted",
+            isAdmin && "cursor-pointer",
+            previewSize,
+          )}
         >
           {value ? (
             <StoreImage src={value} alt={previewAlt} fill className="object-cover" sizes="60vw" />
