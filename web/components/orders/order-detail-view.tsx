@@ -18,7 +18,7 @@ export function OrderDetailView() {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-md" />
       </div>
     )
   }
@@ -58,7 +58,7 @@ export function OrderDetailView() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="space-y-4 rounded-2xl border border-border/60 bg-card p-6">
+        <section className="space-y-4 rounded-md border border-border/60 bg-card p-6">
           <h2 className="font-medium">Items</h2>
           <ul className="space-y-4">
             {order.orderItems.map((item) => (
@@ -81,7 +81,7 @@ export function OrderDetailView() {
           </div>
         </section>
 
-        <section className="space-y-4 rounded-2xl border border-border/60 bg-card p-6">
+        <section className="space-y-4 rounded-md border border-border/60 bg-card p-6">
           <h2 className="font-medium">Details</h2>
           {order.shippingAddress ? (
             <div className="text-sm">

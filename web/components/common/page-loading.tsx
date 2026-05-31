@@ -6,9 +6,9 @@ export function PageLoading() {
       <Skeleton className="h-8 w-48" />
       <Skeleton className="h-4 w-72 max-w-full" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
-        <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
-        <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+        <Skeleton className="aspect-[4/3] w-full rounded-md" />
+        <Skeleton className="aspect-[4/3] w-full rounded-md" />
+        <Skeleton className="aspect-[4/3] w-full rounded-md" />
       </div>
     </div>
   )

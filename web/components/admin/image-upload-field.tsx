@@ -24,6 +24,8 @@ type ImageUploadFieldProps = {
   onChange: (url: string | null) => void
   className?: string
   compact?: boolean
+  mode?: "default" | "hero"
+  previewAlt?: string
 }
 
 export function ImageUploadField({
@@ -33,6 +35,8 @@ export function ImageUploadField({
   onChange,
   className,
   compact,
+  mode = "default",
+  previewAlt = "",
 }: ImageUploadFieldProps) {
   const { user } = useAuth()
   const isAdmin = user?.role === "ADMIN"
@@ -80,15 +84,79 @@ export function ImageUploadField({
     }
   }
 
-  const previewSize = compact ? "size-16" : "size-24"
+  const previewSize = mode === "hero" ? "aspect-[4/5] w-full" : compact ? "size-16" : "size-24"
+
+  if (mode === "hero") {
+    return (
+      <div className={cn("space-y-2", className)}>
+        <Label htmlFor={id} className="sr-only">
+          {label}
+        </Label>
+        <div
+          role={isAdmin ? "button" : undefined}
+          tabIndex={isAdmin ? 0 : undefined}
+          onClick={pickFile}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              pickFile()
+            }
+          }}
+          className={cn("group relative overflow-hidden bg-muted", isAdmin && "cursor-pointer", previewSize)}
+        >
+          {value ? (
+            <StoreImage src={value} alt={previewAlt} fill className="object-cover" sizes="60vw" />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No image yet
+            </div>
+          )}
+          {isAdmin && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-sm font-medium uppercase tracking-wide text-white opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
+              Click to change
+            </div>
+          )}
+          {isUploading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-[1px]">
+              <HugeiconsIcon
+                icon={Loading03Icon}
+                className="size-6 animate-spin text-[var(--luxian-teal)]"
+                strokeWidth={2}
+              />
+              <span className="text-xs font-medium">Uploading...</span>
+            </div>
+          )}
+          <input
+            ref={inputRef}
+            id={id}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            disabled={isUploading}
+            onChange={(e) => onFileChange(e.target.files?.[0])}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={cn("space-y-2", className)}>
       <Label htmlFor={id}>{label}</Label>
       <div className="flex flex-wrap items-start gap-4">
         <div
+          role={isAdmin ? "button" : undefined}
+          tabIndex={isAdmin ? 0 : undefined}
+          onClick={pickFile}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault()
+              pickFile()
+            }
+          }}
           className={cn(
-            "relative overflow-hidden rounded-xl border border-border/60 bg-muted",
+            "relative overflow-hidden rounded-md border border-border/60 bg-muted",
+            isAdmin && "cursor-pointer",
             previewSize,
           )}
         >

@@ -1,0 +1,190 @@
+/** Luxian tropical fashion catalog — safe to re-run via upsert (SKU + category slug). */
+
+export type FashionCategorySeed = {
+  slug: string;
+  name: string;
+  description: string;
+};
+
+export type FashionProductSeed = {
+  sku: string;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  categorySlug: string;
+  imageUrl?: string;
+};
+
+export const FASHION_CATEGORIES: FashionCategorySeed[] = [
+  {
+    slug: 'luxian-tops',
+    name: 'Shirts & Tops',
+    description: 'Lightweight tees, tanks, and camp shirts for warm days.',
+  },
+  {
+    slug: 'luxian-bottoms',
+    name: 'Pants & Shorts',
+    description: 'Relaxed linen trousers and coastal shorts.',
+  },
+  {
+    slug: 'luxian-outerwear',
+    name: 'Cover-Ups',
+    description: 'Kimonos and layers for beach-to-street style.',
+  },
+  {
+    slug: 'luxian-bags',
+    name: 'Bags',
+    description: 'Totes and crossbodies made for island errands.',
+  },
+  {
+    slug: 'luxian-eyewear',
+    name: 'Eyewear',
+    description: 'Polarized sunglasses with tropical flair.',
+  },
+  {
+    slug: 'luxian-footwear',
+    name: 'Footwear',
+    description: 'Slides and espadrilles built for sand and city.',
+  },
+  {
+    slug: 'luxian-accessories',
+    name: 'Accessories',
+    description: 'Hats and finishing touches for the Luxian look.',
+  },
+];
+
+export const FASHION_PRODUCTS: FashionProductSeed[] = [
+  {
+    sku: 'LUX-TEE-PALM',
+    name: 'Palm Breeze Linen Tee',
+    description:
+      'Breathable linen-blend tee in sun-washed ivory with a subtle palm print. Relaxed fit for beach towns and rooftop evenings.',
+    price: 42.0,
+    stock: 48,
+    categorySlug: 'luxian-tops',
+    imageUrl:
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80',
+  },
+  {
+    sku: 'LUX-SHIRT-HIB',
+    name: 'Hibiscus Camp Shirt',
+    description:
+      'Short-sleeve button-down in coral hibiscus print. Lightweight viscose with a boxy, vacation-ready drape.',
+    price: 68.0,
+    stock: 36,
+    categorySlug: 'luxian-tops',
+    imageUrl:
+      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80',
+  },
+  {
+    sku: 'LUX-TANK-SEA',
+    name: 'Seabreeze Rib Tank',
+    description:
+      'Soft ribbed cotton tank in lagoon teal. Slim cut layers under open shirts or wears solo by the water.',
+    price: 28.0,
+    stock: 72,
+    categorySlug: 'luxian-tops',
+    imageUrl:
+      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80',
+  },
+  {
+    sku: 'LUX-PANT-LIN',
+    name: 'Sunset Linen Trousers',
+    description:
+      'High-rise wide-leg trousers in sand linen. Drawstring waist and deep pockets for all-day island comfort.',
+    price: 89.0,
+    stock: 32,
+    categorySlug: 'luxian-bottoms',
+    imageUrl:
+      'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=800&q=80',
+  },
+  {
+    sku: 'LUX-SHORT-COR',
+    name: 'Coral Reef Chino Shorts',
+    description:
+      'Mid-thigh chino shorts in washed terracotta. Stretch cotton blend with a clean, tailored hem.',
+    price: 54.0,
+    stock: 44,
+    categorySlug: 'luxian-bottoms',
+    imageUrl:
+      'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&q=80',
+  },
+  {
+    sku: 'LUX-KIM-OCE',
+    name: 'Ocean Drift Kimono',
+    description:
+      'Open-front kimono cover-up in ocean blue ombré gauze. Throw over swim or denim for instant resort style.',
+    price: 76.0,
+    stock: 28,
+    categorySlug: 'luxian-outerwear',
+    imageUrl:
+      'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80',
+  },
+  {
+    sku: 'LUX-BAG-TOTE',
+    name: 'Island Market Tote',
+    description:
+      'Oversized canvas tote with woven handles and an interior zip pocket. Fits towels, markets, and weekend gear.',
+    price: 58.0,
+    stock: 40,
+    categorySlug: 'luxian-bags',
+    imageUrl:
+      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=80',
+  },
+  {
+    sku: 'LUX-BAG-CROS',
+    name: 'Coconut Crossbody',
+    description:
+      'Compact crossbody in natural raffia texture with adjustable strap and magnetic flap. Hands-free for festivals.',
+    price: 46.0,
+    stock: 35,
+    categorySlug: 'luxian-bags',
+    imageUrl:
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80',
+  },
+  {
+    sku: 'LUX-GLASS-LAG',
+    name: 'Lagoon Aviator Sunglasses',
+    description:
+      'Metal aviators with polarized green lenses and anti-glare coating. Includes soft pouch for travel.',
+    price: 72.0,
+    stock: 50,
+    categorySlug: 'luxian-eyewear',
+    imageUrl:
+      'https://images.unsplash.com/photo-1572635196233-8b992623a915?w=800&q=80',
+  },
+  {
+    sku: 'LUX-SHOE-SLD',
+    name: 'Reef Slide Sandals',
+    description:
+      'Contoured EVA slides in matte sage with textured footbed. Waterproof and made for pool decks and boardwalks.',
+    price: 38.0,
+    stock: 60,
+    categorySlug: 'luxian-footwear',
+    imageUrl:
+      'https://images.unsplash.com/photo-1603487742131-4163ec966b91?w=800&q=80',
+  },
+  {
+    sku: 'LUX-SHOE-ESP',
+    name: 'Turquoise Espadrilles',
+    description:
+      'Classic rope-soled espadrilles in woven turquoise canvas. Cushioned insole for city strolls after sunset.',
+    price: 64.0,
+    stock: 38,
+    categorySlug: 'luxian-footwear',
+    imageUrl:
+      'https://images.unsplash.com/photo-1543163521-1bf539c35dd1?w=800&q=80',
+  },
+  {
+    sku: 'LUX-HAT-STR',
+    name: 'Woven Straw Fedora',
+    description:
+      'Hand-finished straw fedora with a black grosgrain band. UPF-friendly brim for long days in the sun.',
+    price: 48.0,
+    stock: 42,
+    categorySlug: 'luxian-accessories',
+    imageUrl:
+      'https://images.unsplash.com/photo-1521369909029-2afed882baee?w=800&q=80',
+  },
+];

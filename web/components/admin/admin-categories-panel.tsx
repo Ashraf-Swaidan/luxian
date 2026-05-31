@@ -180,7 +180,7 @@ function CategoryRow({
   const dirty = editName !== category.name || imageUrl !== category.imageUrl
 
   return (
-    <li className="rounded-2xl border border-border/60 bg-card p-4">
+    <li className="rounded-md border border-border/60 bg-card p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1 text-sm">
           <p className="font-medium">{category.name}</p>

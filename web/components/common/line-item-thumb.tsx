@@ -12,9 +12,9 @@ type LineItemThumbProps = {
 }
 
 const sizes = {
-  xs: "size-8 rounded-full",
-  sm: "size-12 rounded-lg",
-  md: "size-20 rounded-xl",
+  xs: "size-8 rounded-md",
+  sm: "size-12 rounded-md",
+  md: "size-20 rounded-md",
 }
 
 const imageSizes = {

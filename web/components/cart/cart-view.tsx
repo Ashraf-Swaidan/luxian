@@ -49,14 +49,14 @@ export function CartView() {
         <p className="mb-2 text-sm text-muted-foreground">
           {itemCount} {itemCount === 1 ? "item" : "items"}
         </p>
-        <div className="rounded-2xl border border-border/60 bg-card px-4 sm:px-6">
+        <div className="rounded-md border border-border/60 bg-card px-4 sm:px-6">
           {items.map((item) => (
             <CartLineItem key={item.id} item={item} />
           ))}
         </div>
       </section>
 
-      <aside className="sticky top-20 space-y-4 rounded-2xl border border-border/60 bg-card p-6">
+      <aside className="sticky top-20 space-y-4 rounded-md border border-border/60 bg-card p-6">
         <h2 className="text-lg font-medium">Order summary</h2>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>

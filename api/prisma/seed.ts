@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaClient, Role } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import { seedFashionCatalog } from './seed-fashion';
 
 const SALT_ROUNDS = 12;
 const DEMO_PASSWORD = 'Secret1!';
@@ -98,9 +99,14 @@ async function main() {
     },
   });
 
+  const fashion = await seedFashionCatalog(prisma);
+
   console.log('Seed complete.');
   console.log(`  Admin: admin@demo.com / ${DEMO_PASSWORD} (id: ${admin.id})`);
   console.log(`  User:  user@demo.com / ${DEMO_PASSWORD}`);
+  console.log(
+    `  Fashion catalog: ${fashion.categories} categories, ${fashion.products} Luxian products`,
+  );
 }
 
 main()

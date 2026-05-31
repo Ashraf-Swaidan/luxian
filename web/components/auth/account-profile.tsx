@@ -25,7 +25,7 @@ function ProfileContent() {
         </p>
       </div>
 
-      <dl className="divide-y divide-border/60 rounded-2xl border border-border/60 bg-card">
+      <dl className="divide-y divide-border/60 rounded-md border border-border/60 bg-card">
         <div className="grid gap-1 px-5 py-4 sm:grid-cols-[140px_1fr] sm:gap-4">
           <dt className="text-sm text-muted-foreground">Name</dt>
           <dd className="text-sm font-medium">{displayName}</dd>

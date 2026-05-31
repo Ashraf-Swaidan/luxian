@@ -30,8 +30,8 @@ export function CheckoutForm() {
   if (isPending) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-32 w-full rounded-2xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-md" />
+        <Skeleton className="h-48 w-full rounded-md" />
       </div>
     )
   }
@@ -86,7 +86,7 @@ export function CheckoutForm() {
                 value={shippingAddress}
                 onChange={(e) => setShippingAddress(e.target.value)}
                 placeholder="123 Main St, City"
-                className="flex w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                className="flex w-full rounded-md border border-input bg-input/30 px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
               />
             </div>
           </CardContent>
@@ -119,7 +119,7 @@ export function CheckoutForm() {
         </Card>
       </div>
 
-      <aside className="h-fit space-y-4 rounded-2xl bg-card p-6 ring-1 ring-foreground/10">
+      <aside className="h-fit space-y-4 rounded-md bg-card p-6 ring-1 ring-foreground/10">
         <h2 className="font-medium">Order total</h2>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Subtotal</span>

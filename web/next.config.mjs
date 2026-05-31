@@ -16,6 +16,11 @@ const remotePatterns = [
     hostname: "**.ufs.sh",
     pathname: "/**",
   },
+  {
+    protocol: "https",
+    hostname: "images.unsplash.com",
+    pathname: "/**",
+  },
 ]
 
 if (imageHost) {

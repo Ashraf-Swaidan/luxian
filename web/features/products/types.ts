@@ -6,6 +6,10 @@ export type PaginatedProducts = Paginated<Product>
 export type ProductListParams = {
   search?: string
   categoryId?: string
+  minPrice?: number
+  maxPrice?: number
+  minStock?: number
+  maxStock?: number
   page?: number
   limit?: number
 }

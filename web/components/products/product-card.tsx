@@ -14,7 +14,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/products/${product.id}`} className="group block">
-      <article className="overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-md">
+      <article className="overflow-hidden rounded-md bg-card">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
           {product.imageUrl ? (
             <StoreImage
@@ -32,7 +32,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           {outOfStock && (
-            <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+            <span className="absolute left-3 top-3 rounded-sm bg-background/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
               Sold out
             </span>
           )}

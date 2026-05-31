@@ -98,7 +98,7 @@ export function ProductsCatalog() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+      <div className="flex flex-col gap-4 rounded-md border border-border/60 bg-card p-4 sm:p-5">
         <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
           <div className="space-y-2">
             <Label htmlFor="product-search">Search</Label>
@@ -148,7 +148,7 @@ export function ProductsCatalog() {
       {isPending && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[4/5] w-full rounded-2xl" />
+            <Skeleton key={i} className="aspect-[4/5] w-full rounded-md" />
           ))}
         </div>
       )}

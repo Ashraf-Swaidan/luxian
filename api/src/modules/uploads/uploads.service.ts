@@ -5,10 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 
@@ -32,10 +29,18 @@ export class UploadsService {
     const accessKeyId = this.config.get<string>('R2_ACCESS_KEY_ID');
     const secretAccessKey = this.config.get<string>('R2_SECRET_ACCESS_KEY');
     this.bucket = this.config.get<string>('R2_BUCKET_NAME') ?? null;
-    const publicUrl = this.config.get<string>('R2_PUBLIC_URL')?.replace(/\/$/, '');
+    const publicUrl = this.config
+      .get<string>('R2_PUBLIC_URL')
+      ?.replace(/\/$/, '');
     this.publicBaseUrl = publicUrl || null;
 
-    if (accountId && accessKeyId && secretAccessKey && this.bucket && this.publicBaseUrl) {
+    if (
+      accountId &&
+      accessKeyId &&
+      secretAccessKey &&
+      this.bucket &&
+      this.publicBaseUrl
+    ) {
       this.client = new S3Client({
         region: 'auto',
         endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
@@ -57,7 +62,12 @@ export class UploadsService {
     file: Express.Multer.File,
     folder = 'uploads',
   ): Promise<{ url: string; key: string }> {
-    if (!this.isConfigured() || !this.client || !this.bucket || !this.publicBaseUrl) {
+    if (
+      !this.isConfigured() ||
+      !this.client ||
+      !this.bucket ||
+      !this.publicBaseUrl
+    ) {
       throw new ServiceUnavailableException(
         'Image uploads are not configured. Add Cloudflare R2 variables to api/.env (see api/CLOUDFLARE_R2_SETUP.md).',
       );

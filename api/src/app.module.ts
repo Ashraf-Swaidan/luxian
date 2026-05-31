@@ -13,6 +13,11 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
+    // ConfigModule is used to load the environment variables from the .env file
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
     PrismaModule,
     AuthModule,
     CategoriesModule,
@@ -21,11 +26,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     OrdersModule,
     PaymentsModule,
     UploadsModule,
-    ConfigModule.forRoot({
-      envFilePath: '.env',
-      isGlobal: true,
-    }),
- ],
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

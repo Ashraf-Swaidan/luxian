@@ -36,6 +36,7 @@ export class ProductsService {
     const where: Prisma.ProductWhereInput = {
       isActive: true,
       ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+      ...this.buildRangeFilters(query),
       ...(query.search
         ? {
             OR: [
@@ -67,6 +68,28 @@ export class ProductsService {
         totalPages: total === 0 ? 0 : Math.ceil(total / limit),
       },
     };
+  }
+
+  private buildRangeFilters(
+    query: ListProductsQueryDto,
+  ): Prisma.ProductWhereInput {
+    const filters: Prisma.ProductWhereInput = {};
+
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      filters.price = {
+        ...(query.minPrice !== undefined ? { gte: query.minPrice } : {}),
+        ...(query.maxPrice !== undefined ? { lte: query.maxPrice } : {}),
+      };
+    }
+
+    if (query.minStock !== undefined || query.maxStock !== undefined) {
+      filters.stock = {
+        ...(query.minStock !== undefined ? { gte: query.minStock } : {}),
+        ...(query.maxStock !== undefined ? { lte: query.maxStock } : {}),
+      };
+    }
+
+    return filters;
   }
 
   async create(dto: CreateProductDto): Promise<Product> {

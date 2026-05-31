@@ -1,14 +1,15 @@
 import { HomeHero } from "@/components/layout/home-hero"
+import { SummerSeasonBanner } from "@/components/layout/summer-season-banner"
+import { NowTrending } from "@/components/products/now-trending"
 import { ProductsGrid } from "@/components/products/products-grid"
-import { StoreShell } from "@/components/layout/store-shell"
 
 export default function Page() {
   return (
-    <main className="py-8 sm:py-12">
-      <StoreShell className="flex flex-col gap-14">
-        <HomeHero />
-        <ProductsGrid title="Featured" limit={4} />
-      </StoreShell>
+    <main>
+      <HomeHero />
+      <ProductsGrid limit={3} />
+      <SummerSeasonBanner />
+      <NowTrending />
     </main>
   )
 }

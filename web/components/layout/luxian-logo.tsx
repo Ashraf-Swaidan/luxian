@@ -48,7 +48,7 @@ export function LuxianLogo({
   }
 
   return (
-    <Link href={href} className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <Link href={href} className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
       {content}
     </Link>
   )

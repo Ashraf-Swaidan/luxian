@@ -25,14 +25,14 @@ function OrderRow({ order }: { order: Order }) {
   return (
     <Link
       href={`/account/orders/${order.id}`}
-      className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-4 rounded-md border border-border/60 bg-card p-5 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex min-w-0 flex-1 gap-4">
         <div className="flex shrink-0 items-center">
           {previewItems.map((item, index) => (
             <div
               key={item.id}
-              className={cn("relative rounded-full ring-2 ring-card", index > 0 && "-ml-2.5")}
+              className={cn("relative rounded-md ring-2 ring-card", index > 0 && "-ml-2.5")}
               style={{ zIndex: previewItems.length - index }}
             >
               <LineItemThumb
@@ -44,7 +44,7 @@ function OrderRow({ order }: { order: Order }) {
           ))}
           {overflowCount > 0 && (
             <div
-              className="relative z-0 -ml-2.5 flex size-8 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-card"
+              className="relative z-0 -ml-2.5 flex size-8 items-center justify-center rounded-md bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-card"
               aria-label={`${overflowCount} more items`}
             >
               +{overflowCount}
@@ -60,7 +60,7 @@ function OrderRow({ order }: { order: Order }) {
         </div>
       </div>
       <div className="flex items-center gap-4 text-sm sm:shrink-0">
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium">
+        <span className="rounded-sm bg-muted px-2.5 py-0.5 text-xs font-medium">
           {order.status}
         </span>
         <span className="font-medium tabular-nums">{formatPrice(order.totalAmount)}</span>
@@ -75,8 +75,8 @@ export function OrdersList() {
   if (isPending) {
     return (
       <div className="space-y-3">
-        <Skeleton className="h-20 w-full rounded-2xl" />
-        <Skeleton className="h-20 w-full rounded-2xl" />
+        <Skeleton className="h-20 w-full rounded-md" />
+        <Skeleton className="h-20 w-full rounded-md" />
       </div>
     )
   }

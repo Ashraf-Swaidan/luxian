@@ -15,6 +15,18 @@ function buildProductsQuery(params?: ProductListParams) {
   if (params.categoryId) {
     search.set("categoryId", params.categoryId)
   }
+  if (params.minPrice !== undefined) {
+    search.set("minPrice", String(params.minPrice))
+  }
+  if (params.maxPrice !== undefined) {
+    search.set("maxPrice", String(params.maxPrice))
+  }
+  if (params.minStock !== undefined) {
+    search.set("minStock", String(params.minStock))
+  }
+  if (params.maxStock !== undefined) {
+    search.set("maxStock", String(params.maxStock))
+  }
   if (params.page !== undefined) {
     search.set("page", String(params.page))
   }

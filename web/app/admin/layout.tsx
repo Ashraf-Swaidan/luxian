@@ -30,7 +30,7 @@ export default function AdminLayout({
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-full border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground",
+                  "rounded-md border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground",
                 )}
               >
                 {link.label}

@@ -1,8 +1,7 @@
-import { IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional } from 'class-validator';
 
 export class CheckoutDto {
-    @IsOptional()
-    @IsString()
-    shippingAddress?: string;
-
+  @IsOptional()
+  @IsString()
+  shippingAddress?: string;
 }

@@ -65,7 +65,7 @@ export function CartLineItem({ item }: CartLineItemProps) {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 sm:justify-end sm:gap-6">
-        <div className="inline-flex items-center rounded-lg border border-border/80 bg-muted/30 p-0.5">
+        <div className="inline-flex items-center rounded-md border border-border/80 bg-muted/30 p-0.5">
           <button
             type="button"
             className="flex size-8 items-center justify-center rounded-md text-sm transition-colors hover:bg-background"

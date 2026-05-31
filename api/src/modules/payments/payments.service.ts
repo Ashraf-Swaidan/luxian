@@ -15,7 +15,9 @@ const paymentWithOrder = Prisma.validator<Prisma.PaymentDefaultArgs>()({
   },
 });
 
-export type PaymentWithOrder = Prisma.PaymentGetPayload<typeof paymentWithOrder>;
+export type PaymentWithOrder = Prisma.PaymentGetPayload<
+  typeof paymentWithOrder
+>;
 
 @Injectable()
 export class PaymentsService {

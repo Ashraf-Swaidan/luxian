@@ -8,6 +8,10 @@ export const queryKeys = {
     list: (params?: {
       search?: string
       categoryId?: string
+      minPrice?: number
+      maxPrice?: number
+      minStock?: number
+      maxStock?: number
       page?: number
       limit?: number
     }) => [...queryKeys.products.all, "list", params ?? {}] as const,

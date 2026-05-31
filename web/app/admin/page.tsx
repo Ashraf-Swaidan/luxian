@@ -1,32 +1,41 @@
 import Link from "next/link"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Folder01Icon, PackageIcon } from "@hugeicons/core-free-icons"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+const adminCards = [
+  {
+    href: "/admin/categories",
+    title: "Categories",
+    icon: Folder01Icon,
+    color: "bg-[oklch(0.8_0.16_82)]",
+  },
+  {
+    href: "/admin/products",
+    title: "Products",
+    icon: PackageIcon,
+    color: "bg-[oklch(0.72_0.14_195)]",
+  },
+]
 
 export default function AdminPage() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Link href="/admin/categories">
-        <Card className="transition-colors hover:bg-muted/30">
-          <CardHeader>
-            <CardTitle>Categories</CardTitle>
-            <CardDescription>Create and manage product categories.</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            POST / PATCH / DELETE (deactivate)
-          </CardContent>
-        </Card>
-      </Link>
-      <Link href="/admin/products">
-        <Card className="transition-colors hover:bg-muted/30">
-          <CardHeader>
-            <CardTitle>Products</CardTitle>
-            <CardDescription>Add inventory and pricing for the catalog.</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Linked to categories · visible on /products when active
-          </CardContent>
-        </Card>
-      </Link>
+    <div className="grid gap-6 sm:grid-cols-2">
+      {adminCards.map((card) => (
+        <Link
+          key={card.href}
+          href={card.href}
+          className="group flex min-h-72 flex-col justify-between bg-white p-8 ring-1 ring-border/60 transition-colors hover:bg-muted/20"
+        >
+          <div
+            className={`flex size-20 items-center justify-center text-neutral-950 ${card.color}`}
+          >
+            <HugeiconsIcon icon={card.icon} className="size-10" strokeWidth={1.7} />
+          </div>
+          <h2 className="font-display text-5xl font-bold uppercase leading-none text-neutral-950 sm:text-6xl">
+            {card.title}
+          </h2>
+        </Link>
+      ))}
     </div>
   )
 }

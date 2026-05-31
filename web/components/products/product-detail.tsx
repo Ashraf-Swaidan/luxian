@@ -26,7 +26,7 @@ export function ProductDetail() {
   if (isPending) {
     return (
       <div className="grid gap-10 lg:grid-cols-2">
-        <Skeleton className="aspect-[4/5] rounded-2xl" />
+        <Skeleton className="aspect-[4/5] rounded-md" />
         <div className="space-y-4">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-6 w-32" />
@@ -51,7 +51,7 @@ export function ProductDetail() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-border/60 bg-muted">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-border/60 bg-muted">
         {product.imageUrl ? (
           <StoreImage
             src={product.imageUrl}
