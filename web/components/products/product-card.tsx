@@ -32,19 +32,19 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           {outOfStock && (
-            <span className="absolute left-3 top-3 rounded-sm bg-background/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+            <span className="absolute left-2 top-2 rounded-sm bg-background/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:left-3 sm:top-3 sm:px-2.5 sm:text-[10px]">
               Sold out
             </span>
           )}
         </div>
-        <div className="space-y-1 p-4">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-0.5 p-2.5 sm:space-y-1 sm:p-4">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground sm:text-[11px]">
             {product.category?.name ?? "Collection"}
           </p>
-          <h3 className="line-clamp-2 text-sm font-medium leading-snug group-hover:text-[var(--luxian-teal)]">
+          <h3 className="line-clamp-2 text-xs font-medium leading-snug group-hover:text-[var(--luxian-teal)] sm:text-sm">
             {product.name}
           </h3>
-          <p className={cn("pt-1 text-sm font-medium tabular-nums", outOfStock && "text-muted-foreground")}>
+          <p className={cn("pt-0.5 text-xs font-medium tabular-nums sm:pt-1 sm:text-sm", outOfStock && "text-muted-foreground")}>
             {formatPrice(product.price)}
           </p>
         </div>

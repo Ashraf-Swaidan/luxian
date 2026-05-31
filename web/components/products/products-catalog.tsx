@@ -305,7 +305,7 @@ export function ProductsCatalog() {
       </section>
 
       {isPending && (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
             <Skeleton key={i} className="aspect-[4/5] w-full" />
           ))}
@@ -326,7 +326,7 @@ export function ProductsCatalog() {
       {!isPending && !isError && products.length > 0 && (
         <>
           <div className={isFetching && !isPending ? "opacity-70 transition-opacity" : undefined}>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

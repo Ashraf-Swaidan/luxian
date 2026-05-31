@@ -45,9 +45,9 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
   if (isHomepagePending || (shouldLoadFallbackProducts && isPending)) {
     return (
       <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
-        <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5">
           {Array.from({ length: limit }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[4/5] w-[72vw] shrink-0 sm:w-[46vw] md:w-full" />
+            <Skeleton key={i} className="aspect-[4/5] w-full" />
           ))}
         </div>
       </CollectionSection>
@@ -82,12 +82,12 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
 
   return (
     <CollectionSection description={description} title={sectionTitle}>
-      <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5">
         {products.slice(0, 3).map((product) => (
           <Link
             key={product.id}
             href={`/products/${product.id}`}
-            className="group relative block aspect-[4/5] w-[72vw] shrink-0 overflow-hidden bg-muted sm:w-[46vw] md:w-full"
+            className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted"
           >
             {product.imageUrl ? (
               <StoreImage
@@ -95,14 +95,14 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
                 alt={product.name}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                sizes="(max-width: 768px) 100vw, 33vw"
+                sizes="(max-width: 768px) 50vw, 33vw"
               />
             ) : (
               <div className="flex h-full items-center justify-center bg-muted p-6 text-center text-sm font-medium tracking-wider text-muted-foreground uppercase">
                 {product.name}
               </div>
             )}
-            <span className="absolute bottom-6 left-6 inline-flex h-9 items-center justify-center bg-white px-5 text-xs font-semibold text-neutral-950">
+            <span className="absolute bottom-3 left-3 inline-flex h-7 items-center justify-center bg-white px-3 text-[10px] font-semibold text-neutral-950 sm:bottom-6 sm:left-6 sm:h-9 sm:px-5 sm:text-xs">
               Show More
             </span>
           </Link>
