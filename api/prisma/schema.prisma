@@ -66,6 +66,7 @@ model Product {
   //relations
   orderItems OrderItem[]
   cartItems CartItem[]
+  collectionProducts CollectionProduct[]
 
   categoryId String
   category Category @relation(fields: [categoryId], references: [id])
@@ -97,6 +98,71 @@ model Category {
    @@index([slug])
    @@index([isActive])
    @@map("categories")
+}
+
+model Collection {
+  id String @id @default(uuid())
+  name String
+  slug String @unique
+  description String?
+  imageUrl String?
+  isActive Boolean @default(true)
+
+  collectionProducts CollectionProduct[]
+  latestHomepageSettings HomepageSettings[] @relation("LatestCollection")
+  trendingHomepageSettings HomepageSettings[] @relation("TrendingCollection")
+  bannerHomepageSettings HomepageSettings[] @relation("BannerCollection")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("collections")
+}
+
+model CollectionProduct {
+  id String @id @default(uuid())
+  position Int @default(0)
+
+  collectionId String
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([collectionId, productId])
+  @@index([collectionId])
+  @@index([productId])
+  @@index([collectionId, position])
+  @@map("collection_products")
+}
+
+model HomepageSettings {
+  id String @id @default("homepage")
+
+  latestCollectionId String?
+  latestCollection Collection? @relation("LatestCollection", fields: [latestCollectionId], references: [id], onDelete: SetNull)
+
+  trendingCollectionId String?
+  trendingCollection Collection? @relation("TrendingCollection", fields: [trendingCollectionId], references: [id], onDelete: SetNull)
+
+  bannerCollectionId String?
+  bannerCollection Collection? @relation("BannerCollection", fields: [bannerCollectionId], references: [id], onDelete: SetNull)
+
+  bannerImageUrl String?
+  bannerButtonText String @default("See Collection")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([latestCollectionId])
+  @@index([trendingCollectionId])
+  @@index([bannerCollectionId])
+  @@map("homepage_settings")
 }
 
 model OrderItem {
@@ -202,4 +268,3 @@ model Payment {
     @@index([orderId])
     @@map("payments")
 }
-

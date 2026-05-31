@@ -15,6 +15,12 @@ function buildProductsQuery(params?: ProductListParams) {
   if (params.categoryId) {
     search.set("categoryId", params.categoryId)
   }
+  if (params.collectionId) {
+    search.set("collectionId", params.collectionId)
+  }
+  if (params.collectionSlug) {
+    search.set("collectionSlug", params.collectionSlug)
+  }
   if (params.minPrice !== undefined) {
     search.set("minPrice", String(params.minPrice))
   }

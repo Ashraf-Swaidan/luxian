@@ -32,21 +32,11 @@ export class ProductsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 12;
     const skip = (page - 1) * limit;
+    const where = this.buildProductWhere(query);
 
-    const where: Prisma.ProductWhereInput = {
-      isActive: true,
-      ...(query.categoryId ? { categoryId: query.categoryId } : {}),
-      ...this.buildRangeFilters(query),
-      ...(query.search
-        ? {
-            OR: [
-              { name: { contains: query.search, mode: 'insensitive' } },
-              { description: { contains: query.search, mode: 'insensitive' } },
-              { sku: { contains: query.search, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-    };
+    if (query.collectionId || query.collectionSlug) {
+      return this.findAllActiveByCollection(query, where, page, limit, skip);
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
@@ -67,6 +57,65 @@ export class ProductsService {
         total,
         totalPages: total === 0 ? 0 : Math.ceil(total / limit),
       },
+    };
+  }
+
+  private async findAllActiveByCollection(
+    query: ListProductsQueryDto,
+    productWhere: Prisma.ProductWhereInput,
+    page: number,
+    limit: number,
+    skip: number,
+  ): Promise<PaginatedProducts> {
+    const collectionWhere: Prisma.CollectionWhereInput = {
+      isActive: true,
+      ...(query.collectionId ? { id: query.collectionId } : {}),
+      ...(query.collectionSlug ? { slug: query.collectionSlug } : {}),
+    };
+
+    const where: Prisma.CollectionProductWhereInput = {
+      collection: collectionWhere,
+      product: productWhere,
+    };
+
+    const [rows, total] = await Promise.all([
+      this.prisma.collectionProduct.findMany({
+        where,
+        include: { product: { include: { category: true } } },
+        orderBy: { position: 'asc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.collectionProduct.count({ where }),
+    ]);
+
+    return {
+      data: rows.map((row) => row.product),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+      },
+    };
+  }
+
+  private buildProductWhere(
+    query: ListProductsQueryDto,
+  ): Prisma.ProductWhereInput {
+    return {
+      isActive: true,
+      ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+      ...this.buildRangeFilters(query),
+      ...(query.search
+        ? {
+            OR: [
+              { name: { contains: query.search, mode: 'insensitive' } },
+              { description: { contains: query.search, mode: 'insensitive' } },
+              { sku: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
     };
   }
 

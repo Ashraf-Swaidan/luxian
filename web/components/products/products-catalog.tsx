@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
 import { EmptyState } from "@/components/common/empty-state"
+import { StoreImage } from "@/components/common/store-image"
 import { ProductCard } from "@/components/products/product-card"
 import { ProductsPagination } from "@/components/products/products-pagination"
 import { Input } from "@/components/ui/input"
@@ -20,10 +21,12 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
+import { getCollections } from "@/features/collections/api"
 import { getProducts } from "@/features/products/api"
 import type { ProductListParams } from "@/features/products/types"
 import { getErrorMessage, toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
+import type { Collection } from "@/lib/types/collection"
 
 const PAGE_SIZE = 12
 const ALL_CATEGORIES = "all"
@@ -34,6 +37,7 @@ export function ProductsCatalog() {
   const searchParams = useSearchParams()
 
   const categoryId = searchParams.get("categoryId") ?? undefined
+  const collectionId = searchParams.get("collectionId") ?? undefined
   const page = Math.max(1, Number.parseInt(searchParams.get("page") ?? "1", 10) || 1)
   const searchFromUrl = searchParams.get("search") ?? ""
   const minPrice = searchParams.get("minPrice") ?? ""
@@ -46,6 +50,7 @@ export function ProductsCatalog() {
     () => ({
       search: searchFromUrl.trim() || undefined,
       categoryId,
+      collectionId,
       page,
       limit: PAGE_SIZE,
       minPrice: toNumber(minPrice),
@@ -53,12 +58,17 @@ export function ProductsCatalog() {
       minStock: toNumber(minStock),
       maxStock: toNumber(maxStock),
     }),
-    [categoryId, maxPrice, maxStock, minPrice, minStock, page, searchFromUrl],
+    [categoryId, collectionId, maxPrice, maxStock, minPrice, minStock, page, searchFromUrl],
   )
 
   const { data: categories } = useQuery({
     queryKey: queryKeys.categories.all,
     queryFn: getCategories,
+  })
+
+  const { data: collections } = useQuery({
+    queryKey: queryKeys.collections.all,
+    queryFn: getCollections,
   })
 
   const { data, isPending, isError, error, isFetching } = useQuery({
@@ -88,11 +98,14 @@ export function ProductsCatalog() {
 
   const products = data?.data ?? []
   const meta = data?.meta
+  const selectedCollection = collections?.find((collection) => collection.id === collectionId)
 
   return (
     <div className="space-y-8">
+      {selectedCollection && <CollectionHero collection={selectedCollection} />}
+
       <section className="space-y-6">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem_auto] lg:items-end">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_14rem_14rem_auto] lg:items-end">
           <div className="space-y-2">
             <Label
               htmlFor="product-search"
@@ -140,6 +153,36 @@ export function ProductsCatalog() {
                 {categories?.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="product-collection" className="text-xs uppercase">
+              Collection
+            </Label>
+            <Select
+              value={collectionId ?? ALL_CATEGORIES}
+              onValueChange={(value) =>
+                updateParams({
+                  collectionId: value === ALL_CATEGORIES ? null : value,
+                  page: "1",
+                })
+              }
+            >
+              <SelectTrigger
+                id="product-collection"
+                className="h-9 w-full border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              >
+                <SelectValue placeholder="All collections" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_CATEGORIES}>All collections</SelectItem>
+                {collections?.map((collection) => (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {collection.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -254,6 +297,41 @@ function NumberFilter({
         className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
       />
     </div>
+  )
+}
+
+function CollectionHero({ collection }: { collection: Collection }) {
+  return (
+    <section className="grid min-h-72 overflow-hidden bg-neutral-950 text-white md:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="flex flex-col justify-end p-6 sm:p-8">
+        <p className="text-xs font-medium uppercase tracking-wide text-white/60">
+          Collection
+        </p>
+        <h2 className="mt-3 font-display text-5xl font-bold uppercase leading-none sm:text-7xl">
+          {collection.name}
+        </h2>
+        {collection.description && (
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/70">
+            {collection.description}
+          </p>
+        )}
+      </div>
+      <div className="relative min-h-64 bg-muted">
+        {collection.imageUrl ? (
+          <StoreImage
+            src={collection.imageUrl}
+            alt={collection.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 384px"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            Luxian
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 

@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { EmptyState } from "@/components/common/empty-state"
 import { StoreImage } from "@/components/common/store-image"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getHomepageSettings } from "@/features/homepage/api"
 import { getProducts } from "@/features/products/api"
 import { getErrorMessage, toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
@@ -16,9 +17,16 @@ type ProductsGridProps = {
   limit?: number
 }
 
+const DEFAULT_COLLECTION_DESCRIPTION =
+  "Shop our latest Luxian collection, featuring technical silhouettes, sharp utility, and standout everyday pieces."
+
 export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: ProductsGridProps) {
   const params = { page: 1, limit }
 
+  const { data: homepage } = useQuery({
+    queryKey: queryKeys.homepage,
+    queryFn: getHomepageSettings,
+  })
   const { data, isPending, isError, error } = useQuery({
     queryKey: queryKeys.products.list(params),
     queryFn: () => getProducts(params),
@@ -32,7 +40,7 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
 
   if (isPending) {
     return (
-      <CollectionSection title={title}>
+      <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
         <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
           {Array.from({ length: limit }).map((_, i) => (
             <Skeleton
@@ -47,7 +55,7 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
 
   if (isError) {
     return (
-      <CollectionSection title={title}>
+      <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
         <p className="text-sm text-destructive">
           {getErrorMessage(error, "Failed to load products")}
         </p>
@@ -55,11 +63,17 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
     )
   }
 
-  const products = data?.data ?? []
+  const latestCollection = homepage?.latestCollection
+  const collectionProducts =
+    latestCollection?.collectionProducts?.map((item) => item.product).slice(0, 3) ?? []
+  const products = collectionProducts.length ? collectionProducts : (data?.data ?? [])
+  const sectionTitle = latestCollection?.name.toUpperCase() ?? title
+  const description =
+    latestCollection?.description ?? DEFAULT_COLLECTION_DESCRIPTION
 
   if (!products.length) {
     return (
-      <CollectionSection title={title}>
+      <CollectionSection description={description} title={sectionTitle}>
         <EmptyState
           title="No products yet"
           description="Check back soon, or sign in as admin to add catalog items."
@@ -71,7 +85,7 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
   }
 
   return (
-    <CollectionSection title={title}>
+    <CollectionSection description={description} title={sectionTitle}>
       <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
         {products.slice(0, 3).map((product) => (
           <Link
@@ -104,30 +118,31 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
 
 function CollectionSection({
   children,
+  description,
   title,
 }: {
   children: React.ReactNode
+  description: string
   title: string
 }) {
   return (
     <section className="bg-white px-6 py-20 sm:px-10 sm:py-24 lg:px-14 lg:py-28">
       <div className="mx-auto w-full max-w-[92rem] space-y-10">
-        <CollectionHeader title={title} />
+        <CollectionHeader description={description} title={title} />
         {children}
       </div>
     </section>
   )
 }
 
-function CollectionHeader({ title }: { title: string }) {
+function CollectionHeader({ description, title }: { description: string; title: string }) {
   return (
     <header className="max-w-2xl space-y-4">
       <h2 className="font-display text-5xl font-bold uppercase leading-none text-[oklch(0.32_0.09_178)] sm:text-6xl lg:text-7xl">
         {title}
       </h2>
       <p className="max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-        Shop our latest Luxian collection, featuring technical silhouettes, sharp utility, and
-        standout everyday pieces.
+        {description}
       </p>
     </header>
   )

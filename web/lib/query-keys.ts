@@ -3,11 +3,19 @@ export const queryKeys = {
   categories: {
     all: ["categories"] as const,
   },
+  collections: {
+    all: ["collections"] as const,
+    admin: ["collections", "admin"] as const,
+    detail: (id: string) => ["collections", id] as const,
+  },
+  homepage: ["homepage"] as const,
   products: {
     all: ["products"] as const,
     list: (params?: {
       search?: string
       categoryId?: string
+      collectionId?: string
+      collectionSlug?: string
       minPrice?: number
       maxPrice?: number
       minStock?: number

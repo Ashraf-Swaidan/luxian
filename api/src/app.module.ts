@@ -10,6 +10,8 @@ import { ConfigModule } from '@nestjs/config';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { CollectionsModule } from './modules/collections/collections.module';
+import { HomepageModule } from './modules/homepage/homepage.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     OrdersModule,
     PaymentsModule,
     UploadsModule,
+    CollectionsModule,
+    HomepageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

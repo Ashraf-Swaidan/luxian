@@ -9,7 +9,13 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 
-const ALLOWED_FOLDERS = new Set(['products', 'categories', 'uploads']);
+const ALLOWED_FOLDERS = new Set([
+  'products',
+  'categories',
+  'collections',
+  'banners',
+  'uploads',
+]);
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/png',

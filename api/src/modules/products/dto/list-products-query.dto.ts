@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -20,6 +21,17 @@ export class ListProductsQueryDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  collectionId?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: 'collectionSlug must be lowercase letters, numbers, and hyphens',
+  })
+  collectionSlug?: string;
 
   @IsOptional()
   @Type(() => Number)

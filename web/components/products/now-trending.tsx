@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { StoreImage } from "@/components/common/store-image"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getHomepageSettings } from "@/features/homepage/api"
 import { getProducts } from "@/features/products/api"
 import { getErrorMessage, toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
@@ -16,6 +17,10 @@ const TRENDING_LIMIT = 12
 export function NowTrending() {
   const params = { page: 1, limit: TRENDING_LIMIT }
 
+  const { data: homepage } = useQuery({
+    queryKey: queryKeys.homepage,
+    queryFn: getHomepageSettings,
+  })
   const { data, isPending, isError, error } = useQuery({
     queryKey: queryKeys.products.list(params),
     queryFn: () => getProducts(params),
@@ -27,7 +32,11 @@ export function NowTrending() {
     }
   }, [isError, error])
 
-  const products = data?.data ?? []
+  const trendingProducts =
+    homepage?.trendingCollection?.collectionProducts
+      ?.map((item) => item.product)
+      .slice(0, TRENDING_LIMIT) ?? []
+  const products = trendingProducts.length ? trendingProducts : (data?.data ?? [])
 
   return (
     <section className="bg-white px-6 py-20 sm:px-10 sm:py-24 lg:px-14 lg:py-28">
