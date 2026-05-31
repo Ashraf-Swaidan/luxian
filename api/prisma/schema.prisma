@@ -110,6 +110,8 @@ model Collection {
   latestHomepageSettings   HomepageSettings[]  @relation("LatestCollection")
   trendingHomepageSettings HomepageSettings[]  @relation("TrendingCollection")
   bannerHomepageSettings   HomepageSettings[]  @relation("BannerCollection")
+  pairLeftHomepageSettings  HomepageSettings[]  @relation("PairLeftCollection")
+  pairRightHomepageSettings HomepageSettings[]  @relation("PairRightCollection")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,6 +153,12 @@ model HomepageSettings {
   bannerCollectionId String?
   bannerCollection   Collection? @relation("BannerCollection", fields: [bannerCollectionId], references: [id], onDelete: SetNull)
 
+  pairLeftCollectionId String?
+  pairLeftCollection   Collection? @relation("PairLeftCollection", fields: [pairLeftCollectionId], references: [id], onDelete: SetNull)
+
+  pairRightCollectionId String?
+  pairRightCollection   Collection? @relation("PairRightCollection", fields: [pairRightCollectionId], references: [id], onDelete: SetNull)
+
   bannerImageUrl   String?
   bannerButtonText String  @default("See Collection")
 
@@ -167,6 +175,8 @@ model HomepageSettings {
   @@index([latestCollectionId])
   @@index([trendingCollectionId])
   @@index([bannerCollectionId])
+  @@index([pairLeftCollectionId])
+  @@index([pairRightCollectionId])
   @@map("homepage_settings")
 }
 

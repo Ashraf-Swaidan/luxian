@@ -64,6 +64,8 @@ function HomepageSettingsForm({
   const [latestCollectionId, setLatestCollectionId] = useState(settings.latestCollectionId ?? "")
   const [trendingCollectionId, setTrendingCollectionId] = useState(settings.trendingCollectionId ?? "")
   const [bannerCollectionId, setBannerCollectionId] = useState(settings.bannerCollectionId ?? "")
+  const [pairLeftCollectionId, setPairLeftCollectionId] = useState(settings.pairLeftCollectionId ?? "")
+  const [pairRightCollectionId, setPairRightCollectionId] = useState(settings.pairRightCollectionId ?? "")
   const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(settings.bannerImageUrl)
   const [bannerButtonText, setBannerButtonText] = useState(settings.bannerButtonText || "See Collection")
   const [brandImages, setBrandImages] = useState(
@@ -80,6 +82,8 @@ function HomepageSettingsForm({
         latestCollectionId: latestCollectionId || null,
         trendingCollectionId: trendingCollectionId || null,
         bannerCollectionId: bannerCollectionId || null,
+        pairLeftCollectionId: pairLeftCollectionId || null,
+        pairRightCollectionId: pairRightCollectionId || null,
         bannerImageUrl,
         bannerButtonText,
         ...brandImages,
@@ -117,6 +121,28 @@ function HomepageSettingsForm({
             label="Trending collection"
             value={trendingCollectionId}
             onChange={setTrendingCollectionId}
+            collections={collections}
+          />
+        </div>
+      </section>
+
+      <section className="space-y-6 bg-white p-6 ring-1 ring-border/60">
+        <div>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Collection pair</p>
+          <h2 className="font-display text-5xl leading-none font-bold text-neutral-950 uppercase">Below mosaic</h2>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <CollectionSelect
+            label="Left collection"
+            value={pairLeftCollectionId}
+            onChange={setPairLeftCollectionId}
+            collections={collections}
+          />
+          <CollectionSelect
+            label="Right collection"
+            value={pairRightCollectionId}
+            onChange={setPairRightCollectionId}
             collections={collections}
           />
         </div>

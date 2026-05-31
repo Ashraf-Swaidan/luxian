@@ -5,6 +5,8 @@ export type UpdateHomepageSettingsInput = {
   latestCollectionId?: string | null
   trendingCollectionId?: string | null
   bannerCollectionId?: string | null
+  pairLeftCollectionId?: string | null
+  pairRightCollectionId?: string | null
   bannerImageUrl?: string | null
   bannerButtonText?: string
   brandImage1Url?: string | null

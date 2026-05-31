@@ -74,11 +74,11 @@ function TrendingItem({ product }: { product: Product }) {
           <div className="flex h-full items-center justify-center bg-muted text-xs font-medium tracking-wider text-muted-foreground uppercase">
             Luxian
           </div>
-        )}
+      )}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-base font-medium text-neutral-950">{product.category?.name ?? "Luxian"}</p>
-        <p className="mt-1 line-clamp-2 text-base leading-snug text-neutral-500">{product.name}</p>
+        <p className="line-clamp-2 text-base leading-snug font-medium text-neutral-950">{product.name}</p>
+        <p className="mt-1 truncate text-sm text-neutral-500">{product.category?.name ?? "Luxian"}</p>
       </div>
     </Link>
   )

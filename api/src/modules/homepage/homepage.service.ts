@@ -25,6 +25,24 @@ const homepageInclude = {
     },
   },
   bannerCollection: true,
+  pairLeftCollection: {
+    include: {
+      collectionProducts: {
+        where: { product: { isActive: true } },
+        orderBy: { position: 'asc' },
+        include: { product: { include: { category: true } } },
+      },
+    },
+  },
+  pairRightCollection: {
+    include: {
+      collectionProducts: {
+        where: { product: { isActive: true } },
+        orderBy: { position: 'asc' },
+        include: { product: { include: { category: true } } },
+      },
+    },
+  },
 } satisfies Prisma.HomepageSettingsInclude;
 
 type HomepageSettingsPayload = Prisma.HomepageSettingsGetPayload<{
@@ -51,6 +69,8 @@ export class HomepageService {
       this.ensureCollectionExists(dto.latestCollectionId),
       this.ensureCollectionExists(dto.trendingCollectionId),
       this.ensureCollectionExists(dto.bannerCollectionId),
+      this.ensureCollectionExists(dto.pairLeftCollectionId),
+      this.ensureCollectionExists(dto.pairRightCollectionId),
     ]);
 
     const settings = await this.prisma.homepageSettings.upsert({
@@ -84,6 +104,12 @@ export class HomepageService {
     const bannerCollection = settings.bannerCollection?.isActive
       ? settings.bannerCollection
       : null;
+    const pairLeftCollection = settings.pairLeftCollection?.isActive
+      ? settings.pairLeftCollection
+      : null;
+    const pairRightCollection = settings.pairRightCollection?.isActive
+      ? settings.pairRightCollection
+      : null;
 
     return {
       ...settings,
@@ -93,6 +119,10 @@ export class HomepageService {
       trendingCollection,
       bannerCollectionId: bannerCollection?.id ?? null,
       bannerCollection,
+      pairLeftCollectionId: pairLeftCollection?.id ?? null,
+      pairLeftCollection,
+      pairRightCollectionId: pairRightCollection?.id ?? null,
+      pairRightCollection,
     };
   }
 

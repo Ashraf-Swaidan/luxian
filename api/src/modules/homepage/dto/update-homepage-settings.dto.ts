@@ -24,6 +24,16 @@ export class UpdateHomepageSettingsDto {
   bannerCollectionId?: string | null;
 
   @ValidateIf((_, value) => value != null && value !== '')
+  @IsUUID()
+  @IsOptional()
+  pairLeftCollectionId?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsUUID()
+  @IsOptional()
+  pairRightCollectionId?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
   @IsUrl()
   @IsOptional()
   bannerImageUrl?: string | null;
