@@ -1,53 +1,123 @@
 "use client"
 
+import {
+  PackageIcon,
+  ShoppingBag01Icon,
+  ShoppingCart01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 
 import { RequireAuth } from "@/components/auth/require-auth"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useCart } from "@/features/cart/hooks"
+import { useOrders } from "@/features/orders/hooks"
+import { formatCartSubtotal } from "@/lib/cart-utils"
 import { useAuth } from "@/providers/auth-provider"
 
 function ProfileContent() {
   const { user } = useAuth()
+  const { data: orders, isPending: ordersLoading } = useOrders()
+  const { data: cart, isPending: cartLoading } = useCart()
 
   if (!user) {
     return null
   }
 
   const displayName =
-    [user.firstName, user.lastName].filter(Boolean).join(" ") || "Not set"
+    [user.firstName, user.lastName].filter(Boolean).join(" ") || "Luxian member"
+  const accountType = user.role === "ADMIN" ? "Store admin" : "Customer"
+  const orderCount = orders?.length ?? 0
+  const bagCount = cart?.cartItems.reduce((sum, item) => sum + item.quantity, 0) ?? 0
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-medium tracking-tight">Your profile</h1>
-        <p className="text-sm text-muted-foreground">
-          Account details from your Luxian sign-in. More settings will arrive soon.
-        </p>
-      </div>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="flex min-h-72 flex-col justify-between bg-neutral-950 p-6 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-white/60">
+                Your Luxian account
+              </p>
+              <h1 className="mt-3 font-display text-6xl font-bold uppercase leading-none sm:text-7xl">
+                {displayName}
+              </h1>
+            </div>
+            <HugeiconsIcon icon={UserIcon} className="size-8" strokeWidth={1.7} />
+          </div>
+          <p className="max-w-xl text-sm leading-relaxed text-white/70">
+            Your profile keeps the essentials in one place: account details, active bag,
+            and the orders you can come back to anytime.
+          </p>
+        </div>
 
-      <dl className="divide-y divide-border/60 rounded-md border border-border/60 bg-card">
-        <div className="grid gap-1 px-5 py-4 sm:grid-cols-[140px_1fr] sm:gap-4">
-          <dt className="text-sm text-muted-foreground">Name</dt>
-          <dd className="text-sm font-medium">{displayName}</dd>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <ProfileWidget
+            icon={PackageIcon}
+            label="Orders"
+            loading={ordersLoading}
+            value={`${orderCount} order${orderCount === 1 ? "" : "s"}`}
+            tone="bg-[oklch(0.91_0.11_185)]"
+          />
+          <ProfileWidget
+            icon={ShoppingCart01Icon}
+            label="In your bag"
+            loading={cartLoading}
+            value={`${bagCount} item${bagCount === 1 ? "" : "s"}`}
+            tone="bg-[oklch(0.9_0.12_86)]"
+          />
         </div>
-        <div className="grid gap-1 px-5 py-4 sm:grid-cols-[140px_1fr] sm:gap-4">
-          <dt className="text-sm text-muted-foreground">Email</dt>
-          <dd className="text-sm font-medium">{user.email}</dd>
-        </div>
-        <div className="grid gap-1 px-5 py-4 sm:grid-cols-[140px_1fr] sm:gap-4">
-          <dt className="text-sm text-muted-foreground">Role</dt>
-          <dd className="text-sm font-medium capitalize">{user.role.toLowerCase()}</dd>
-        </div>
-      </dl>
+      </section>
 
-      <div className="flex flex-wrap gap-3">
-        <Button variant="outline" asChild>
-          <Link href="/account/orders">View orders</Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link href="/cart">Your bag</Link>
-        </Button>
-      </div>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="bg-white p-6 ring-1 ring-border/50">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Account details
+              </p>
+              <h2 className="font-display text-4xl font-bold uppercase leading-none text-neutral-950">
+                Profile
+              </h2>
+            </div>
+            <HugeiconsIcon icon={UserIcon} className="size-7 text-neutral-950" strokeWidth={1.7} />
+          </div>
+
+          <dl className="divide-y divide-border/60">
+            <ProfileDetail label="Name" value={displayName} />
+            <ProfileDetail label="Email" value={user.email} />
+            <ProfileDetail label="Account type" value={accountType} />
+          </dl>
+        </div>
+
+        <aside className="space-y-3 bg-[oklch(0.94_0.04_95)] p-5 text-neutral-950">
+          <HugeiconsIcon icon={ShoppingBag01Icon} className="size-7" strokeWidth={1.7} />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide opacity-70">
+              Quick moves
+            </p>
+            <h2 className="mt-1 font-display text-4xl font-bold uppercase leading-none">
+              What next?
+            </h2>
+          </div>
+          <div className="grid gap-2 pt-2">
+            <Button asChild className="justify-start">
+              <Link href="/account/orders">View orders</Link>
+            </Button>
+            <Button variant="outline" asChild className="justify-start bg-white">
+              <Link href="/products">Continue shopping</Link>
+            </Button>
+            <Button variant="outline" asChild className="justify-start bg-white">
+              <Link href="/cart">Your bag</Link>
+            </Button>
+          </div>
+          <p className="pt-2 text-sm leading-relaxed opacity-70">
+            Current bag value: {cartLoading ? "Loading..." : formatCartSubtotal(cart)}
+          </p>
+        </aside>
+      </section>
     </div>
   )
 }
@@ -57,5 +127,42 @@ export function AccountProfile() {
     <RequireAuth>
       <ProfileContent />
     </RequireAuth>
+  )
+}
+
+function ProfileWidget({
+  icon,
+  label,
+  loading,
+  tone,
+  value,
+}: {
+  icon: Parameters<typeof HugeiconsIcon>[0]["icon"]
+  label: string
+  loading: boolean
+  tone: string
+  value: string
+}) {
+  return (
+    <div className={`${tone} flex min-h-32 flex-col justify-between p-4 text-neutral-950`}>
+      <HugeiconsIcon icon={icon} className="size-7" strokeWidth={1.7} />
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide opacity-70">{label}</p>
+        {loading ? (
+          <Skeleton className="mt-2 h-8 w-28 bg-white/50" />
+        ) : (
+          <p className="mt-1 font-display text-3xl font-bold uppercase leading-none">{value}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProfileDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 py-4 sm:grid-cols-[11rem_1fr] sm:gap-4">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="text-sm font-medium text-neutral-950">{value}</dd>
+    </div>
   )
 }

@@ -4,11 +4,16 @@ import { RequireAuth } from "@/components/auth/require-auth"
 export default function AccountOrdersPage() {
   return (
     <RequireAuth>
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8 space-y-2">
-          <h1 className="text-2xl font-medium tracking-tight">Your orders</h1>
-          <p className="text-sm text-muted-foreground">
-            History of everything you have purchased.
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Account
+          </p>
+          <h1 className="font-display text-5xl font-bold uppercase leading-none text-neutral-950">
+            Your orders
+          </h1>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Track purchases, revisit previous pieces, and sort your Luxian history.
           </p>
         </div>
         <OrdersList />

@@ -20,7 +20,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4 px-6 py-10">
+      <div className="mx-auto w-full max-w-7xl space-y-4 px-6 py-10">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
       </div>

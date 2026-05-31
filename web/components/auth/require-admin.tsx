@@ -25,16 +25,19 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-4 px-6 py-10">
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-6 py-10">
         <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-32 w-full" />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Skeleton className="h-72 w-full" />
+          <Skeleton className="h-72 w-full" />
+        </div>
       </div>
     )
   }
 
   if (!user || user.role !== "ADMIN") {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto w-full max-w-7xl px-6 py-10">
         <p className="text-sm text-muted-foreground">Admin access required.</p>
         <Button className="mt-4" variant="outline" asChild>
           <Link href="/">Back to store</Link>
