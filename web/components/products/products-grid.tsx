@@ -4,12 +4,13 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 
+import { ApiErrorState } from "@/components/common/api-error-state"
 import { EmptyState } from "@/components/common/empty-state"
 import { StoreImage } from "@/components/common/store-image"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getHomepageSettings } from "@/features/homepage/api"
 import { getProducts } from "@/features/products/api"
-import { getErrorMessage, toastApiError } from "@/lib/error-message"
+import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 
 type ProductsGridProps = {
@@ -23,24 +24,32 @@ const DEFAULT_COLLECTION_DESCRIPTION =
 export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: ProductsGridProps) {
   const params = { page: 1, limit }
 
-  const { data: homepage, isPending: isHomepagePending } = useQuery({
+  const {
+    data: homepage,
+    isPending: isHomepagePending,
+    isError: isHomepageError,
+    error: homepageError,
+    refetch: refetchHomepage,
+  } = useQuery({
     queryKey: queryKeys.homepage,
     queryFn: getHomepageSettings,
   })
   const latestCollectionProducts =
     homepage?.latestCollection?.collectionProducts?.map((item) => item.product).slice(0, 3) ?? []
   const shouldLoadFallbackProducts = !isHomepagePending && latestCollectionProducts.length === 0
-  const { data, isPending, isError, error } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: queryKeys.products.list(params),
     queryFn: () => getProducts(params),
     enabled: shouldLoadFallbackProducts,
   })
 
   useEffect(() => {
-    if (isError) {
+    if (isHomepageError) {
+      toastApiError(homepageError, "Failed to load homepage")
+    } else if (isError) {
       toastApiError(error, "Failed to load products")
     }
-  }, [isError, error])
+  }, [isHomepageError, homepageError, isError, error])
 
   if (isHomepagePending || (shouldLoadFallbackProducts && isPending)) {
     return (
@@ -54,10 +63,18 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
     )
   }
 
+  if (isHomepageError) {
+    return (
+      <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
+        <ApiErrorState error={homepageError} onRetry={() => void refetchHomepage()} />
+      </CollectionSection>
+    )
+  }
+
   if (isError) {
     return (
       <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
-        <p className="text-sm text-destructive">{getErrorMessage(error, "Failed to load products")}</p>
+        <ApiErrorState error={error} onRetry={() => void refetch()} />
       </CollectionSection>
     )
   }

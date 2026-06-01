@@ -35,6 +35,11 @@ function getBaseUrl(): string {
   return url.replace(/\/$/, "")
 }
 
+function getRequestTimeoutMs(): number {
+  const value = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS)
+  return Number.isFinite(value) && value > 0 ? value : 15_000
+}
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE"
   body?: unknown
@@ -44,6 +49,13 @@ type RequestOptions = {
   auth?: boolean
   /** Internal: prevent infinite refresh loops */
   _retry?: boolean
+}
+
+function createTimeoutSignal() {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), getRequestTimeoutMs())
+
+  return { signal: controller.signal, clear: () => clearTimeout(timeoutId) }
 }
 
 async function parseBody<T>(response: Response): Promise<T> {
@@ -107,11 +119,23 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     requestHeaders.set("Authorization", `Bearer ${bearer}`)
   }
 
-  const response = await fetch(url, {
-    method,
-    headers: requestHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  const timeout = createTimeoutSignal()
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method,
+      headers: requestHeaders,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: timeout.signal,
+    })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`${method} ${url} timed out after ${getRequestTimeoutMs()}ms`)
+    }
+    throw error
+  } finally {
+    timeout.clear()
+  }
 
   if (response.status === 401 && auth && !_retry) {
     const refreshed = await refreshTokens()
@@ -158,11 +182,23 @@ async function uploadRequest<T>(
     requestHeaders.set("Authorization", `Bearer ${bearer}`)
   }
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: requestHeaders,
-    body: formData,
-  })
+  const timeout = createTimeoutSignal()
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: requestHeaders,
+      body: formData,
+      signal: timeout.signal,
+    })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`POST ${url} timed out after ${getRequestTimeoutMs()}ms`)
+    }
+    throw error
+  } finally {
+    timeout.clear()
+  }
 
   if (response.status === 401 && auth && !_retry) {
     const refreshed = await refreshTokens()

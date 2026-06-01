@@ -4,11 +4,12 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 
+import { ApiErrorState } from "@/components/common/api-error-state"
 import { StoreImage } from "@/components/common/store-image"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getHomepageSettings } from "@/features/homepage/api"
 import { getProducts } from "@/features/products/api"
-import { getErrorMessage, toastApiError } from "@/lib/error-message"
+import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 import type { Product } from "@/lib/types/product"
 
@@ -17,24 +18,32 @@ const TRENDING_LIMIT = 12
 export function NowTrending() {
   const params = { page: 1, limit: TRENDING_LIMIT }
 
-  const { data: homepage, isPending: isHomepagePending } = useQuery({
+  const {
+    data: homepage,
+    isPending: isHomepagePending,
+    isError: isHomepageError,
+    error: homepageError,
+    refetch: refetchHomepage,
+  } = useQuery({
     queryKey: queryKeys.homepage,
     queryFn: getHomepageSettings,
   })
   const trendingProducts =
     homepage?.trendingCollection?.collectionProducts?.map((item) => item.product).slice(0, TRENDING_LIMIT) ?? []
   const shouldLoadFallbackProducts = !isHomepagePending && trendingProducts.length === 0
-  const { data, isPending, isError, error } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: queryKeys.products.list(params),
     queryFn: () => getProducts(params),
     enabled: shouldLoadFallbackProducts,
   })
 
   useEffect(() => {
-    if (isError) {
+    if (isHomepageError) {
+      toastApiError(homepageError, "Failed to load homepage")
+    } else if (isError) {
       toastApiError(error, "Failed to load trending products")
     }
-  }, [isError, error])
+  }, [isHomepageError, homepageError, isError, error])
 
   const products = trendingProducts.length ? trendingProducts : (data?.data ?? [])
 
@@ -45,17 +54,21 @@ export function NowTrending() {
 
         {(isHomepagePending || (shouldLoadFallbackProducts && isPending)) && <TrendingSkeleton />}
 
-        {isError && (
-          <p className="text-sm text-destructive">{getErrorMessage(error, "Failed to load trending products")}</p>
-        )}
+        {isHomepageError && <ApiErrorState error={homepageError} onRetry={() => void refetchHomepage()} />}
 
-        {!isHomepagePending && !(shouldLoadFallbackProducts && isPending) && !isError && products.length > 0 && (
-          <div className="grid gap-x-12 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.slice(0, TRENDING_LIMIT).map((product) => (
-              <TrendingItem key={product.id} product={product} />
-            ))}
-          </div>
-        )}
+        {!isHomepageError && isError && <ApiErrorState error={error} onRetry={() => void refetch()} />}
+
+        {!isHomepagePending &&
+          !isHomepageError &&
+          !(shouldLoadFallbackProducts && isPending) &&
+          !isError &&
+          products.length > 0 && (
+            <div className="grid gap-x-12 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {products.slice(0, TRENDING_LIMIT).map((product) => (
+                <TrendingItem key={product.id} product={product} />
+              ))}
+            </div>
+          )}
       </div>
     </section>
   )
@@ -74,7 +87,7 @@ function TrendingItem({ product }: { product: Product }) {
           <div className="flex h-full items-center justify-center bg-muted text-xs font-medium tracking-wider text-muted-foreground uppercase">
             Luxian
           </div>
-      )}
+        )}
       </div>
       <div className="min-w-0">
         <p className="line-clamp-2 text-base leading-snug font-medium text-neutral-950">{product.name}</p>
