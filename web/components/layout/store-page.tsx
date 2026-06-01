@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 
 type StorePageProps = {
   children: React.ReactNode
+  beforeHeader?: React.ReactNode
   title?: string
   description?: string
   narrow?: boolean
@@ -11,6 +12,7 @@ type StorePageProps = {
 
 export function StorePage({
   children,
+  beforeHeader,
   title,
   description,
   narrow,
@@ -19,6 +21,7 @@ export function StorePage({
   return (
     <main className={cn("py-8 sm:py-12", className)}>
       <StoreShell narrow={narrow}>
+        {beforeHeader}
         {(title || description) && (
           <header className="mb-8 space-y-1">
             {title && <h1 className="text-2xl font-medium tracking-tight sm:text-3xl">{title}</h1>}

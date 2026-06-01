@@ -8,10 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function ProductsPage() {
   return (
     <StorePage
+      beforeHeader={<RecommendedForYou />}
       title="Shop"
       description="Browse the collection. Sign in to save items to your bag."
     >
-      <RecommendedForYou />
       <Suspense fallback={<CatalogFallback />}>
         <ProductsCatalog />
       </Suspense>

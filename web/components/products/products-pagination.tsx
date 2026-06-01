@@ -26,7 +26,7 @@ export function ProductsPagination({ meta, onPageChange, className }: ProductsPa
         type="button"
         variant="outline"
         size="lg"
-        className="min-w-24 rounded-full"
+        className="min-w-24 rounded-none"
         disabled={meta.page <= 1}
         onClick={() => onPageChange(meta.page - 1)}
       >
@@ -42,7 +42,7 @@ export function ProductsPagination({ meta, onPageChange, className }: ProductsPa
             key={page}
             type="button"
             className={cn(
-              "flex size-11 items-center justify-center rounded-full border text-sm font-medium tabular-nums transition-colors",
+              "flex size-11 items-center justify-center rounded-none border text-sm font-medium tabular-nums transition-colors",
               page === meta.page
                 ? "border-neutral-950 bg-neutral-950 text-white"
                 : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -57,7 +57,7 @@ export function ProductsPagination({ meta, onPageChange, className }: ProductsPa
         type="button"
         variant="outline"
         size="lg"
-        className="min-w-24 rounded-full"
+        className="min-w-24 rounded-none"
         disabled={meta.page >= meta.totalPages}
         onClick={() => onPageChange(meta.page + 1)}
       >
