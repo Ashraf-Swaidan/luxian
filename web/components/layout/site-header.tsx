@@ -51,16 +51,14 @@ function SiteHeaderFrame({ isAdmin, pathname }: SiteHeaderFrameProps) {
       <header
         className={cn(
           "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,transform] duration-300 ease-out",
-          heroAtTop
-            ? "border-transparent bg-transparent"
-            : "border-border/60 bg-background/95 backdrop-blur-md",
-          hideHeader && "-translate-y-full",
+          heroAtTop ? "border-transparent bg-transparent" : "border-border/60 bg-background/95 backdrop-blur-md",
+          hideHeader && "-translate-y-full"
         )}
       >
         <div
           className={cn(
             "mx-auto grid h-16 w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6",
-            isHome ? "max-w-none lg:px-10" : "max-w-7xl",
+            isHome ? "max-w-none lg:px-10" : "max-w-7xl"
           )}
         >
           <Link
@@ -78,8 +76,8 @@ function SiteHeaderFrame({ isAdmin, pathname }: SiteHeaderFrameProps) {
             />
             <span
               className={cn(
-                "font-display text-lg font-bold uppercase leading-none max-[420px]:hidden sm:text-xl",
-                heroAtTop ? "text-neutral-950" : "text-foreground",
+                "hidden font-display text-xl leading-none font-bold uppercase md:inline",
+                heroAtTop ? "text-neutral-950" : "text-foreground"
               )}
             >
               LUXIAN
@@ -87,28 +85,11 @@ function SiteHeaderFrame({ isAdmin, pathname }: SiteHeaderFrameProps) {
           </Link>
 
           <div className="flex justify-center">
-            <SiteHeaderNav hero={heroAtTop} showAdmin={false} />
+            <SiteHeaderNav hero={heroAtTop} />
           </div>
 
-          <div className="flex items-center justify-end gap-2 sm:gap-4">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className={cn(
-                  "hidden rounded-md px-3 py-2 text-sm transition-colors sm:flex",
-                  heroAtTop
-                    ? "text-neutral-950/75 hover:bg-white/45 hover:text-neutral-950"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                )}
-              >
-                Admin
-              </Link>
-            )}
-            <div
-              className={cn("h-6 w-px", heroAtTop ? "bg-neutral-950/15" : "bg-border/80")}
-              aria-hidden
-            />
-            <SiteHeaderAuth hero={heroAtTop} />
+          <div className="flex items-center justify-end">
+            <SiteHeaderAuth hero={heroAtTop} isAdmin={isAdmin} />
           </div>
         </div>
       </header>

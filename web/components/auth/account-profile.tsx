@@ -1,11 +1,6 @@
 "use client"
 
-import {
-  PackageIcon,
-  ShoppingBag01Icon,
-  ShoppingCart01Icon,
-  UserIcon,
-} from "@hugeicons/core-free-icons"
+import { Logout01Icon, PackageIcon, ShoppingBag01Icon, ShoppingCart01Icon, UserIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 
@@ -18,7 +13,7 @@ import { formatCartSubtotal } from "@/lib/cart-utils"
 import { useAuth } from "@/providers/auth-provider"
 
 function ProfileContent() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const { data: orders, isPending: ordersLoading } = useOrders()
   const { data: cart, isPending: cartLoading } = useCart()
 
@@ -26,8 +21,7 @@ function ProfileContent() {
     return null
   }
 
-  const displayName =
-    [user.firstName, user.lastName].filter(Boolean).join(" ") || "Luxian member"
+  const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Luxian member"
   const accountType = user.role === "ADMIN" ? "Store admin" : "Customer"
   const orderCount = orders?.length ?? 0
   const bagCount = cart?.cartItems.reduce((sum, item) => sum + item.quantity, 0) ?? 0
@@ -38,19 +32,26 @@ function ProfileContent() {
         <div className="flex min-h-72 flex-col justify-between bg-neutral-950 p-6 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-white/60">
-                Your Luxian account
-              </p>
-              <h1 className="mt-3 font-display text-6xl font-bold uppercase leading-none sm:text-7xl">
-                {displayName}
-              </h1>
+              <p className="text-xs font-medium tracking-wide text-white/60 uppercase">Your Luxian account</p>
+              <h1 className="mt-3 font-display text-6xl leading-none font-bold uppercase sm:text-7xl">{displayName}</h1>
             </div>
             <HugeiconsIcon icon={UserIcon} className="size-8" strokeWidth={1.7} />
           </div>
-          <p className="max-w-xl text-sm leading-relaxed text-white/70">
-            Your profile keeps the essentials in one place: account details, active bag,
-            and the orders you can come back to anytime.
-          </p>
+          <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <p className="max-w-xl text-sm leading-relaxed text-white/70">
+              Your profile keeps the essentials in one place: account details, active bag, and the orders you can come
+              back to anytime.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void logout()}
+              className="w-fit border-white/20 bg-white/10 text-white hover:bg-white hover:text-neutral-950"
+            >
+              <HugeiconsIcon icon={Logout01Icon} className="size-4" strokeWidth={1.75} />
+              Log out
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -75,12 +76,8 @@ function ProfileContent() {
         <div className="bg-white p-6 ring-1 ring-border/50">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Account details
-              </p>
-              <h2 className="font-display text-4xl font-bold uppercase leading-none text-neutral-950">
-                Profile
-              </h2>
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Account details</p>
+              <h2 className="font-display text-4xl leading-none font-bold text-neutral-950 uppercase">Profile</h2>
             </div>
             <HugeiconsIcon icon={UserIcon} className="size-7 text-neutral-950" strokeWidth={1.7} />
           </div>
@@ -95,12 +92,8 @@ function ProfileContent() {
         <aside className="space-y-3 bg-[oklch(0.94_0.04_95)] p-5 text-neutral-950">
           <HugeiconsIcon icon={ShoppingBag01Icon} className="size-7" strokeWidth={1.7} />
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide opacity-70">
-              Quick moves
-            </p>
-            <h2 className="mt-1 font-display text-4xl font-bold uppercase leading-none">
-              What next?
-            </h2>
+            <p className="text-xs font-medium tracking-wide uppercase opacity-70">Quick moves</p>
+            <h2 className="mt-1 font-display text-4xl leading-none font-bold uppercase">What next?</h2>
           </div>
           <div className="grid gap-2 pt-2">
             <Button asChild className="justify-start">
@@ -147,11 +140,11 @@ function ProfileWidget({
     <div className={`${tone} flex min-h-32 flex-col justify-between p-4 text-neutral-950`}>
       <HugeiconsIcon icon={icon} className="size-7" strokeWidth={1.7} />
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide opacity-70">{label}</p>
+        <p className="text-xs font-medium tracking-wide uppercase opacity-70">{label}</p>
         {loading ? (
           <Skeleton className="mt-2 h-8 w-28 bg-white/50" />
         ) : (
-          <p className="mt-1 font-display text-3xl font-bold uppercase leading-none">{value}</p>
+          <p className="mt-1 font-display text-3xl leading-none font-bold uppercase">{value}</p>
         )}
       </div>
     </div>
