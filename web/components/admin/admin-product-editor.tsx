@@ -6,6 +6,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { AdminProductGallery } from "@/components/admin/admin-product-gallery"
 import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -155,7 +156,7 @@ function AdminProductEditorForm({
       <div className="grid gap-8 lg:grid-cols-[minmax(22rem,34rem)_minmax(0,1fr)]">
         <ImageUploadField
           id={`edit-product-image-${product.id}`}
-          label="Product image"
+          label="Cover image"
           folder="products"
           value={imageUrl}
           onChange={setImageUrl}
@@ -217,6 +218,8 @@ function AdminProductEditorForm({
           </div>
         </div>
       </div>
+
+      <AdminProductGallery product={product} coverUrl={imageUrl} onCoverChange={setImageUrl} />
 
       <div className="flex justify-end border-t border-border/60 pt-6">
         <Button

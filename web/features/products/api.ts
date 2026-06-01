@@ -1,5 +1,5 @@
 import { api } from "@/lib/api-client"
-import type { Product } from "@/lib/types/product"
+import type { Product, ProductImage } from "@/lib/types/product"
 import type { PaginatedProducts, ProductListParams } from "@/features/products/types"
 
 function buildProductsQuery(params?: ProductListParams) {
@@ -84,4 +84,24 @@ export function updateProduct(id: string, body: UpdateProductInput) {
 
 export function deactivateProduct(id: string) {
   return api.delete<Product>(`products/${id}`)
+}
+
+export function addProductImage(productId: string, body: { url: string; altText?: string }) {
+  return api.post<ProductImage>(`products/${productId}/images`, body)
+}
+
+export function updateProductImage(
+  productId: string,
+  imageId: string,
+  body: { altText?: string | null }
+) {
+  return api.patch<ProductImage>(`products/${productId}/images/${imageId}`, body)
+}
+
+export function reorderProductImages(productId: string, imageIds: string[]) {
+  return api.patch<ProductImage[]>(`products/${productId}/images/reorder`, { imageIds })
+}
+
+export function deleteProductImage(productId: string, imageId: string) {
+  return api.delete<{ id: string; key: string | null }>(`products/${productId}/images/${imageId}`)
 }

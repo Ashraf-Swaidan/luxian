@@ -3,11 +3,10 @@
 import { ArrowLeftIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
-
-import { StoreImage } from "@/components/common/store-image"
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 
+import { ProductGallery } from "@/components/products/product-gallery"
 import { AddToCartButton } from "@/components/products/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -57,33 +56,7 @@ export function ProductDetail() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-border/60 bg-muted">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="absolute top-3 left-3 z-10 border-white/70 bg-white/90 text-neutral-950 shadow-sm backdrop-blur hover:bg-white"
-        >
-          <Link href="/products" aria-label="Back to shop">
-            <HugeiconsIcon icon={ArrowLeftIcon} className="size-4" strokeWidth={1.8} />
-            Back
-          </Link>
-        </Button>
-        {product.imageUrl ? (
-          <StoreImage
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            priority
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            {product.category?.name ?? "Product"}
-          </div>
-        )}
-      </div>
+      <ProductGallery product={product} />
 
       <div className="flex flex-col justify-center space-y-6">
         <div className="space-y-3">

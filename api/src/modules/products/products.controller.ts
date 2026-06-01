@@ -15,8 +15,11 @@ import { Roles } from '../auth/decorators/roles.decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
+import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductImageDto } from './dto/update-product-image.dto';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -52,5 +55,46 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   deactivate(@Param('id') id: string) {
     return this.productsService.deactivate(id);
+  }
+
+  @Post(':id/images')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  addImage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateProductImageDto,
+  ) {
+    return this.productsService.addImage(id, dto);
+  }
+
+  @Patch(':id/images/reorder')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  reorderImages(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ReorderProductImagesDto,
+  ) {
+    return this.productsService.reorderImages(id, dto);
+  }
+
+  @Patch(':id/images/:imageId')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  updateImage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('imageId', ParseUUIDPipe) imageId: string,
+    @Body() dto: UpdateProductImageDto,
+  ) {
+    return this.productsService.updateImage(id, imageId, dto);
+  }
+
+  @Delete(':id/images/:imageId')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  deleteImage(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('imageId', ParseUUIDPipe) imageId: string,
+  ) {
+    return this.productsService.deleteImage(id, imageId);
   }
 }

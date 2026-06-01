@@ -1,6 +1,9 @@
-import { Product, Category } from '@prisma/client';
+import { Category, Product, ProductImage } from '@prisma/client';
 
-export type ProductWithCategory = Product & { category: Category };
+export type ProductWithCategory = Product & {
+  category: Category;
+  images?: ProductImage[];
+};
 
 export type PaginatedProducts = {
   data: ProductWithCategory[];

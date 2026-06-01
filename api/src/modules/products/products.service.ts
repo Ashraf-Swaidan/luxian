@@ -8,9 +8,18 @@ import { MediaOwnerType, Prisma, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MediaService } from '../media/media.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
+import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductImageDto } from './dto/update-product-image.dto';
+import { extractUploadThingKey } from '../media/media.utils';
 import { PaginatedProducts } from './products.types';
+
+const productDetailInclude = {
+  category: true,
+  images: { orderBy: { position: 'asc' as const } },
+} satisfies Prisma.ProductInclude;
 
 @Injectable()
 export class ProductsService {
@@ -22,7 +31,7 @@ export class ProductsService {
   async findOneActive(id: string): Promise<Product> {
     const product = await this.prisma.product.findFirst({
       where: { id, isActive: true },
-      include: { category: true },
+      include: productDetailInclude,
     });
 
     if (!product) {
@@ -160,10 +169,18 @@ export class ProductsService {
           imageUrl: dto.imageUrl,
           isActive: dto.isActive ?? true,
         },
-        include: { category: true },
+        include: productDetailInclude,
       });
 
       if (dto.imageUrl) {
+        await this.prisma.productImage.create({
+          data: {
+            productId: product.id,
+            url: dto.imageUrl,
+            key: extractUploadThingKey(dto.imageUrl),
+            position: 0,
+          },
+        });
         await this.mediaService.recordImageChange({
           ownerType: MediaOwnerType.PRODUCT,
           ownerId: product.id,
@@ -171,7 +188,7 @@ export class ProductsService {
         });
       }
 
-      return product;
+      return this.findOneActive(product.id);
     } catch (error) {
       this.handlePrismaError(error, 'Failed to create product');
     }
@@ -191,7 +208,7 @@ export class ProductsService {
       const product = await this.prisma.product.update({
         where: { id },
         data: dto,
-        include: { category: true },
+        include: productDetailInclude,
       });
 
       if (dto.imageUrl !== undefined && dto.imageUrl !== existing.imageUrl) {
@@ -214,8 +231,127 @@ export class ProductsService {
     return this.prisma.product.update({
       where: { id },
       data: { isActive: false },
-      include: { category: true },
+      include: productDetailInclude,
     });
+  }
+
+  async addImage(productId: string, dto: CreateProductImageDto) {
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const maxPosition = await this.prisma.productImage.aggregate({
+      where: { productId },
+      _max: { position: true },
+    });
+    const position = (maxPosition._max.position ?? -1) + 1;
+    const key = extractUploadThingKey(dto.url);
+
+    return this.prisma.$transaction(async (tx) => {
+      const image = await tx.productImage.create({
+        data: {
+          productId,
+          url: dto.url,
+          key,
+          altText: dto.altText?.trim() || null,
+          position,
+        },
+      });
+
+      if (!product.imageUrl) {
+        await tx.product.update({
+          where: { id: productId },
+          data: { imageUrl: dto.url },
+        });
+      }
+
+      return image;
+    });
+  }
+
+  async updateImage(
+    productId: string,
+    imageId: string,
+    dto: UpdateProductImageDto,
+  ) {
+    const image = await this.findProductImage(productId, imageId);
+
+    return this.prisma.productImage.update({
+      where: { id: image.id },
+      data: {
+        ...(dto.altText !== undefined
+          ? { altText: dto.altText?.trim() || null }
+          : {}),
+      },
+    });
+  }
+
+  async reorderImages(productId: string, dto: ReorderProductImagesDto) {
+    await this.ensureExists(productId);
+
+    const images = await this.prisma.productImage.findMany({
+      where: { productId },
+      select: { id: true },
+    });
+
+    if (images.length !== dto.imageIds.length) {
+      throw new NotFoundException('One or more product images were not found');
+    }
+
+    const imageIdSet = new Set(images.map((image) => image.id));
+    if (!dto.imageIds.every((id) => imageIdSet.has(id))) {
+      throw new NotFoundException('One or more product images were not found');
+    }
+
+    await this.prisma.$transaction(
+      dto.imageIds.map((id, position) =>
+        this.prisma.productImage.update({
+          where: { id },
+          data: { position },
+        }),
+      ),
+    );
+
+    return this.prisma.productImage.findMany({
+      where: { productId },
+      orderBy: { position: 'asc' },
+    });
+  }
+
+  async deleteImage(productId: string, imageId: string) {
+    const image = await this.findProductImage(productId, imageId);
+    const product = await this.prisma.product.findUniqueOrThrow({
+      where: { id: productId },
+    });
+
+    await this.prisma.productImage.delete({ where: { id: image.id } });
+
+    if (product.imageUrl === image.url) {
+      const nextCover = await this.prisma.productImage.findFirst({
+        where: { productId },
+        orderBy: { position: 'asc' },
+      });
+
+      await this.prisma.product.update({
+        where: { id: productId },
+        data: { imageUrl: nextCover?.url ?? null },
+      });
+    }
+
+    return { id: image.id, key: image.key };
+  }
+
+  private async findProductImage(productId: string, imageId: string) {
+    const image = await this.prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+
+    if (!image) {
+      throw new NotFoundException('Product image not found');
+    }
+
+    return image;
   }
 
   private async ensureExists(id: string): Promise<void> {
