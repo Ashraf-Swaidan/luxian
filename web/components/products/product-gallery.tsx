@@ -13,8 +13,10 @@ import { toast } from "sonner"
 
 import { StoreImage } from "@/components/common/store-image"
 import { Button } from "@/components/ui/button"
+import { useFavoriteStatus, useToggleFavorite } from "@/features/favorites/hooks"
 import type { Product } from "@/lib/types/product"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/providers/auth-provider"
 
 type ProductGalleryProps = {
   product: Product
@@ -52,6 +54,9 @@ function buildGalleryItems(product: Product): GalleryItem[] {
 }
 
 export function ProductGallery({ product }: ProductGalleryProps) {
+  const { user } = useAuth()
+  const favoriteStatus = useFavoriteStatus(product.id)
+  const toggleFavorite = useToggleFavorite(product.id)
   const items = useMemo(() => buildGalleryItems(product), [product])
   const defaultIndex = useMemo(() => {
     if (!items.length) {
@@ -72,6 +77,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
   const active = items[activeIndex]
   const hasMultiple = items.length > 1
   const isZoomed = zoom > MIN_ZOOM
+  const isFavorite = favoriteStatus.data?.isFavorite ?? false
 
   const resetZoomView = useCallback(() => {
     setZoom(MIN_ZOOM)
@@ -114,6 +120,44 @@ export function ProductGallery({ product }: ProductGalleryProps) {
     }
     setZoomMode(true)
     resetZoomView()
+  }
+
+  const shareProduct = async () => {
+    const url = window.location.href
+    const shareData = {
+      title: product.name,
+      text: `Take a look at ${product.name} from LUXIAN.`,
+      url,
+    }
+
+    try {
+      if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+        await navigator.share(shareData)
+        return
+      }
+
+      await navigator.clipboard.writeText(url)
+      toast.success("Product link copied")
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return
+      }
+      toast.error("Could not share this product")
+    }
+  }
+
+  const toggleProductFavorite = () => {
+    if (!user) {
+      toast.message("Log in to save favorites")
+      return
+    }
+
+    toggleFavorite.mutate(undefined, {
+      onSuccess: (data) => {
+        toast.success(data.isFavorite ? "Saved to favorites" : "Removed from favorites")
+      },
+      onError: () => toast.error("Could not update favorites"),
+    })
   }
 
   const handleImageClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -198,7 +242,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation()
-                toast.message("Sharing coming soon")
+                void shareProduct()
               }}
             >
               <HugeiconsIcon icon={Share08Icon} className="size-4" strokeWidth={1.8} />
@@ -207,12 +251,18 @@ export function ProductGallery({ product }: ProductGalleryProps) {
               type="button"
               variant="outline"
               size="icon"
-              className={overlayButtonClass}
-              aria-label="Add to favorites"
+              className={cn(
+                overlayButtonClass,
+                isFavorite &&
+                  "border-[var(--luxian-coral)] bg-[var(--luxian-coral)] text-white hover:bg-[var(--luxian-coral)]"
+              )}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              aria-pressed={isFavorite}
+              disabled={toggleFavorite.isPending}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation()
-                toast.message("Favorites coming soon")
+                toggleProductFavorite()
               }}
             >
               <HugeiconsIcon icon={FavouriteIcon} className="size-4" strokeWidth={1.8} />
@@ -227,7 +277,8 @@ export function ProductGallery({ product }: ProductGalleryProps) {
                 size="icon"
                 className={cn(
                   overlayButtonClass,
-                  zoomMode && "border-[var(--luxian-teal)] bg-[var(--luxian-teal)]/10 ring-1 ring-[var(--luxian-teal)]/40"
+                  zoomMode &&
+                    "border-[var(--luxian-teal)] bg-[var(--luxian-teal)]/10 ring-1 ring-[var(--luxian-teal)]/40"
                 )}
                 aria-label={zoomMode ? "Exit zoom mode" : "Enter zoom mode"}
                 aria-pressed={zoomMode}

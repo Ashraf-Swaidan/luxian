@@ -3,7 +3,9 @@ export function extractUploadThingKey(url: string): string | null {
     const parsed = new URL(url);
     const host = parsed.hostname;
     const isUploadThing =
-      host === 'utfs.io' || host.endsWith('.utfs.io') || host.endsWith('.ufs.sh');
+      host === 'utfs.io' ||
+      host.endsWith('.utfs.io') ||
+      host.endsWith('.ufs.sh');
 
     if (!isUploadThing) {
       return null;

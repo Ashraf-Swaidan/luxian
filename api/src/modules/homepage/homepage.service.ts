@@ -191,10 +191,18 @@ export class HomepageService {
 
     return {
       ...dto,
-      ...(dto.heroWordmark !== undefined ? { heroWordmark: trimToNull(dto.heroWordmark) } : {}),
-      ...(dto.heroEyebrow !== undefined ? { heroEyebrow: trimToNull(dto.heroEyebrow) } : {}),
-      ...(dto.heroHeading !== undefined ? { heroHeading: trimToNull(dto.heroHeading) } : {}),
-      ...(dto.heroTagline !== undefined ? { heroTagline: trimToNull(dto.heroTagline) } : {}),
+      ...(dto.heroWordmark !== undefined
+        ? { heroWordmark: trimToNull(dto.heroWordmark) }
+        : {}),
+      ...(dto.heroEyebrow !== undefined
+        ? { heroEyebrow: trimToNull(dto.heroEyebrow) }
+        : {}),
+      ...(dto.heroHeading !== undefined
+        ? { heroHeading: trimToNull(dto.heroHeading) }
+        : {}),
+      ...(dto.heroTagline !== undefined
+        ? { heroTagline: trimToNull(dto.heroTagline) }
+        : {}),
     };
   }
 

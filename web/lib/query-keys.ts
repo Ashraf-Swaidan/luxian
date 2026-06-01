@@ -10,8 +10,7 @@ export const queryKeys = {
   },
   homepage: ["homepage"] as const,
   media: {
-    history: (params: { ownerType: string; ownerId: string; slot: string }) =>
-      ["media", "history", params] as const,
+    history: (params: { ownerType: string; ownerId: string; slot: string }) => ["media", "history", params] as const,
   },
   products: {
     all: ["products"] as const,
@@ -33,5 +32,9 @@ export const queryKeys = {
   orders: {
     all: ["orders"] as const,
     detail: (id: string) => [...queryKeys.orders.all, id] as const,
+  },
+  favorites: {
+    all: ["favorites"] as const,
+    status: (productId: string) => ["favorites", "status", productId] as const,
   },
 }

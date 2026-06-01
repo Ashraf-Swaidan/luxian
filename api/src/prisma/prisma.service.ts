@@ -42,10 +42,7 @@ export class PrismaService
         logger.error('Database pool error', error.stack ?? error.message);
       },
       onConnectionError: (error) => {
-        logger.error(
-          'Database connection error',
-          error.stack ?? error.message,
-        );
+        logger.error('Database connection error', error.stack ?? error.message);
       },
     });
 

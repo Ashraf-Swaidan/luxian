@@ -48,9 +48,10 @@ model User {
   refreshToken String?
 
   // relations
-  orders   Order[]
-  carts    Cart[]
-  payments Payment[]
+  orders           Order[]
+  carts            Cart[]
+  payments         Payment[]
+  favoriteProducts FavoriteProduct[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,6 +75,7 @@ model Product {
   cartItems          CartItem[]
   collectionProducts CollectionProduct[]
   images             ProductImage[]
+  favoritedBy        FavoriteProduct[]
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -103,6 +105,20 @@ model ProductImage {
   @@map("product_images")
 }
 
+model FavoriteProduct {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId, createdAt])
+  @@index([productId])
+  @@map("favorite_products")
+}
+
 model Category {
   id          String  @id @default(uuid())
   name        String
@@ -129,10 +145,10 @@ model Collection {
   imageUrl    String?
   isActive    Boolean @default(true)
 
-  collectionProducts       CollectionProduct[]
-  latestHomepageSettings   HomepageSettings[]  @relation("LatestCollection")
-  trendingHomepageSettings HomepageSettings[]  @relation("TrendingCollection")
-  bannerHomepageSettings   HomepageSettings[]  @relation("BannerCollection")
+  collectionProducts        CollectionProduct[]
+  latestHomepageSettings    HomepageSettings[]  @relation("LatestCollection")
+  trendingHomepageSettings  HomepageSettings[]  @relation("TrendingCollection")
+  bannerHomepageSettings    HomepageSettings[]  @relation("BannerCollection")
   pairLeftHomepageSettings  HomepageSettings[]  @relation("PairLeftCollection")
   pairRightHomepageSettings HomepageSettings[]  @relation("PairRightCollection")
   heroHomepageSettings      HomepageSettings[]  @relation("HeroCollection")
@@ -186,11 +202,11 @@ model HomepageSettings {
   heroCollectionId String?
   heroCollection   Collection? @relation("HeroCollection", fields: [heroCollectionId], references: [id], onDelete: SetNull)
 
-  heroImageUrl  String?
-  heroWordmark  String?
-  heroEyebrow   String?
-  heroHeading   String?
-  heroTagline   String?
+  heroImageUrl String?
+  heroWordmark String?
+  heroEyebrow  String?
+  heroHeading  String?
+  heroTagline  String?
 
   bannerImageUrl   String?
   bannerButtonText String  @default("See Collection")

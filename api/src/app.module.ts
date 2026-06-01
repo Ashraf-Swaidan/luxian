@@ -13,6 +13,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { HomepageModule } from './modules/homepage/homepage.module';
 import { MediaModule } from './modules/media/media.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MediaModule } from './modules/media/media.module';
     CollectionsModule,
     HomepageModule,
     MediaModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

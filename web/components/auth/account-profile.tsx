@@ -1,13 +1,22 @@
 "use client"
 
-import { Logout01Icon, PackageIcon, ShoppingBag01Icon, ShoppingCart01Icon, UserIcon } from "@hugeicons/core-free-icons"
+import {
+  FavouriteIcon,
+  Logout01Icon,
+  PackageIcon,
+  ShoppingBag01Icon,
+  ShoppingCart01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 
 import { RequireAuth } from "@/components/auth/require-auth"
+import { ProductCard } from "@/components/products/product-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/features/cart/hooks"
+import { useFavorites } from "@/features/favorites/hooks"
 import { useOrders } from "@/features/orders/hooks"
 import { formatCartSubtotal } from "@/lib/cart-utils"
 import { useAuth } from "@/providers/auth-provider"
@@ -16,6 +25,7 @@ function ProfileContent() {
   const { user, logout } = useAuth()
   const { data: orders, isPending: ordersLoading } = useOrders()
   const { data: cart, isPending: cartLoading } = useCart()
+  const { data: favorites, isPending: favoritesLoading } = useFavorites()
 
   if (!user) {
     return null
@@ -25,6 +35,7 @@ function ProfileContent() {
   const accountType = user.role === "ADMIN" ? "Store admin" : "Customer"
   const orderCount = orders?.length ?? 0
   const bagCount = cart?.cartItems.reduce((sum, item) => sum + item.quantity, 0) ?? 0
+  const favoriteCount = favorites?.length ?? 0
 
   return (
     <div className="space-y-8">
@@ -69,7 +80,48 @@ function ProfileContent() {
             value={`${bagCount} item${bagCount === 1 ? "" : "s"}`}
             tone="bg-[oklch(0.9_0.12_86)]"
           />
+          <ProfileWidget
+            icon={FavouriteIcon}
+            label="Favorites"
+            loading={favoritesLoading}
+            value={`${favoriteCount} saved`}
+            tone="bg-[oklch(0.92_0.08_330)]"
+          />
         </div>
+      </section>
+
+      <section className="bg-white p-6 ring-1 ring-border/50">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Saved pieces</p>
+            <h2 className="font-display text-4xl leading-none font-bold text-neutral-950 uppercase">Favorites</h2>
+          </div>
+          <HugeiconsIcon icon={FavouriteIcon} className="size-7 text-neutral-950" strokeWidth={1.7} />
+        </div>
+
+        {favoritesLoading ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="aspect-[4/5] w-full" />
+            ))}
+          </div>
+        ) : favorites?.length ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {favorites.slice(0, 8).map((favorite) => (
+              <ProductCard key={favorite.id} product={favorite.product} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-muted/30 px-5 py-8">
+            <p className="font-medium text-neutral-950">No favorites yet</p>
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
+              Tap the heart on any product to keep it here for later.
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/products">Browse products</Link>
+            </Button>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">

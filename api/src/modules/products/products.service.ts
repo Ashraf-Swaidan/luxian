@@ -236,7 +236,9 @@ export class ProductsService {
   }
 
   async addImage(productId: string, dto: CreateProductImageDto) {
-    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) {
       throw new NotFoundException('Product not found');
     }
