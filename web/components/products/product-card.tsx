@@ -7,13 +7,18 @@ import { cn } from "@/lib/utils"
 
 type ProductCardProps = {
   product: Product
+  onProductClick?: (productId: string) => void
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onProductClick }: ProductCardProps) {
   const outOfStock = product.stock < 1
 
   return (
-    <Link href={`/products/${product.id}`} className="group block">
+    <Link
+      href={`/products/${product.id}`}
+      className="group block"
+      onClick={() => onProductClick?.(product.id)}
+    >
       <article className="overflow-hidden rounded-md bg-card">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
           {product.imageUrl ? (

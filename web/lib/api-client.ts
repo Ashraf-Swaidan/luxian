@@ -51,6 +51,16 @@ type RequestOptions = {
   _retry?: boolean
 }
 
+function mergeHeaders(base?: HeadersInit, extra?: HeadersInit): Headers {
+  const merged = new Headers(base)
+  if (extra) {
+    new Headers(extra).forEach((value, key) => {
+      merged.set(key, value)
+    })
+  }
+  return merged
+}
+
 function createTimeoutSignal() {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), getRequestTimeoutMs())
@@ -109,7 +119,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const normalizedPath = path.startsWith("/") ? path : path ? `/${path}` : ""
   const url = `${base}${normalizedPath}`
 
-  const requestHeaders = new Headers(headers)
+  const requestHeaders = mergeHeaders(headers)
   if (body !== undefined && !requestHeaders.has("Content-Type")) {
     requestHeaders.set("Content-Type", "application/json")
   }

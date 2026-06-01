@@ -10,6 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { VisitorId } from 'src/common/decorators/visitor-id.decorator';
 import { Role } from '@prisma/client';
 import { Roles } from '../auth/decorators/roles.decorators';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,8 +28,11 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  findAll(@Query() query: ListProductsQueryDto) {
-    return this.productsService.findAllActive(query);
+  findAll(
+    @Query() query: ListProductsQueryDto,
+    @VisitorId() visitorId?: string,
+  ) {
+    return this.productsService.findAllActive(query, visitorId);
   }
 
   @Get(':id')

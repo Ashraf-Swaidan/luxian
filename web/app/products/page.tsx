@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { ProductsCatalog } from "@/components/products/products-catalog"
+import { RecommendedForYou } from "@/components/products/recommended-for-you"
 import { StorePage } from "@/components/layout/store-page"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -10,6 +11,7 @@ export default function ProductsPage() {
       title="Shop"
       description="Browse the collection. Sign in to save items to your bag."
     >
+      <RecommendedForYou />
       <Suspense fallback={<CatalogFallback />}>
         <ProductsCatalog />
       </Suspense>

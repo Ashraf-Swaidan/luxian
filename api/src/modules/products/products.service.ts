@@ -14,6 +14,7 @@ import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
 import { extractUploadThingKey } from '../media/media.utils';
+import { PersonalizationService } from '../personalization/personalization.service';
 import { PaginatedProducts } from './products.types';
 
 const productDetailInclude = {
@@ -26,6 +27,7 @@ export class ProductsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mediaService: MediaService,
+    private readonly personalizationService: PersonalizationService,
   ) {}
 
   async findOneActive(id: string): Promise<Product> {
@@ -41,7 +43,10 @@ export class ProductsService {
     return product;
   }
 
-  async findAllActive(query: ListProductsQueryDto): Promise<PaginatedProducts> {
+  async findAllActive(
+    query: ListProductsQueryDto,
+    visitorId?: string,
+  ): Promise<PaginatedProducts> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 12;
     const skip = (page - 1) * limit;
@@ -49,6 +54,36 @@ export class ProductsService {
 
     if (query.collectionId || query.collectionSlug) {
       return this.findAllActiveByCollection(query, where, page, limit, skip);
+    }
+
+    const usePersonalization = Boolean(visitorId);
+
+    if (usePersonalization) {
+      const [allMatching, total] = await Promise.all([
+        this.prisma.product.findMany({
+          where,
+          include: { category: true },
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.product.count({ where }),
+      ]);
+
+      const ranked = await this.personalizationService.rankProductList(
+        visitorId,
+        allMatching,
+        { categoryFilterId: query.categoryId },
+      );
+      const data = ranked.slice(skip, skip + limit);
+
+      return {
+        data,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+        },
+      };
     }
 
     const [data, total] = await Promise.all([

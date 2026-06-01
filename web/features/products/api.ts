@@ -1,4 +1,5 @@
 import { api } from "@/lib/api-client"
+import { getVisitorIdHeaders } from "@/lib/visitor-id"
 import type { Product, ProductImage } from "@/lib/types/product"
 import type { PaginatedProducts, ProductListParams } from "@/features/products/types"
 
@@ -44,9 +45,11 @@ function buildProductsQuery(params?: ProductListParams) {
   return qs ? `?${qs}` : ""
 }
 
-export function getProducts(params?: ProductListParams) {
+export function getProducts(params?: ProductListParams, options?: { personalize?: boolean }) {
+  const headers = options?.personalize ? getVisitorIdHeaders() : undefined
   return api.get<PaginatedProducts>(`products${buildProductsQuery(params)}`, {
     auth: false,
+    headers,
   })
 }
 

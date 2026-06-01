@@ -38,6 +38,14 @@ enum MediaOwnerType {
   HOMEPAGE
 }
 
+enum VisitorEventType {
+  SEARCH
+  PRODUCT_CLICK
+  PRODUCT_VIEW
+  CATEGORY_FILTER
+  COLLECTION_FILTER
+}
+
 model User {
   id           String  @id @default(uuid())
   email        String  @unique
@@ -344,4 +352,21 @@ model Payment {
   @@index([transactionId])
   @@index([orderId])
   @@map("payments")
+}
+
+model VisitorEvent {
+  id           String           @id @default(uuid())
+  visitorId    String
+  eventType    VisitorEventType
+  productId    String?
+  categoryId   String?
+  collectionId String?
+  search       String?
+
+  createdAt DateTime @default(now())
+
+  @@index([visitorId, createdAt])
+  @@index([categoryId])
+  @@index([productId])
+  @@map("visitor_events")
 }

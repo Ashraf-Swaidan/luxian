@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
 import { getCollections } from "@/features/collections/api"
+import { trackVisitorEvent } from "@/features/personalization/api"
 import { getProducts } from "@/features/products/api"
 import type { ProductListParams } from "@/features/products/types"
 import { getErrorMessage, toastApiError } from "@/lib/error-message"
@@ -72,9 +73,11 @@ export function ProductsCatalog() {
     queryFn: getCollections,
   })
 
+  const personalize = !collectionId
+
   const { data, isPending, isError, error, isFetching } = useQuery({
-    queryKey: queryKeys.products.list(listParams),
-    queryFn: () => getProducts(listParams),
+    queryKey: queryKeys.products.list({ ...listParams, personalize }),
+    queryFn: () => getProducts(listParams, { personalize }),
     placeholderData: (previous) => previous,
   })
 
@@ -83,6 +86,35 @@ export function ProductsCatalog() {
       toastApiError(error, "Failed to load products")
     }
   }, [isError, error])
+
+  useEffect(() => {
+    const term = searchFromUrl.trim()
+    if (!term) {
+      return
+    }
+    const timer = window.setTimeout(() => {
+      trackVisitorEvent({ eventType: "SEARCH", search: term })
+    }, 500)
+    return () => window.clearTimeout(timer)
+  }, [searchFromUrl])
+
+  useEffect(() => {
+    if (!categoryId) {
+      return
+    }
+    trackVisitorEvent({ eventType: "CATEGORY_FILTER", categoryId })
+  }, [categoryId])
+
+  useEffect(() => {
+    if (!collectionId) {
+      return
+    }
+    trackVisitorEvent({ eventType: "COLLECTION_FILTER", collectionId })
+  }, [collectionId])
+
+  const handleProductClick = (productId: string) => {
+    trackVisitorEvent({ eventType: "PRODUCT_CLICK", productId })
+  }
 
   function updateParams(updates: Record<string, string | null>, options?: { scrollToProducts?: boolean }) {
     const next = new URLSearchParams(searchParams.toString())
@@ -336,7 +368,7 @@ export function ProductsCatalog() {
           <div className={isFetching && !isPending ? "opacity-70 transition-opacity" : undefined}>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} onProductClick={handleProductClick} />
               ))}
             </div>
           </div>

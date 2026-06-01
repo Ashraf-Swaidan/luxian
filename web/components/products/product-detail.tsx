@@ -4,12 +4,14 @@ import { ArrowLeftIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
+import { useEffect, useRef } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { ProductGallery } from "@/components/products/product-gallery"
 import { AddToCartButton } from "@/components/products/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { trackVisitorEvent } from "@/features/personalization/api"
 import { getProduct } from "@/features/products/api"
 import { formatPrice } from "@/lib/format-price"
 import { queryKeys } from "@/lib/query-keys"
@@ -27,6 +29,16 @@ export function ProductDetail() {
     queryFn: () => getProduct(id),
     enabled: Boolean(id),
   })
+
+  const viewedProductId = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!product?.id || viewedProductId.current === product.id) {
+      return
+    }
+    viewedProductId.current = product.id
+    trackVisitorEvent({ eventType: "PRODUCT_VIEW", productId: product.id })
+  }, [product?.id])
 
   if (isPending) {
     return (

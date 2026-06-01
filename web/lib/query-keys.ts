@@ -25,6 +25,7 @@ export const queryKeys = {
       maxStock?: number
       page?: number
       limit?: number
+      personalize?: boolean
     }) => [...queryKeys.products.all, "list", params ?? {}] as const,
     detail: (id: string) => [...queryKeys.products.all, id] as const,
   },
@@ -36,5 +37,8 @@ export const queryKeys = {
   favorites: {
     all: ["favorites"] as const,
     status: (productId: string) => ["favorites", "status", productId] as const,
+  },
+  personalization: {
+    recommendations: (limit: number) => ["personalization", "recommendations", limit] as const,
   },
 }
