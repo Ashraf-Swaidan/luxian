@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 import { SiteHeaderAuth } from "@/components/layout/site-header-auth"
+import { SiteHeaderMobileMenu } from "@/components/layout/site-header-mobile-menu"
 import { SiteHeaderNav } from "@/components/layout/site-header-nav"
 import { useAuth } from "@/providers/auth-provider"
 import { cn } from "@/lib/utils"
@@ -57,7 +58,7 @@ function SiteHeaderFrame({ isAdmin, pathname }: SiteHeaderFrameProps) {
       >
         <div
           className={cn(
-            "mx-auto grid h-16 w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6",
+            "mx-auto grid h-16 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]",
             isHome ? "max-w-none lg:px-10" : "max-w-7xl"
           )}
         >
@@ -84,12 +85,15 @@ function SiteHeaderFrame({ isAdmin, pathname }: SiteHeaderFrameProps) {
             </span>
           </Link>
 
-          <div className="flex justify-center">
+          <div className="hidden justify-center md:flex">
             <SiteHeaderNav hero={heroAtTop} />
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="hidden items-center justify-end md:flex">
             <SiteHeaderAuth hero={heroAtTop} isAdmin={isAdmin} />
+          </div>
+          <div className="col-start-3 flex items-center justify-end md:hidden">
+            <SiteHeaderMobileMenu hero={heroAtTop} isAdmin={isAdmin} />
           </div>
         </div>
       </header>

@@ -39,12 +39,12 @@ export function ProductsGrid({
 
   return (
     <CollectionSection description={description} title={sectionTitle}>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5">
+      <div className="-mx-6 flex snap-x gap-3 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 md:mx-0 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0">
         {products.slice(0, limit).map((product) => (
           <Link
             key={product.id}
             href={`/products/${product.id}`}
-            className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted"
+            className="group relative block aspect-[4/5] w-[76vw] shrink-0 snap-start overflow-hidden bg-muted sm:w-[42vw] md:w-full"
           >
             {product.imageUrl ? (
               <StoreImage

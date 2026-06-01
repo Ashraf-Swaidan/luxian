@@ -16,13 +16,7 @@ import { LineItemThumb } from "@/components/common/line-item-thumb"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useOrders } from "@/features/orders/hooks"
 import { formatPrice } from "@/lib/format-price"
@@ -65,23 +59,18 @@ function OrderRow({ order }: { order: Order }) {
       href={`/account/orders/${order.id}`}
       className="group relative grid gap-5 bg-white p-5 ring-1 ring-border/50 transition-colors hover:bg-neutral-50 md:grid-cols-[minmax(0,1fr)_11rem] md:items-center"
     >
-      <p className="absolute right-4 top-4 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <p className="absolute top-4 right-4 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
         #{order.orderNumber}
       </p>
 
       <div className="min-w-0 space-y-4 pr-16">
         <div>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="font-display text-4xl font-bold uppercase leading-none text-neutral-950">
-              Order
-            </h2>
-            <p className="text-sm font-medium text-muted-foreground">
-              {formatDate(order.createdAt)}
-            </p>
+            <h2 className="font-display text-4xl leading-none font-bold text-neutral-950 uppercase">Order</h2>
+            <p className="text-sm font-medium text-muted-foreground">{formatDate(order.createdAt)}</p>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            {order.orderItems.length} item{order.orderItems.length === 1 ? "" : "s"} in this
-            purchase
+            {order.orderItems.length} item{order.orderItems.length === 1 ? "" : "s"} in this purchase
           </p>
         </div>
 
@@ -92,11 +81,7 @@ function OrderRow({ order }: { order: Order }) {
               className={cn("relative ring-2 ring-white", index > 0 && "-ml-2")}
               style={{ zIndex: previewItems.length - index }}
             >
-              <LineItemThumb
-                name={item.product?.name ?? "Product"}
-                imageUrl={item.product?.imageUrl}
-                size="sm"
-              />
+              <LineItemThumb name={item.product?.name ?? "Product"} imageUrl={item.product?.imageUrl} size="sm" />
             </div>
           ))}
           {overflowCount > 0 && (
@@ -111,10 +96,10 @@ function OrderRow({ order }: { order: Order }) {
       </div>
 
       <div className="flex items-end justify-between gap-4 border-t border-border/60 pt-4 md:block md:border-t-0 md:pt-0 md:text-right">
-        <p className="font-display text-3xl font-bold leading-none text-neutral-950">
+        <p className="font-display text-3xl leading-none font-bold text-neutral-950">
           {formatPrice(order.totalAmount)}
         </p>
-        <span className="mt-3 inline-flex bg-[oklch(0.92_0.08_180)] px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-950">
+        <span className="mt-3 inline-flex bg-[oklch(0.92_0.08_180)] px-3 py-1 text-xs font-medium tracking-wide text-neutral-950 uppercase">
           {statusLabel(order.status)}
         </span>
       </div>
@@ -186,8 +171,7 @@ export function OrdersList() {
   const totalSpent = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0)
   const totalItems = orders.reduce((sum, order) => sum + order.orderItems.length, 0)
   const latestOrder = [...orders].sort(
-    (left, right) =>
-      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
   )[0]
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -197,7 +181,7 @@ export function OrdersList() {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
         <OrderWidget
           icon={PackageIcon}
           label="You've made"
@@ -224,16 +208,14 @@ export function OrdersList() {
         />
       </div>
 
-      <div className="grid gap-4 bg-white p-4 ring-1 ring-border/50 lg:grid-cols-[auto_minmax(13rem,16rem)_1fr] lg:items-end">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-[auto_minmax(13rem,16rem)_1fr] lg:items-end">
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Search by date
-          </p>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Search by date</p>
           <Popover open={dateOpen} onOpenChange={setDateOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="flex h-10 items-center gap-2 bg-muted px-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-muted/70"
+                className="flex h-10 w-full items-center gap-2 bg-muted px-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-muted/70"
               >
                 <HugeiconsIcon icon={Calendar03Icon} className="size-4" strokeWidth={1.8} />
                 {selectedDate ? formatDate(selectedDate.toISOString()) : "Choose date"}
@@ -257,9 +239,7 @@ export function OrdersList() {
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Sort orders
-          </p>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Sort orders</p>
           <Select
             value={sort}
             onValueChange={(value) => {
@@ -283,18 +263,14 @@ export function OrdersList() {
           <Button
             type="button"
             variant="ghost"
-            className="justify-self-start lg:justify-self-end"
+            className="col-span-2 justify-self-start lg:col-span-1 lg:justify-self-end"
             onClick={() => {
               setSelectedDate(null)
               setSort("newest")
               setPage(1)
             }}
           >
-            <HugeiconsIcon
-              icon={MultiplicationSignCircleIcon}
-              className="size-4"
-              strokeWidth={1.8}
-            />
+            <HugeiconsIcon icon={MultiplicationSignCircleIcon} className="size-4" strokeWidth={1.8} />
             Clear filters
           </Button>
         )}
@@ -311,9 +287,7 @@ export function OrdersList() {
       ) : (
         <div className="flex flex-col items-start gap-3 border border-dashed border-border/60 bg-muted/20 px-6 py-10">
           <p className="font-medium">No orders on that date</p>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Try another date or clear the filters.
-          </p>
+          <p className="max-w-md text-sm text-muted-foreground">Try another date or clear the filters.</p>
           <Button
             type="button"
             variant="outline"
@@ -332,8 +306,7 @@ export function OrdersList() {
       {filteredOrders.length > PAGE_SIZE && (
         <div className="flex flex-col gap-3 border-t border-border/60 pt-5 text-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-muted-foreground">
-            Showing {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, filteredOrders.length)} of{" "}
-            {filteredOrders.length}
+            Showing {pageStart + 1}-{Math.min(pageStart + PAGE_SIZE, filteredOrders.length)} of {filteredOrders.length}
           </p>
           <div className="flex gap-2">
             <Button
@@ -371,11 +344,11 @@ function OrderWidget({
   value: string
 }) {
   return (
-    <div className={cn("flex min-h-32 flex-col justify-between p-4 text-neutral-950", tone)}>
-      <HugeiconsIcon icon={icon} className="size-7" strokeWidth={1.7} />
+    <div className={cn("flex min-h-24 flex-col justify-between p-3 text-neutral-950 sm:min-h-32 sm:p-4", tone)}>
+      <HugeiconsIcon icon={icon} className="size-5 sm:size-7" strokeWidth={1.7} />
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide opacity-70">{label}</p>
-        <p className="mt-1 font-display text-3xl font-bold uppercase leading-none">{value}</p>
+        <p className="text-[10px] font-medium tracking-wide uppercase opacity-70 sm:text-xs">{label}</p>
+        <p className="mt-1 font-display text-2xl leading-none font-bold uppercase sm:text-3xl">{value}</p>
       </div>
     </div>
   )

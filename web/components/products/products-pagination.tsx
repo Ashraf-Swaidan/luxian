@@ -19,40 +19,45 @@ export function ProductsPagination({ meta, onPageChange, className }: ProductsPa
 
   return (
     <nav
-      className={cn("flex flex-wrap items-center justify-center gap-2", className)}
+      className={cn("flex flex-wrap items-center justify-center gap-2 border-t border-border/60 pt-6", className)}
       aria-label="Product pages"
     >
       <Button
         type="button"
         variant="outline"
-        size="sm"
+        size="lg"
+        className="min-w-24 rounded-full"
         disabled={meta.page <= 1}
         onClick={() => onPageChange(meta.page - 1)}
       >
         Previous
       </Button>
-      {pages.map((page) =>
-        page === "…" ? (
-          <span key={`ellipsis-${page}`} className="px-1 text-sm text-muted-foreground">
-            …
+      {pages.map((page, index) =>
+        page === "..." ? (
+          <span key={`ellipsis-${index}`} className="px-1 text-sm text-muted-foreground">
+            ...
           </span>
         ) : (
-          <Button
+          <button
             key={page}
             type="button"
-            variant={page === meta.page ? "default" : "outline"}
-            size="sm"
-            className="min-w-9"
+            className={cn(
+              "flex size-11 items-center justify-center rounded-full border text-sm font-medium tabular-nums transition-colors",
+              page === meta.page
+                ? "border-neutral-950 bg-neutral-950 text-white"
+                : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
             onClick={() => onPageChange(page)}
           >
             {page}
-          </Button>
-        ),
+          </button>
+        )
       )}
       <Button
         type="button"
         variant="outline"
-        size="sm"
+        size="lg"
+        className="min-w-24 rounded-full"
         disabled={meta.page >= meta.totalPages}
         onClick={() => onPageChange(meta.page + 1)}
       >
@@ -62,15 +67,15 @@ export function ProductsPagination({ meta, onPageChange, className }: ProductsPa
   )
 }
 
-function getPageNumbers(current: number, total: number): (number | "…")[] {
+function getPageNumbers(current: number, total: number): (number | "...")[] {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1)
   }
 
-  const pages: (number | "…")[] = [1]
+  const pages: (number | "...")[] = [1]
 
   if (current > 3) {
-    pages.push("…")
+    pages.push("...")
   }
 
   const start = Math.max(2, current - 1)
@@ -81,7 +86,7 @@ function getPageNumbers(current: number, total: number): (number | "…")[] {
   }
 
   if (current < total - 2) {
-    pages.push("…")
+    pages.push("...")
   }
 
   pages.push(total)

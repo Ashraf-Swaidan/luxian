@@ -54,7 +54,7 @@ function ProfileContent() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-1">
           <ProfileWidget
             icon={PackageIcon}
             label="Orders"
@@ -137,14 +137,14 @@ function ProfileWidget({
   value: string
 }) {
   return (
-    <div className={`${tone} flex min-h-32 flex-col justify-between p-4 text-neutral-950`}>
-      <HugeiconsIcon icon={icon} className="size-7" strokeWidth={1.7} />
+    <div className={`${tone} flex min-h-24 flex-col justify-between p-3 text-neutral-950 sm:min-h-32 sm:p-4`}>
+      <HugeiconsIcon icon={icon} className="size-5 sm:size-7" strokeWidth={1.7} />
       <div>
-        <p className="text-xs font-medium tracking-wide uppercase opacity-70">{label}</p>
+        <p className="text-[10px] font-medium tracking-wide uppercase opacity-70 sm:text-xs">{label}</p>
         {loading ? (
           <Skeleton className="mt-2 h-8 w-28 bg-white/50" />
         ) : (
-          <p className="mt-1 font-display text-3xl leading-none font-bold uppercase">{value}</p>
+          <p className="mt-1 font-display text-2xl leading-none font-bold uppercase sm:text-3xl">{value}</p>
         )}
       </div>
     </div>

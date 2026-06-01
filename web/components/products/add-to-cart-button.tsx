@@ -6,13 +6,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAddToCart } from "@/features/cart/hooks"
@@ -38,7 +32,7 @@ export function AddToCartButton({ productId, disabled, className }: AddToCartBut
       {
         onSuccess: () => toast.success("Added to cart"),
         onError: (error) => toastApiError(error, "Could not add to cart"),
-      },
+      }
     )
   }
 
@@ -46,7 +40,7 @@ export function AddToCartButton({ productId, disabled, className }: AddToCartBut
     return (
       <>
         <Button
-          className={cn("luxian-cta w-full sm:w-auto", className)}
+          className={cn("luxian-cta h-12 w-full px-7 text-base sm:h-10 sm:w-auto sm:text-sm", className)}
           disabled={disabled}
           onClick={() => setAuthOpen(true)}
         >
@@ -64,7 +58,7 @@ export function AddToCartButton({ productId, disabled, className }: AddToCartBut
 
   return (
     <Button
-      className={cn("luxian-cta w-full sm:w-auto", className)}
+      className={cn("luxian-cta h-12 w-full px-7 text-base sm:h-10 sm:w-auto sm:text-sm", className)}
       disabled={disabled || addToCart.isPending}
       onClick={addProductToCart}
     >

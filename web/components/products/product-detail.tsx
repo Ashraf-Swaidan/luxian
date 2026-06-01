@@ -1,5 +1,7 @@
 "use client"
 
+import { ArrowLeftIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import Link from "next/link"
 
 import { StoreImage } from "@/components/common/store-image"
@@ -17,7 +19,11 @@ export function ProductDetail() {
   const params = useParams()
   const id = typeof params.id === "string" ? params.id : ""
 
-  const { data: product, isPending, isError } = useQuery({
+  const {
+    data: product,
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: queryKeys.products.detail(id),
     queryFn: () => getProduct(id),
     enabled: Boolean(id),
@@ -52,6 +58,17 @@ export function ProductDetail() {
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
       <div className="relative aspect-[4/5] overflow-hidden rounded-md border border-border/60 bg-muted">
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className="absolute top-3 left-3 z-10 border-white/70 bg-white/90 text-neutral-950 shadow-sm backdrop-blur hover:bg-white"
+        >
+          <Link href="/products" aria-label="Back to shop">
+            <HugeiconsIcon icon={ArrowLeftIcon} className="size-4" strokeWidth={1.8} />
+            Back
+          </Link>
+        </Button>
         {product.imageUrl ? (
           <StoreImage
             src={product.imageUrl}
@@ -71,7 +88,7 @@ export function ProductDetail() {
       <div className="flex flex-col justify-center space-y-6">
         <div className="space-y-3">
           {product.category && (
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--luxian-teal)]">
+            <p className="text-xs font-medium tracking-wider text-[var(--luxian-teal)] uppercase">
               {product.category.name}
             </p>
           )}
@@ -84,15 +101,16 @@ export function ProductDetail() {
         </div>
 
         {product.description && (
-          <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-            {product.description}
-          </p>
+          <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">{product.description}</p>
         )}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <AddToCartButton productId={product.id} disabled={outOfStock} />
           <Button variant="ghost" asChild className="text-muted-foreground">
-            <Link href="/products">← Continue shopping</Link>
+            <Link href="/products">
+              <HugeiconsIcon icon={ArrowLeftIcon} className="size-4" strokeWidth={1.8} />
+              Continue shopping
+            </Link>
           </Button>
         </div>
       </div>

@@ -12,7 +12,7 @@ export function NowTrending({ products }: { products: Product[] }) {
         <h2 className="mb-12 text-3xl font-medium tracking-tight text-neutral-950">Now trending</h2>
 
         {products.length > 0 && (
-          <div className="grid gap-x-12 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="-mx-6 flex snap-x gap-6 overflow-x-auto px-6 pb-2 sm:-mx-10 sm:px-10 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-x-12 lg:gap-y-14 lg:overflow-visible lg:px-0 lg:pb-0 xl:grid-cols-4">
             {products.slice(0, TRENDING_LIMIT).map((product) => (
               <TrendingItem key={product.id} product={product} />
             ))}
@@ -27,7 +27,7 @@ function TrendingItem({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className="grid min-h-24 grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-5"
+      className="grid min-h-24 w-[82vw] shrink-0 snap-start grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-5 sm:w-[24rem] lg:w-auto"
     >
       <div className="relative h-24 w-full overflow-hidden bg-white">
         {product.imageUrl ? (

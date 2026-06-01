@@ -84,7 +84,7 @@ export function ProductsCatalog() {
     }
   }, [isError, error])
 
-  function updateParams(updates: Record<string, string | null>) {
+  function updateParams(updates: Record<string, string | null>, options?: { scrollToProducts?: boolean }) {
     const next = new URLSearchParams(searchParams.toString())
     for (const [key, value] of Object.entries(updates)) {
       if (value === null || value === "") {
@@ -95,6 +95,14 @@ export function ProductsCatalog() {
     }
     const qs = next.toString()
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    if (options?.scrollToProducts) {
+      window.requestAnimationFrame(() => {
+        document.getElementById("collection-products")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        })
+      })
+    }
   }
 
   const products = data?.data ?? []
@@ -333,7 +341,10 @@ export function ProductsCatalog() {
             </div>
           </div>
           {meta && (
-            <ProductsPagination meta={meta} onPageChange={(nextPage) => updateParams({ page: String(nextPage) })} />
+            <ProductsPagination
+              meta={meta}
+              onPageChange={(nextPage) => updateParams({ page: String(nextPage) }, { scrollToProducts: true })}
+            />
           )}
         </>
       )}
