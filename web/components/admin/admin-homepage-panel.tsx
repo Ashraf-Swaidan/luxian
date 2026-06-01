@@ -19,13 +19,15 @@ import type { Collection } from "@/lib/types/collection"
 import type { HomepageSettings } from "@/lib/types/homepage"
 
 const NONE = "none"
+const HOMEPAGE_MEDIA_OWNER = { ownerType: "HOMEPAGE" as const, ownerId: "homepage" }
+
 const BRAND_SLOTS = [
-  { key: "brandImage1Url", label: "01 / The Collective" },
-  { key: "brandImage2Url", label: "02 / Destination" },
-  { key: "brandImage3Url", label: "03 / Signature Shirt" },
-  { key: "brandImage4Url", label: "04 / Resort Elegance" },
-  { key: "brandImage5Url", label: "05 / Sunset Club" },
-  { key: "brandImage6Url", label: "06 / Accessories" },
+  { key: "brandImage1Url", label: "01 / The Collective", mediaSlot: "brand1" },
+  { key: "brandImage2Url", label: "02 / Destination", mediaSlot: "brand2" },
+  { key: "brandImage3Url", label: "03 / Signature Shirt", mediaSlot: "brand3" },
+  { key: "brandImage4Url", label: "04 / Resort Elegance", mediaSlot: "brand4" },
+  { key: "brandImage5Url", label: "05 / Sunset Club", mediaSlot: "brand5" },
+  { key: "brandImage6Url", label: "06 / Accessories", mediaSlot: "brand6" },
 ] as const
 
 export function AdminHomepagePanel() {
@@ -125,6 +127,7 @@ function HomepageSettingsForm({
           value={heroImageUrl}
           onChange={setHeroImageUrl}
           previewAlt="Hero model"
+          owner={{ ...HOMEPAGE_MEDIA_OWNER, slot: "hero" }}
         />
         <div className="space-y-5">
           <div>
@@ -239,6 +242,7 @@ function HomepageSettingsForm({
           folder="banners"
           value={bannerImageUrl}
           onChange={setBannerImageUrl}
+          owner={{ ...HOMEPAGE_MEDIA_OWNER, slot: "banner" }}
         />
         <div className="space-y-5">
           <div>
@@ -282,6 +286,7 @@ function HomepageSettingsForm({
                 }))
               }
               previewAlt={slot.label}
+              owner={{ ...HOMEPAGE_MEDIA_OWNER, slot: slot.mediaSlot }}
             />
           ))}
         </div>

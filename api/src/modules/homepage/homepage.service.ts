@@ -1,9 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { MediaOwnerType, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { MediaService } from '../media/media.service';
 import { UpdateHomepageSettingsDto } from './dto/update-homepage-settings.dto';
 
 const HOMEPAGE_ID = 'homepage';
+
+const HOMEPAGE_IMAGE_FIELDS = [
+  { field: 'heroImageUrl' as const, slot: 'hero' },
+  { field: 'bannerImageUrl' as const, slot: 'banner' },
+  { field: 'brandImage1Url' as const, slot: 'brand1' },
+  { field: 'brandImage2Url' as const, slot: 'brand2' },
+  { field: 'brandImage3Url' as const, slot: 'brand3' },
+  { field: 'brandImage4Url' as const, slot: 'brand4' },
+  { field: 'brandImage5Url' as const, slot: 'brand5' },
+  { field: 'brandImage6Url' as const, slot: 'brand6' },
+];
 
 const homepageInclude = {
   latestCollection: {
@@ -60,7 +72,10 @@ type HomepageSettingsPayload = Prisma.HomepageSettingsGetPayload<{
 
 @Injectable()
 export class HomepageService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   async getSettings() {
     const settings = await this.prisma.homepageSettings.upsert({
@@ -84,6 +99,9 @@ export class HomepageService {
     ]);
 
     const normalizedDto = this.normalizeHeroTextFields(dto);
+    const before = await this.prisma.homepageSettings.findUnique({
+      where: { id: HOMEPAGE_ID },
+    });
 
     const settings = await this.prisma.homepageSettings.upsert({
       where: { id: HOMEPAGE_ID },
@@ -102,6 +120,24 @@ export class HomepageService {
       },
       include: homepageInclude,
     });
+
+    for (const { field, slot } of HOMEPAGE_IMAGE_FIELDS) {
+      if (dto[field] === undefined) {
+        continue;
+      }
+
+      const previousUrl = before?.[field] ?? null;
+      const nextUrl = settings[field] ?? null;
+
+      if (nextUrl !== previousUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.HOMEPAGE,
+          ownerId: HOMEPAGE_ID,
+          slot,
+          newUrl: nextUrl,
+        });
+      }
+    }
 
     return this.hideInactiveCollections(settings);
   }

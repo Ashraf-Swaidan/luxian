@@ -9,6 +9,10 @@ export const queryKeys = {
     detail: (id: string) => ["collections", id] as const,
   },
   homepage: ["homepage"] as const,
+  media: {
+    history: (params: { ownerType: string; ownerId: string; slot: string }) =>
+      ["media", "history", params] as const,
+  },
   products: {
     all: ["products"] as const,
     list: (params?: {

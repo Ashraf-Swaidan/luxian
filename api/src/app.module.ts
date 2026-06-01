@@ -12,6 +12,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { HomepageModule } from './modules/homepage/homepage.module';
+import { MediaModule } from './modules/media/media.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { HomepageModule } from './modules/homepage/homepage.module';
     UploadsModule,
     CollectionsModule,
     HomepageModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

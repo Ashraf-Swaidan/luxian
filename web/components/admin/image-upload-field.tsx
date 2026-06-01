@@ -16,6 +16,8 @@ import { useUploadThing } from "@/lib/uploadthing"
 import { useAuth } from "@/providers/auth-provider"
 import { cn } from "@/lib/utils"
 
+import { ImageUploadHistory, type ImageUploadOwner } from "./image-upload-history"
+
 type ImageUploadFieldProps = {
   id: string
   label?: string
@@ -26,6 +28,7 @@ type ImageUploadFieldProps = {
   compact?: boolean
   mode?: "default" | "hero"
   previewAlt?: string
+  owner?: ImageUploadOwner
 }
 
 export function ImageUploadField({
@@ -37,6 +40,7 @@ export function ImageUploadField({
   compact,
   mode = "default",
   previewAlt = "",
+  owner,
 }: ImageUploadFieldProps) {
   const { user } = useAuth()
   const isAdmin = user?.role === "ADMIN"
@@ -85,13 +89,19 @@ export function ImageUploadField({
   }
 
   const previewSize = mode === "hero" ? "aspect-[4/5] w-full" : compact ? "size-16" : "size-24"
+  const showHistory = Boolean(owner?.ownerId)
 
   if (mode === "hero") {
     return (
       <div className={cn("w-full space-y-2", className)}>
-        <Label htmlFor={id} className="sr-only">
-          {label}
-        </Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor={id} className="sr-only">
+            {label}
+          </Label>
+          {showHistory && owner && (
+            <ImageUploadHistory owner={owner} currentUrl={value} onSelectUrl={(url) => onChange(url)} />
+          )}
+        </div>
         <div
           role={isAdmin ? "button" : undefined}
           tabIndex={isAdmin ? 0 : undefined}
@@ -146,7 +156,12 @@ export function ImageUploadField({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Label htmlFor={id}>{label}</Label>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Label htmlFor={id}>{label}</Label>
+        {showHistory && owner && (
+          <ImageUploadHistory owner={owner} currentUrl={value} onSelectUrl={(url) => onChange(url)} />
+        )}
+      </div>
       <div className="flex flex-wrap items-start gap-4">
         <div
           role={isAdmin ? "button" : undefined}

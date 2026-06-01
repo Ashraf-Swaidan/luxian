@@ -4,7 +4,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Collection, Prisma } from '@prisma/client';
+import { Collection, MediaOwnerType, Prisma } from '@prisma/client';
+import { MediaService } from '../media/media.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   AddCollectionProductDto,
@@ -23,7 +24,10 @@ const collectionInclude = {
 
 @Injectable()
 export class CollectionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   findAllActive() {
     return this.prisma.collection.findMany({
@@ -57,7 +61,7 @@ export class CollectionsService {
 
   async create(dto: CreateCollectionDto): Promise<Collection> {
     try {
-      return await this.prisma.collection.create({
+      const collection = await this.prisma.collection.create({
         data: {
           name: dto.name,
           slug: dto.slug,
@@ -66,19 +70,42 @@ export class CollectionsService {
           isActive: dto.isActive ?? true,
         },
       });
+
+      if (dto.imageUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.COLLECTION,
+          ownerId: collection.id,
+          newUrl: dto.imageUrl,
+        });
+      }
+
+      return collection;
     } catch (error) {
       this.handlePrismaError(error, 'Failed to create collection');
     }
   }
 
   async update(id: string, dto: UpdateCollectionDto): Promise<Collection> {
-    await this.ensureExists(id);
+    const existing = await this.prisma.collection.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Collection not found');
+    }
 
     try {
-      return await this.prisma.collection.update({
+      const collection = await this.prisma.collection.update({
         where: { id },
         data: dto,
       });
+
+      if (dto.imageUrl !== undefined && dto.imageUrl !== existing.imageUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.COLLECTION,
+          ownerId: id,
+          newUrl: dto.imageUrl,
+        });
+      }
+
+      return collection;
     } catch (error) {
       this.handlePrismaError(error, 'Failed to update collection');
     }

@@ -162,6 +162,7 @@ function AdminProductEditorForm({
           mode="hero"
           previewAlt={name}
           className="w-full min-w-0"
+          owner={{ ownerType: "PRODUCT", ownerId: product.id }}
         />
 
         <div className="space-y-7">

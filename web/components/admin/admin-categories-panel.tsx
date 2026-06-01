@@ -199,6 +199,7 @@ function CategoryRow({
             value={imageUrl}
             onChange={setImageUrl}
             compact
+            owner={{ ownerType: "CATEGORY", ownerId: category.id }}
           />
         </div>
       )}

@@ -291,6 +291,7 @@ function CollectionEditor({
               folder="collections"
               value={imageUrl}
               onChange={setImageUrl}
+              owner={{ ownerType: "COLLECTION", ownerId: collection.id }}
             />
             <TextField label="Name" value={name} onChange={setName} />
             <TextField label="Slug" value={slug} onChange={setSlug} />

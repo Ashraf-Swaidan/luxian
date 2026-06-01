@@ -7,11 +7,15 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { Category, Prisma } from '@prisma/client';
+import { Category, MediaOwnerType, Prisma } from '@prisma/client';
+import { MediaService } from '../media/media.service';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   findAllActive(): Promise<Category[]> {
     return this.prisma.category.findMany({
@@ -22,7 +26,7 @@ export class CategoriesService {
 
   async create(dto: CreateCategoryDto): Promise<Category> {
     try {
-      return await this.prisma.category.create({
+      const category = await this.prisma.category.create({
         data: {
           name: dto.name,
           slug: dto.slug,
@@ -31,6 +35,16 @@ export class CategoriesService {
           isActive: dto.isActive ?? true,
         },
       });
+
+      if (dto.imageUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.CATEGORY,
+          ownerId: category.id,
+          newUrl: dto.imageUrl,
+        });
+      }
+
+      return category;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -43,13 +57,26 @@ export class CategoriesService {
   }
 
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
-    await this.ensureExists(id);
+    const existing = await this.prisma.category.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Category not found');
+    }
 
     try {
-      return await this.prisma.category.update({
+      const category = await this.prisma.category.update({
         where: { id },
         data: dto,
       });
+
+      if (dto.imageUrl !== undefined && dto.imageUrl !== existing.imageUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.CATEGORY,
+          ownerId: id,
+          newUrl: dto.imageUrl,
+        });
+      }
+
+      return category;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

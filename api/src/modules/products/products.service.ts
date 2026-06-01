@@ -4,8 +4,9 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Product } from '@prisma/client';
+import { MediaOwnerType, Prisma, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { MediaService } from '../media/media.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -13,7 +14,10 @@ import { PaginatedProducts } from './products.types';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   async findOneActive(id: string): Promise<Product> {
     const product = await this.prisma.product.findFirst({
@@ -145,7 +149,7 @@ export class ProductsService {
     await this.ensureCategoryExists(dto.categoryId);
 
     try {
-      return await this.prisma.product.create({
+      const product = await this.prisma.product.create({
         data: {
           name: dto.name,
           sku: dto.sku,
@@ -158,24 +162,47 @@ export class ProductsService {
         },
         include: { category: true },
       });
+
+      if (dto.imageUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.PRODUCT,
+          ownerId: product.id,
+          newUrl: dto.imageUrl,
+        });
+      }
+
+      return product;
     } catch (error) {
       this.handlePrismaError(error, 'Failed to create product');
     }
   }
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
-    await this.ensureExists(id);
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Product not found');
+    }
 
     if (dto.categoryId) {
       await this.ensureCategoryExists(dto.categoryId);
     }
 
     try {
-      return await this.prisma.product.update({
+      const product = await this.prisma.product.update({
         where: { id },
         data: dto,
         include: { category: true },
       });
+
+      if (dto.imageUrl !== undefined && dto.imageUrl !== existing.imageUrl) {
+        await this.mediaService.recordImageChange({
+          ownerType: MediaOwnerType.PRODUCT,
+          ownerId: id,
+          newUrl: dto.imageUrl,
+        });
+      }
+
+      return product;
     } catch (error) {
       this.handlePrismaError(error, 'Failed to update product');
     }
