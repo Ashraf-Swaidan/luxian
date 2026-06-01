@@ -4,12 +4,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { MediaOwnerType, Prisma, Product } from '@prisma/client';
+import { Collection, MediaOwnerType, Prisma, Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MediaService } from '../media/media.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
+import { ProductContextQueryDto } from './dto/product-context-query.dto';
 import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
@@ -22,6 +23,19 @@ const productDetailInclude = {
   images: { orderBy: { position: 'asc' as const } },
 } satisfies Prisma.ProductInclude;
 
+const productCardInclude = {
+  category: true,
+  images: { orderBy: { position: 'asc' as const } },
+} satisfies Prisma.ProductInclude;
+
+type ProductDetail = Prisma.ProductGetPayload<{
+  include: typeof productDetailInclude;
+}>;
+
+type ProductCard = Prisma.ProductGetPayload<{
+  include: typeof productCardInclude;
+}>;
+
 @Injectable()
 export class ProductsService {
   constructor(
@@ -30,7 +44,7 @@ export class ProductsService {
     private readonly personalizationService: PersonalizationService,
   ) {}
 
-  async findOneActive(id: string): Promise<Product> {
+  async findOneActive(id: string): Promise<ProductDetail> {
     const product = await this.prisma.product.findFirst({
       where: { id, isActive: true },
       include: productDetailInclude,
@@ -41,6 +55,56 @@ export class ProductsService {
     }
 
     return product;
+  }
+
+  async findProductContext(
+    id: string,
+    query: ProductContextQueryDto,
+    visitorId?: string,
+  ) {
+    const product = await this.findOneActive(id);
+    const collectionLimit = Math.min(query.collectionLimit ?? 8, 12);
+    const similarLimit = Math.min(query.similarLimit ?? 8, 12);
+
+    const memberships = await this.prisma.collectionProduct.findMany({
+      where: {
+        productId: id,
+        collection: { isActive: true },
+      },
+      include: {
+        collection: true,
+      },
+    });
+
+    const selectedCollection = await this.selectProductCollection(
+      memberships.map((membership) => membership.collection),
+      id,
+    );
+    const collectionProducts = selectedCollection
+      ? await this.findCollectionSiblings(
+          selectedCollection.id,
+          id,
+          collectionLimit,
+        )
+      : [];
+
+    const excludedIds = new Set([
+      id,
+      ...collectionProducts.map((sibling) => sibling.id),
+    ]);
+    const similarProducts = await this.findSimilarProducts(
+      product,
+      excludedIds,
+      similarLimit,
+      visitorId,
+    );
+
+    return {
+      product,
+      collection: selectedCollection,
+      collectionProducts,
+      similarProducts,
+    };
   }
 
   async findAllActive(
@@ -106,6 +170,184 @@ export class ProductsService {
         totalPages: total === 0 ? 0 : Math.ceil(total / limit),
       },
     };
+  }
+
+  private async selectProductCollection(
+    collections: Collection[],
+    currentProductId: string,
+  ): Promise<Collection | null> {
+    if (collections.length === 0) {
+      return null;
+    }
+
+    const counts = await this.prisma.collectionProduct.groupBy({
+      by: ['collectionId'],
+      where: {
+        collectionId: { in: collections.map((collection) => collection.id) },
+        productId: { not: currentProductId },
+        product: { isActive: true },
+      },
+      _count: { productId: true },
+    });
+    const countByCollectionId = new Map(
+      counts.map((row) => [row.collectionId, row._count.productId]),
+    );
+
+    return [...collections].sort((left, right) => {
+      const rightCount = countByCollectionId.get(right.id) ?? 0;
+      const leftCount = countByCollectionId.get(left.id) ?? 0;
+      if (rightCount !== leftCount) {
+        return rightCount - leftCount;
+      }
+      return left.name.localeCompare(right.name);
+    })[0];
+  }
+
+  private async findCollectionSiblings(
+    collectionId: string,
+    currentProductId: string,
+    limit: number,
+  ): Promise<ProductCard[]> {
+    const rows = await this.prisma.collectionProduct.findMany({
+      where: {
+        collectionId,
+        productId: { not: currentProductId },
+        product: { isActive: true },
+      },
+      include: { product: { include: productCardInclude } },
+      orderBy: { position: 'asc' },
+      take: limit,
+    });
+
+    return rows.map((row) => row.product);
+  }
+
+  private async findSimilarProducts(
+    product: ProductDetail,
+    excludedIds: Set<string>,
+    limit: number,
+    visitorId?: string,
+  ): Promise<ProductCard[]> {
+    const collectionIds = await this.findProductCollectionIds(product.id);
+    const price = Number(product.price);
+    const minPrice = Number.isFinite(price) ? price * 0.65 : undefined;
+    const maxPrice = Number.isFinite(price) ? price * 1.35 : undefined;
+
+    const candidates = await this.prisma.product.findMany({
+      where: {
+        isActive: true,
+        id: { notIn: [...excludedIds] },
+        OR: [
+          { categoryId: product.categoryId },
+          ...(collectionIds.length
+            ? [
+                {
+                  collectionProducts: {
+                    some: { collectionId: { in: collectionIds } },
+                  },
+                },
+              ]
+            : []),
+          ...(minPrice !== undefined && maxPrice !== undefined
+            ? [{ price: { gte: minPrice, lte: maxPrice } }]
+            : []),
+        ],
+      },
+      include: productCardInclude,
+      take: limit * 5,
+    });
+
+    const candidateCollectionIds = await this.findCollectionIdsForProducts(
+      candidates.map((candidate) => candidate.id),
+    );
+    const affinityScores = await this.personalizationService.scoreProductList(
+      visitorId,
+      candidates,
+    );
+
+    return candidates
+      .map((candidate) => ({
+        product: candidate,
+        score: this.scoreSimilarProduct(
+          product,
+          candidate,
+          collectionIds,
+          candidateCollectionIds.get(candidate.id) ?? new Set(),
+          affinityScores.get(candidate.id) ?? 0,
+        ),
+      }))
+      .sort((left, right) => {
+        if (right.score !== left.score) {
+          return right.score - left.score;
+        }
+        return left.product.name.localeCompare(right.product.name);
+      })
+      .slice(0, limit)
+      .map((row) => row.product);
+  }
+
+  private scoreSimilarProduct(
+    source: ProductDetail,
+    candidate: ProductCard,
+    sourceCollectionIds: string[],
+    candidateCollectionIds: Set<string>,
+    affinityScore: number,
+  ) {
+    let score = 0;
+
+    if (candidate.categoryId === source.categoryId) {
+      score += 100;
+    }
+
+    const sharedCollectionCount = sourceCollectionIds.filter((id) =>
+      candidateCollectionIds.has(id),
+    ).length;
+    score += sharedCollectionCount * 30;
+
+    const sourcePrice = Number(source.price);
+    const candidatePrice = Number(candidate.price);
+    if (
+      Number.isFinite(sourcePrice) &&
+      Number.isFinite(candidatePrice) &&
+      sourcePrice > 0
+    ) {
+      const priceDistance =
+        Math.abs(candidatePrice - sourcePrice) / sourcePrice;
+      score += Math.max(0, 20 - priceDistance * 20);
+    }
+
+    score += Math.min(5, affinityScore * 0.25);
+
+    return score;
+  }
+
+  private async findProductCollectionIds(productId: string) {
+    const rows = await this.prisma.collectionProduct.findMany({
+      where: { productId, collection: { isActive: true } },
+      select: { collectionId: true },
+    });
+    return rows.map((row) => row.collectionId);
+  }
+
+  private async findCollectionIdsForProducts(productIds: string[]) {
+    if (productIds.length === 0) {
+      return new Map<string, Set<string>>();
+    }
+
+    const rows = await this.prisma.collectionProduct.findMany({
+      where: {
+        productId: { in: productIds },
+        collection: { isActive: true },
+      },
+      select: { productId: true, collectionId: true },
+    });
+    const collectionIdsByProductId = new Map<string, Set<string>>();
+    for (const row of rows) {
+      const current = collectionIdsByProductId.get(row.productId) ?? new Set();
+      current.add(row.collectionId);
+      collectionIdsByProductId.set(row.productId, current);
+    }
+    return collectionIdsByProductId;
   }
 
   private async findAllActiveByCollection(
@@ -247,11 +489,13 @@ export class ProductsService {
       });
 
       if (dto.imageUrl !== undefined && dto.imageUrl !== existing.imageUrl) {
+        await this.syncCoverImage(id, existing.imageUrl, dto.imageUrl);
         await this.mediaService.recordImageChange({
           ownerType: MediaOwnerType.PRODUCT,
           ownerId: id,
           newUrl: dto.imageUrl,
         });
+        return this.findOneActive(id);
       }
 
       return product;
@@ -377,6 +621,72 @@ export class ProductsService {
     }
 
     return { id: image.id, key: image.key };
+  }
+
+  private async syncCoverImage(
+    productId: string,
+    previousUrl: string | null,
+    nextUrl: string | null | undefined,
+  ) {
+    if (previousUrl === nextUrl) {
+      return;
+    }
+
+    const previousCover = previousUrl
+      ? await this.prisma.productImage.findFirst({
+          where: { productId, url: previousUrl },
+          orderBy: { position: 'asc' },
+        })
+      : null;
+
+    if (!nextUrl) {
+      if (previousCover) {
+        await this.prisma.productImage.delete({
+          where: { id: previousCover.id },
+        });
+      }
+      return;
+    }
+
+    const existingNext = await this.prisma.productImage.findFirst({
+      where: { productId, url: nextUrl },
+      orderBy: { position: 'asc' },
+    });
+
+    if (existingNext) {
+      if (previousCover && previousCover.id !== existingNext.id) {
+        await this.prisma.productImage.delete({
+          where: { id: previousCover.id },
+        });
+      }
+      return;
+    }
+
+    if (previousCover) {
+      await this.prisma.productImage.update({
+        where: { id: previousCover.id },
+        data: {
+          url: nextUrl,
+          key: extractUploadThingKey(nextUrl),
+          altText: previousCover.altText,
+        },
+      });
+      return;
+    }
+
+    const maxPosition = await this.prisma.productImage.aggregate({
+      where: { productId },
+      _max: { position: true },
+    });
+
+    await this.prisma.productImage.create({
+      data: {
+        productId,
+        url: nextUrl,
+        key: extractUploadThingKey(nextUrl),
+        position: (maxPosition._max.position ?? -1) + 1,
+      },
+    });
   }
 
   private async findProductImage(productId: string, imageId: string) {

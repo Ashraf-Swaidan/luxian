@@ -40,9 +40,14 @@ type AdminProductGalleryProps = {
   onCoverChange: (url: string | null) => void
 }
 
+type GalleryImage = ProductImage & {
+  pendingCover?: boolean
+}
+
 export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminProductGalleryProps) {
   const queryClient = useQueryClient()
   const images = product.images ?? []
+  const displayImages = buildDisplayImages(images, product, coverUrl)
   const [pendingDelete, setPendingDelete] = useState<ProductImage | null>(null)
   const { user } = useAuth()
   const isAdmin = user?.role === "ADMIN"
@@ -177,8 +182,10 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
         </div>
 
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {images.map((image, index) => {
+          {displayImages.map((image) => {
             const isCover = coverUrl === image.url
+            const persistedIndex = images.findIndex((item) => item.id === image.id)
+            const isPendingCover = Boolean(image.pendingCover)
             return (
               <li
                 key={image.id}
@@ -188,10 +195,16 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
                 )}
               >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-muted">
-                  <StoreImage src={image.url} alt={image.altText ?? product.name} fill className="object-cover" sizes="200px" />
+                  <StoreImage
+                    src={image.url}
+                    alt={image.altText ?? product.name}
+                    fill
+                    className="object-cover"
+                    sizes="200px"
+                  />
                   {isCover && (
                     <span className="absolute top-2 left-2 rounded bg-white/90 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-neutral-950 uppercase">
-                      Cover
+                      {isPendingCover ? "New cover" : "Cover"}
                     </span>
                   )}
                 </div>
@@ -205,6 +218,7 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
                       defaultValue={image.altText ?? ""}
                       placeholder={product.name}
                       className="h-8 text-xs"
+                      disabled={isPendingCover}
                       onBlur={(event) => {
                         const next = event.target.value.trim() || null
                         if (next !== (image.altText ?? null)) {
@@ -219,19 +233,19 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
                       size="sm"
                       variant={isCover ? "secondary" : "outline"}
                       className="h-7 text-xs"
-                      disabled={isCover || setCoverMutation.isPending}
+                      disabled={isCover || isPendingCover || setCoverMutation.isPending}
                       onClick={() => setCoverMutation.mutate(image.url)}
                     >
-                      {isCover ? "Cover" : "Set cover"}
+                      {isPendingCover ? "Save first" : isCover ? "Cover" : "Set cover"}
                     </Button>
                     <Button
                       type="button"
                       size="icon"
                       variant="outline"
                       className="size-7 shrink-0"
-                      disabled={index === 0 || reorderMutation.isPending}
+                      disabled={isPendingCover || persistedIndex <= 0 || reorderMutation.isPending}
                       aria-label="Move image earlier"
-                      onClick={() => moveImage(index, -1)}
+                      onClick={() => moveImage(persistedIndex, -1)}
                     >
                       <HugeiconsIcon icon={ArrowLeft01Icon} className="size-3.5" strokeWidth={2} />
                     </Button>
@@ -240,9 +254,9 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
                       size="icon"
                       variant="outline"
                       className="size-7 shrink-0"
-                      disabled={index === images.length - 1 || reorderMutation.isPending}
+                      disabled={isPendingCover || persistedIndex === images.length - 1 || reorderMutation.isPending}
                       aria-label="Move image later"
-                      onClick={() => moveImage(index, 1)}
+                      onClick={() => moveImage(persistedIndex, 1)}
                     >
                       <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5" strokeWidth={2} />
                     </Button>
@@ -251,6 +265,7 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
                       size="sm"
                       variant="ghost"
                       className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                      disabled={isPendingCover}
                       onClick={() => setPendingDelete(image)}
                     >
                       Delete
@@ -275,6 +290,35 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
       </section>
     </>
   )
+}
+
+function buildDisplayImages(images: ProductImage[], product: Product, coverUrl: string | null): GalleryImage[] {
+  if (coverUrl && images.some((image) => image.url === coverUrl)) {
+    return images
+  }
+
+  const previousCoverIndex = images.findIndex((image) => image.url === product.imageUrl)
+
+  if (!coverUrl) {
+    return previousCoverIndex >= 0 ? images.filter((_, index) => index !== previousCoverIndex) : images
+  }
+
+  const pendingCover: GalleryImage = {
+    id: `pending-cover-${coverUrl}`,
+    url: coverUrl,
+    key: null,
+    altText: product.name,
+    position: previousCoverIndex >= 0 ? images[previousCoverIndex].position : 0,
+    pendingCover: true,
+  }
+
+  if (previousCoverIndex < 0) {
+    return [pendingCover, ...images]
+  }
+
+  const next = [...images]
+  next[previousCoverIndex] = pendingCover
+  return next
 }
 
 function GalleryAddCard({
@@ -306,13 +350,18 @@ function GalleryAddCard({
         }}
         className={cn(
           "relative flex aspect-[4/5] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-md bg-muted/40 transition-colors",
-          !disabled && "cursor-pointer hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          !disabled &&
+            "cursor-pointer hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         )}
         aria-label="Add gallery image"
       >
         {isUploading ? (
           <>
-            <HugeiconsIcon icon={Loading03Icon} className="size-7 animate-spin text-[var(--luxian-teal)]" strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              className="size-7 animate-spin text-[var(--luxian-teal)]"
+              strokeWidth={2}
+            />
             <span className="text-xs font-medium text-muted-foreground">Uploading…</span>
           </>
         ) : (
@@ -356,8 +405,8 @@ function DeleteGalleryImageDialog({
           <p className="text-xs font-semibold tracking-[0.22em] text-destructive uppercase">Permanent action</p>
           <DialogTitle className="text-3xl sm:text-4xl">Delete gallery image?</DialogTitle>
           <DialogDescription className="text-sm leading-relaxed">
-            This removes the file from storage and deletes it from this product&apos;s gallery. If it was the cover,
-            the next image becomes the cover automatically.
+            This removes the file from storage and deletes it from this product&apos;s gallery. If it was the cover, the
+            next image becomes the cover automatically.
           </DialogDescription>
         </DialogHeader>
         {image && (

@@ -1,5 +1,6 @@
 import { api } from "@/lib/api-client"
 import { getVisitorIdHeaders } from "@/lib/visitor-id"
+import type { Collection } from "@/lib/types/collection"
 import type { Product, ProductImage } from "@/lib/types/product"
 import type { PaginatedProducts, ProductListParams } from "@/features/products/types"
 
@@ -57,6 +58,28 @@ export function getProduct(id: string) {
   return api.get<Product>(`products/${id}`, { auth: false })
 }
 
+export type ProductContext = {
+  product: Product
+  collection: Collection | null
+  collectionProducts: Product[]
+  similarProducts: Product[]
+}
+
+export function getProductContext(id: string, params?: { collectionLimit?: number; similarLimit?: number }) {
+  const search = new URLSearchParams()
+  if (params?.collectionLimit !== undefined) {
+    search.set("collectionLimit", String(params.collectionLimit))
+  }
+  if (params?.similarLimit !== undefined) {
+    search.set("similarLimit", String(params.similarLimit))
+  }
+  const qs = search.toString()
+  return api.get<ProductContext>(`products/${id}/context${qs ? `?${qs}` : ""}`, {
+    auth: false,
+    headers: getVisitorIdHeaders(),
+  })
+}
+
 /** Admin — fetch first page at API max page size */
 export function getProductsBulk(limit = 48) {
   return getProducts({ page: 1, limit })
@@ -93,11 +116,7 @@ export function addProductImage(productId: string, body: { url: string; altText?
   return api.post<ProductImage>(`products/${productId}/images`, body)
 }
 
-export function updateProductImage(
-  productId: string,
-  imageId: string,
-  body: { altText?: string | null }
-) {
+export function updateProductImage(productId: string, imageId: string, body: { altText?: string | null }) {
   return api.patch<ProductImage>(`products/${productId}/images/${imageId}`, body)
 }
 

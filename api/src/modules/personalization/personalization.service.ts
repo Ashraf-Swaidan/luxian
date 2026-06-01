@@ -100,7 +100,9 @@ export class PersonalizationService {
     return products.length >= MIN_RECOMMENDATION_COUNT ? products : [];
   }
 
-  async rankProductList<T extends Product & { category?: { name: string } | null }>(
+  async rankProductList<
+    T extends Product & { category?: { name: string } | null },
+  >(
     visitorId: string | undefined,
     products: T[],
     options?: { categoryFilterId?: string },
@@ -111,6 +113,22 @@ export class PersonalizationService {
 
     const profile = await this.loadAffinityProfile(visitorId);
     return rankProductsByAffinity(products, profile, options);
+  }
+
+  async scoreProductList<
+    T extends Product & { category?: { name: string } | null },
+  >(
+    visitorId: string | undefined,
+    products: T[],
+  ): Promise<Map<string, number>> {
+    if (!visitorId || products.length === 0) {
+      return new Map();
+    }
+
+    const profile = await this.loadAffinityProfile(visitorId);
+    return new Map(
+      products.map((product) => [product.id, scoreProduct(product, profile)]),
+    );
   }
 
   private async loadAffinityProfile(visitorId: string) {
@@ -156,19 +174,25 @@ export class PersonalizationService {
       case VisitorEventType.PRODUCT_VIEW:
       case VisitorEventType.PRODUCT_CLICK:
         if (!dto.productId) {
-          throw new BadRequestException('productId is required for product events');
+          throw new BadRequestException(
+            'productId is required for product events',
+          );
         }
         await this.ensureActiveProduct(dto.productId);
         break;
       case VisitorEventType.CATEGORY_FILTER:
         if (!dto.categoryId) {
-          throw new BadRequestException('categoryId is required for CATEGORY_FILTER');
+          throw new BadRequestException(
+            'categoryId is required for CATEGORY_FILTER',
+          );
         }
         await this.ensureActiveCategory(dto.categoryId);
         break;
       case VisitorEventType.COLLECTION_FILTER:
         if (!dto.collectionId) {
-          throw new BadRequestException('collectionId is required for COLLECTION_FILTER');
+          throw new BadRequestException(
+            'collectionId is required for COLLECTION_FILTER',
+          );
         }
         await this.ensureActiveCollection(dto.collectionId);
         break;

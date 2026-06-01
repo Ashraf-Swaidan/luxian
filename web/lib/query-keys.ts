@@ -28,6 +28,7 @@ export const queryKeys = {
       personalize?: boolean
     }) => [...queryKeys.products.all, "list", params ?? {}] as const,
     detail: (id: string) => [...queryKeys.products.all, id] as const,
+    context: (id: string) => [...queryKeys.products.all, id, "context"] as const,
   },
   cart: ["cart"] as const,
   orders: {

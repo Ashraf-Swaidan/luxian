@@ -18,6 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
+import { ProductContextQueryDto } from './dto/product-context-query.dto';
 import { ReorderProductImagesDto } from './dto/reorder-product-images.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
@@ -33,6 +34,15 @@ export class ProductsController {
     @VisitorId() visitorId?: string,
   ) {
     return this.productsService.findAllActive(query, visitorId);
+  }
+
+  @Get(':id/context')
+  findContext(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: ProductContextQueryDto,
+    @VisitorId() visitorId?: string,
+  ) {
+    return this.productsService.findProductContext(id, query, visitorId);
   }
 
   @Get(':id')
