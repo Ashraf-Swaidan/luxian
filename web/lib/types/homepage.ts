@@ -12,6 +12,13 @@ export type HomepageSettings = {
   pairLeftCollection: Collection | null
   pairRightCollectionId: string | null
   pairRightCollection: Collection | null
+  heroCollectionId: string | null
+  heroCollection: Collection | null
+  heroImageUrl: string | null
+  heroWordmark: string | null
+  heroEyebrow: string | null
+  heroHeading: string | null
+  heroTagline: string | null
   bannerImageUrl: string | null
   bannerButtonText: string
   brandImage1Url: string | null

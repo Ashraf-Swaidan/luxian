@@ -34,6 +34,36 @@ export class UpdateHomepageSettingsDto {
   pairRightCollectionId?: string | null;
 
   @ValidateIf((_, value) => value != null && value !== '')
+  @IsUUID()
+  @IsOptional()
+  heroCollectionId?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsUrl()
+  @IsOptional()
+  heroImageUrl?: string | null;
+
+  @IsString()
+  @MaxLength(24)
+  @IsOptional()
+  heroWordmark?: string | null;
+
+  @IsString()
+  @MaxLength(40)
+  @IsOptional()
+  heroEyebrow?: string | null;
+
+  @IsString()
+  @MaxLength(60)
+  @IsOptional()
+  heroHeading?: string | null;
+
+  @IsString()
+  @MaxLength(160)
+  @IsOptional()
+  heroTagline?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
   @IsUrl()
   @IsOptional()
   bannerImageUrl?: string | null;

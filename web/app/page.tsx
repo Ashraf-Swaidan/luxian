@@ -18,7 +18,7 @@ export default async function Page() {
   if (!bundle) {
     return (
       <main>
-        <HomeHero products={[]} />
+        <HomeHero products={[]} settings={null} />
         <HomepageUnavailable />
       </main>
     )
@@ -26,7 +26,7 @@ export default async function Page() {
 
   return (
     <main>
-      <HomeHero products={bundle.heroProducts} />
+      <HomeHero products={bundle.heroProducts} settings={bundle.homepage} />
       <ProductsGrid latestCollection={bundle.latestCollection} products={bundle.latestProducts} />
       <SummerSeasonBanner homepage={bundle.homepage} />
       <NowTrending products={bundle.trendingProducts} />

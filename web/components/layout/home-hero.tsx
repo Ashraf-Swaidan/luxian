@@ -7,17 +7,43 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons"
 
 import { StoreImage } from "@/components/common/store-image"
+import type { HomepageSettings } from "@/lib/types/homepage"
 import type { Product } from "@/lib/types/product"
 import { cn } from "@/lib/utils"
 
 const HERO_THUMBNAIL_QUERY = "(min-width: 640px)"
 
-export function HomeHero({ products }: { products: Product[] }) {
+const HERO_DEFAULTS = {
+  imageUrl: "/hero-assets/hero-model2.png",
+  wordmark: "LUXIAN",
+  eyebrow: "Luxian",
+  heading: "Sculptural streetwear",
+  tagline: "Technical essentials with sculptural volume and everyday edge.",
+} as const
+
+export type HomeHeroSettings = Pick<
+  HomepageSettings,
+  "heroImageUrl" | "heroWordmark" | "heroEyebrow" | "heroHeading" | "heroTagline"
+>
+
+export function HomeHero({
+  products,
+  settings,
+}: {
+  products: Product[]
+  settings?: HomeHeroSettings | null
+}) {
   const showDesktopThumbnails = useSyncExternalStore(
     subscribeToThumbnailViewport,
     getThumbnailViewportSnapshot,
     getThumbnailViewportServerSnapshot
   )
+
+  const heroImageUrl = settings?.heroImageUrl ?? HERO_DEFAULTS.imageUrl
+  const heroWordmark = settings?.heroWordmark ?? HERO_DEFAULTS.wordmark
+  const heroEyebrow = settings?.heroEyebrow ?? HERO_DEFAULTS.eyebrow
+  const heroHeading = settings?.heroHeading ?? HERO_DEFAULTS.heading
+  const heroTagline = settings?.heroTagline ?? HERO_DEFAULTS.tagline
 
   return (
     <section className="relative isolate min-h-svh overflow-hidden bg-[oklch(0.89_0.03_92)]">
@@ -32,11 +58,9 @@ export function HomeHero({ products }: { products: Product[] }) {
 
       <div className="relative z-10 flex min-h-svh flex-col sm:hidden">
         <div className="px-5 pt-[calc(4.25rem+env(safe-area-inset-top,0px))]">
-          <p className="text-[0.6875rem] font-semibold tracking-[0.32em] text-neutral-950/50 uppercase">
-            Luxian
-          </p>
+          <p className="text-[0.6875rem] font-semibold tracking-[0.32em] text-neutral-950/50 uppercase">{heroEyebrow}</p>
           <h1 className="mt-2 max-w-[12ch] font-display text-[clamp(2.35rem,10.5vw,3.1rem)] leading-[0.92] font-bold text-neutral-950 uppercase">
-            Sculptural streetwear
+            {heroHeading}
           </h1>
         </div>
 
@@ -46,16 +70,13 @@ export function HomeHero({ products }: { products: Product[] }) {
             aria-hidden
           >
             <span className="font-display text-[clamp(4.75rem,26vw,7rem)] leading-none font-bold text-neutral-950/[0.1] uppercase">
-              Luxian
+              {heroWordmark}
             </span>
           </div>
 
           <div className="relative mx-auto min-h-[14rem] w-full max-w-[22rem] flex-1 max-h-[min(56vh,28rem)] px-4">
-            <Image
-              src="/hero-assets/hero-model2.png"
-              alt="Model wearing Luxian streetwear"
-              fill
-              priority
+            <HeroModelImage
+              src={heroImageUrl}
               className="object-contain object-bottom drop-shadow-[0_18px_40px_rgba(32,28,20,0.22)]"
               sizes="(max-width: 640px) 88vw, 352px"
             />
@@ -68,9 +89,7 @@ export function HomeHero({ products }: { products: Product[] }) {
         </div>
 
         <div className="relative z-20 shrink-0 space-y-4 px-5 pt-1 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
-          <p className="max-w-[20rem] text-sm leading-relaxed text-neutral-950/72">
-            Technical essentials with sculptural volume and everyday edge.
-          </p>
+          <p className="max-w-[20rem] text-sm leading-relaxed text-neutral-950/72">{heroTagline}</p>
 
           <HeroShopLink className="h-12 w-full justify-center px-5 text-sm font-semibold shadow-[0_18px_42px_rgba(32,28,20,0.16)]" />
         </div>
@@ -85,17 +104,14 @@ export function HomeHero({ products }: { products: Product[] }) {
             "font-display text-[27vw] leading-none font-bold whitespace-nowrap text-neutral-950/[0.88] uppercase lg:text-[20vw]"
           )}
         >
-          LUXIAN
+          {heroWordmark}
         </span>
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-full items-end justify-center sm:flex">
         <div className="relative h-[86svh] min-h-[540px] w-[min(112vw,900px)] lg:h-[88svh] lg:w-[min(74vw,1040px)]">
-          <Image
-            src="/hero-assets/hero-model2.png"
-            alt="Model wearing Luxian streetwear"
-            fill
-            priority
+          <HeroModelImage
+            src={heroImageUrl}
             className="object-contain object-bottom drop-shadow-[0_28px_60px_rgba(32,28,20,0.28)]"
             sizes="(max-width: 768px) 112vw, 1040px"
           />
@@ -122,6 +138,27 @@ export function HomeHero({ products }: { products: Product[] }) {
         </div>
       )}
     </section>
+  )
+}
+
+function HeroModelImage({
+  src,
+  className,
+  sizes,
+}: {
+  src: string
+  className?: string
+  sizes: string
+}) {
+  return (
+    <StoreImage
+      src={src}
+      alt="Model wearing Luxian streetwear"
+      fill
+      priority
+      className={className}
+      sizes={sizes}
+    />
   )
 }
 

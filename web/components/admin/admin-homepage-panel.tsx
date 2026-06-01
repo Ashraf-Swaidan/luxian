@@ -67,6 +67,12 @@ function HomepageSettingsForm({
   const [bannerCollectionId, setBannerCollectionId] = useState(settings.bannerCollectionId ?? "")
   const [pairLeftCollectionId, setPairLeftCollectionId] = useState(settings.pairLeftCollectionId ?? "")
   const [pairRightCollectionId, setPairRightCollectionId] = useState(settings.pairRightCollectionId ?? "")
+  const [heroCollectionId, setHeroCollectionId] = useState(settings.heroCollectionId ?? "")
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(settings.heroImageUrl)
+  const [heroWordmark, setHeroWordmark] = useState(settings.heroWordmark ?? "")
+  const [heroEyebrow, setHeroEyebrow] = useState(settings.heroEyebrow ?? "")
+  const [heroHeading, setHeroHeading] = useState(settings.heroHeading ?? "")
+  const [heroTagline, setHeroTagline] = useState(settings.heroTagline ?? "")
   const [bannerImageUrl, setBannerImageUrl] = useState<string | null>(settings.bannerImageUrl)
   const [bannerButtonText, setBannerButtonText] = useState(settings.bannerButtonText || "See Collection")
   const [brandImages, setBrandImages] = useState(
@@ -85,6 +91,12 @@ function HomepageSettingsForm({
         bannerCollectionId: bannerCollectionId || null,
         pairLeftCollectionId: pairLeftCollectionId || null,
         pairRightCollectionId: pairRightCollectionId || null,
+        heroCollectionId: heroCollectionId || null,
+        heroImageUrl,
+        heroWordmark: heroWordmark.trim() || null,
+        heroEyebrow: heroEyebrow.trim() || null,
+        heroHeading: heroHeading.trim() || null,
+        heroTagline: heroTagline.trim() || null,
         bannerImageUrl,
         bannerButtonText,
         ...brandImages,
@@ -104,6 +116,72 @@ function HomepageSettingsForm({
 
   return (
     <div className="space-y-8">
+      <section className="grid gap-6 bg-white p-6 ring-1 ring-border/60 lg:grid-cols-[22rem_minmax(0,1fr)]">
+        <ImageUploadField
+          id="homepage-hero-image"
+          label="Hero model image"
+          folder="banners"
+          mode="hero"
+          value={heroImageUrl}
+          onChange={setHeroImageUrl}
+          previewAlt="Hero model"
+        />
+        <div className="space-y-5">
+          <div>
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Hero</p>
+            <h2 className="font-display text-5xl leading-none font-bold text-neutral-950 uppercase">Homepage hero</h2>
+          </div>
+          <CollectionSelect
+            label="Hero collection"
+            value={heroCollectionId}
+            onChange={setHeroCollectionId}
+            collections={collections}
+          />
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            The first three products in this collection appear in the desktop hero thumbnails. Leave empty to use the
+            latest products as a fallback.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Wordmark</Label>
+              <Input
+                value={heroWordmark}
+                onChange={(event) => setHeroWordmark(event.target.value)}
+                placeholder="LUXIAN"
+                className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mobile eyebrow</Label>
+              <Input
+                value={heroEyebrow}
+                onChange={(event) => setHeroEyebrow(event.target.value)}
+                placeholder="Luxian"
+                className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Mobile heading</Label>
+              <Input
+                value={heroHeading}
+                onChange={(event) => setHeroHeading(event.target.value)}
+                placeholder="Sculptural streetwear"
+                className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Mobile tagline</Label>
+              <Input
+                value={heroTagline}
+                onChange={(event) => setHeroTagline(event.target.value)}
+                placeholder="Technical essentials with sculptural volume and everyday edge."
+                className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-white p-6 ring-1 ring-border/60">
         <div className="mb-7">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Landing page</p>

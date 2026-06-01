@@ -7,6 +7,12 @@ export type UpdateHomepageSettingsInput = {
   bannerCollectionId?: string | null
   pairLeftCollectionId?: string | null
   pairRightCollectionId?: string | null
+  heroCollectionId?: string | null
+  heroImageUrl?: string | null
+  heroWordmark?: string | null
+  heroEyebrow?: string | null
+  heroHeading?: string | null
+  heroTagline?: string | null
   bannerImageUrl?: string | null
   bannerButtonText?: string
   brandImage1Url?: string | null

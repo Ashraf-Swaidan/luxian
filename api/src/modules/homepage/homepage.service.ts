@@ -43,6 +43,15 @@ const homepageInclude = {
       },
     },
   },
+  heroCollection: {
+    include: {
+      collectionProducts: {
+        where: { product: { isActive: true } },
+        orderBy: { position: 'asc' },
+        include: { product: { include: { category: true } } },
+      },
+    },
+  },
 } satisfies Prisma.HomepageSettingsInclude;
 
 type HomepageSettingsPayload = Prisma.HomepageSettingsGetPayload<{
@@ -71,17 +80,20 @@ export class HomepageService {
       this.ensureCollectionExists(dto.bannerCollectionId),
       this.ensureCollectionExists(dto.pairLeftCollectionId),
       this.ensureCollectionExists(dto.pairRightCollectionId),
+      this.ensureCollectionExists(dto.heroCollectionId),
     ]);
+
+    const normalizedDto = this.normalizeHeroTextFields(dto);
 
     const settings = await this.prisma.homepageSettings.upsert({
       where: { id: HOMEPAGE_ID },
       create: {
         id: HOMEPAGE_ID,
-        ...dto,
+        ...normalizedDto,
         bannerButtonText: dto.bannerButtonText?.trim() || 'See Collection',
       },
       update: {
-        ...dto,
+        ...normalizedDto,
         ...(dto.bannerButtonText !== undefined
           ? {
               bannerButtonText: dto.bannerButtonText.trim() || 'See Collection',
@@ -110,6 +122,9 @@ export class HomepageService {
     const pairRightCollection = settings.pairRightCollection?.isActive
       ? settings.pairRightCollection
       : null;
+    const heroCollection = settings.heroCollection?.isActive
+      ? settings.heroCollection
+      : null;
 
     return {
       ...settings,
@@ -123,6 +138,27 @@ export class HomepageService {
       pairLeftCollection,
       pairRightCollectionId: pairRightCollection?.id ?? null,
       pairRightCollection,
+      heroCollectionId: heroCollection?.id ?? null,
+      heroCollection,
+    };
+  }
+
+  private normalizeHeroTextFields(dto: UpdateHomepageSettingsDto) {
+    const trimToNull = (value: string | null | undefined) => {
+      if (value === undefined) {
+        return undefined;
+      }
+
+      const trimmed = value?.trim();
+      return trimmed ? trimmed : null;
+    };
+
+    return {
+      ...dto,
+      ...(dto.heroWordmark !== undefined ? { heroWordmark: trimToNull(dto.heroWordmark) } : {}),
+      ...(dto.heroEyebrow !== undefined ? { heroEyebrow: trimToNull(dto.heroEyebrow) } : {}),
+      ...(dto.heroHeading !== undefined ? { heroHeading: trimToNull(dto.heroHeading) } : {}),
+      ...(dto.heroTagline !== undefined ? { heroTagline: trimToNull(dto.heroTagline) } : {}),
     };
   }
 

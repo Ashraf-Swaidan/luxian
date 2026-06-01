@@ -35,11 +35,12 @@ async function loadHomepageBundleUncached(): Promise<HomepageBundle> {
 
   const latestProducts = collectionProducts(homepage.latestCollection, LATEST_PRODUCT_LIMIT)
   const trendingProducts = collectionProducts(homepage.trendingCollection, TRENDING_PRODUCT_LIMIT)
+  const heroProducts = collectionProducts(homepage.heroCollection, HERO_PRODUCT_LIMIT)
   const pairCollections = [homepage.pairLeftCollection, homepage.pairRightCollection].filter(Boolean) as Collection[]
 
   return {
     homepage,
-    heroProducts: fallbackLatest.data.slice(0, HERO_PRODUCT_LIMIT),
+    heroProducts: heroProducts.length ? heroProducts : fallbackLatest.data.slice(0, HERO_PRODUCT_LIMIT),
     latestCollection: homepage.latestCollection,
     latestProducts: latestProducts.length ? latestProducts : fallbackLatest.data,
     trendingProducts: trendingProducts.length ? trendingProducts : fallbackTrending.data,
