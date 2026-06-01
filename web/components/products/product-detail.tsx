@@ -55,31 +55,34 @@ export function ProductDetail() {
   const outOfStock = product.stock < 1
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
+    <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
       <ProductGallery product={product} />
 
-      <div className="flex flex-col justify-center space-y-6">
-        <div className="space-y-3">
+      <div className="space-y-8 lg:pt-2">
+        <div className="space-y-4">
           {product.category && (
             <p className="text-xs font-medium tracking-wider text-[var(--luxian-teal)] uppercase">
               {product.category.name}
             </p>
           )}
-          <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">{product.name}</h1>
+          <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">{product.name}</h1>
           <p className="text-2xl font-medium tabular-nums">{formatPrice(product.price)}</p>
-          <p className="text-sm text-muted-foreground">
-            {outOfStock ? "Out of stock" : `${product.stock} available`}
-            {product.sku ? ` · ${product.sku}` : ""}
-          </p>
         </div>
 
         {product.description && (
           <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">{product.description}</p>
         )}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="space-y-3">
           <AddToCartButton productId={product.id} disabled={outOfStock} />
-          <Button variant="ghost" asChild className="text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
+            {outOfStock ? "Out of stock" : `${product.stock} in stock`}
+            {product.sku ? ` · ${product.sku}` : ""}
+          </p>
+        </div>
+
+        <div className="border-t border-border/60 pt-4">
+          <Button variant="ghost" asChild className="px-0 text-muted-foreground hover:text-foreground">
             <Link href="/products">
               <HugeiconsIcon icon={ArrowLeftIcon} className="size-4" strokeWidth={1.8} />
               Continue shopping
