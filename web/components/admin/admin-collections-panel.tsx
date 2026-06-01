@@ -1,11 +1,6 @@
 "use client"
 
-import {
-  ArrowDown01Icon,
-  ArrowUp01Icon,
-  Folder01Icon,
-  MultiplicationSignIcon,
-} from "@hugeicons/core-free-icons"
+import { ArrowDown01Icon, ArrowUp01Icon, Folder01Icon, MultiplicationSignIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
@@ -25,13 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   addCollectionProducts,
@@ -43,6 +32,7 @@ import {
   updateCollection,
 } from "@/features/collections/api"
 import { getCategories } from "@/features/categories/api"
+import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
 import { getProductsBulk } from "@/features/products/api"
 import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
@@ -72,6 +62,9 @@ export function AdminCollectionsPanel() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.collections.all })
     void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
     void queryClient.invalidateQueries({ queryKey: queryKeys.homepage })
+    void revalidatePublicHomepage().catch(() => {
+      toast.warning("Saved. Public page may take a moment to refresh.")
+    })
   }
 
   return (
@@ -84,7 +77,7 @@ export function AdminCollectionsPanel() {
         <span className="flex size-12 shrink-0 items-center justify-center bg-[oklch(0.82_0.16_85)] text-neutral-950 transition-transform group-hover:scale-105">
           <HugeiconsIcon icon={Folder01Icon} className="size-6" strokeWidth={1.7} />
         </span>
-        <span className="block font-display text-4xl font-bold uppercase leading-none text-neutral-950 sm:text-5xl">
+        <span className="block font-display text-4xl leading-none font-bold text-neutral-950 uppercase sm:text-5xl">
           Add Collection
         </span>
       </button>
@@ -105,9 +98,7 @@ export function AdminCollectionsPanel() {
         </div>
       )}
 
-      {!isPending && !collections?.length && (
-        <p className="text-sm text-muted-foreground">No collections yet.</p>
-      )}
+      {!isPending && !collections?.length && <p className="text-sm text-muted-foreground">No collections yet.</p>}
 
       <div className="space-y-5">
         {collections?.map((collection) => (
@@ -143,18 +134,8 @@ function NewCollectionForm({ onCreated }: { onCreated: () => void }) {
     <div className="bg-white p-6 ring-1 ring-border/60">
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField label="Name" value={name} onChange={setName} placeholder="Summer Season" />
-        <TextField
-          label="Slug"
-          value={slug}
-          onChange={setSlug}
-          placeholder="summer-season"
-        />
-        <TextField
-          label="Description"
-          value={description}
-          onChange={setDescription}
-          className="sm:col-span-2"
-        />
+        <TextField label="Slug" value={slug} onChange={setSlug} placeholder="summer-season" />
+        <TextField label="Description" value={description} onChange={setDescription} className="sm:col-span-2" />
         <ImageUploadField
           id="new-collection-image"
           folder="collections"
@@ -283,146 +264,128 @@ function CollectionEditor({
       >
         <div className="relative size-18 overflow-hidden bg-muted">
           {collection.imageUrl ? (
-            <StoreImage
-              src={collection.imageUrl}
-              alt={collection.name}
-              fill
-              className="object-cover"
-              sizes="72px"
-            />
+            <StoreImage src={collection.imageUrl} alt={collection.name} fill className="object-cover" sizes="72px" />
           ) : (
-            <div className="flex h-full items-center justify-center text-[10px] uppercase text-muted-foreground">
+            <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground uppercase">
               Luxian
             </div>
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {items.length} product{items.length === 1 ? "" : "s"} · /{collection.slug}
           </p>
-          <h2 className="font-display text-4xl font-bold uppercase leading-none text-neutral-950">
-            {collection.name}
-          </h2>
+          <h2 className="font-display text-4xl leading-none font-bold text-neutral-950 uppercase">{collection.name}</h2>
           {collection.description && (
-            <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">
-              {collection.description}
-            </p>
+            <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{collection.description}</p>
           )}
         </div>
-        <span className="text-sm font-medium text-muted-foreground">
-          {open ? "Close" : "Edit"}
-        </span>
+        <span className="text-sm font-medium text-muted-foreground">{open ? "Close" : "Edit"}</span>
       </button>
 
       {open && (
         <div className="grid gap-6 border-t border-border/60 p-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
-      <div className="space-y-4">
-        <ImageUploadField
-          id={`collection-image-${collection.id}`}
-          folder="collections"
-          value={imageUrl}
-          onChange={setImageUrl}
-        />
-        <TextField label="Name" value={name} onChange={setName} />
-        <TextField label="Slug" value={slug} onChange={setSlug} />
-        <TextField label="Description" value={description} onChange={setDescription} />
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            disabled={!dirty || updateMutation.isPending}
-            onClick={() => updateMutation.mutate()}
-          >
-            {updateMutation.isPending ? "Saving..." : "Save"}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deactivateMutation.isPending}
-            onClick={() => deactivateMutation.mutate()}
-          >
-            Hide collection
-          </Button>
-        </div>
-      </div>
+          <div className="space-y-4">
+            <ImageUploadField
+              id={`collection-image-${collection.id}`}
+              folder="collections"
+              value={imageUrl}
+              onChange={setImageUrl}
+            />
+            <TextField label="Name" value={name} onChange={setName} />
+            <TextField label="Slug" value={slug} onChange={setSlug} />
+            <TextField label="Description" value={description} onChange={setDescription} />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                disabled={!dirty || updateMutation.isPending}
+                onClick={() => updateMutation.mutate()}
+              >
+                {updateMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={deactivateMutation.isPending}
+                onClick={() => deactivateMutation.mutate()}
+              >
+                Hide collection
+              </Button>
+            </div>
+          </div>
 
-      <div className="space-y-5">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Product order
-          </p>
-          <h2 className="font-display text-4xl font-bold uppercase leading-none text-neutral-950">
-            Products
-          </h2>
-        </div>
+          <div className="space-y-5">
+            <div>
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Product order</p>
+              <h2 className="font-display text-4xl leading-none font-bold text-neutral-950 uppercase">Products</h2>
+            </div>
 
-        <ProductPickerDialog
-          availableProducts={availableProducts}
-          categories={categories}
-          busy={addMutation.isPending}
-          onAdd={(productIds) => addMutation.mutate(productIds)}
-        />
+            <ProductPickerDialog
+              availableProducts={availableProducts}
+              categories={categories}
+              busy={addMutation.isPending}
+              onAdd={(productIds) => addMutation.mutate(productIds)}
+            />
 
-        {!items.length && (
-          <p className="text-sm text-muted-foreground">No products in this collection yet.</p>
-        )}
+            {!items.length && <p className="text-sm text-muted-foreground">No products in this collection yet.</p>}
 
-        <ul className="space-y-2">
-          {items.map((item, index) => (
-            <li
-              key={item.id}
-              className="grid gap-3 bg-muted/30 p-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center"
-            >
-              <div className="relative size-14 overflow-hidden bg-white">
-                {item.product.imageUrl ? (
-                  <StoreImage
-                    src={item.product.imageUrl}
-                    alt={item.product.name}
-                    fill
-                    className="object-cover"
-                    sizes="56px"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
-                    Luxian
+            <ul className="space-y-2">
+              {items.map((item, index) => (
+                <li
+                  key={item.id}
+                  className="grid gap-3 bg-muted/30 p-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="relative size-14 overflow-hidden bg-white">
+                    {item.product.imageUrl ? (
+                      <StoreImage
+                        src={item.product.imageUrl}
+                        alt={item.product.name}
+                        fill
+                        className="object-cover"
+                        sizes="56px"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
+                        Luxian
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="font-medium leading-snug">{item.product.name}</p>
-                <p className="text-xs text-muted-foreground">Position {index + 1}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="outline"
-                  disabled={index === 0 || reorderMutation.isPending}
-                  onClick={() => moveItem(index, -1)}
-                >
-                  <HugeiconsIcon icon={ArrowUp01Icon} className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="outline"
-                  disabled={index === items.length - 1 || reorderMutation.isPending}
-                  onClick={() => moveItem(index, 1)}
-                >
-                  <HugeiconsIcon icon={ArrowDown01Icon} className="size-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={removeMutation.isPending}
-                  onClick={() => removeMutation.mutate(item.productId)}
-                >
-                  Remove
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+                  <div className="min-w-0">
+                    <p className="leading-snug font-medium">{item.product.name}</p>
+                    <p className="text-xs text-muted-foreground">Position {index + 1}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="outline"
+                      disabled={index === 0 || reorderMutation.isPending}
+                      onClick={() => moveItem(index, -1)}
+                    >
+                      <HugeiconsIcon icon={ArrowUp01Icon} className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      variant="outline"
+                      disabled={index === items.length - 1 || reorderMutation.isPending}
+                      onClick={() => moveItem(index, 1)}
+                    >
+                      <HugeiconsIcon icon={ArrowDown01Icon} className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={removeMutation.isPending}
+                      onClick={() => removeMutation.mutate(item.productId)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </section>
@@ -459,9 +422,7 @@ function ProductPickerDialog({
 
   const toggleProduct = (productId: string) => {
     setSelectedIds((current) =>
-      current.includes(productId)
-        ? current.filter((id) => id !== productId)
-        : [...current, productId],
+      current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]
     )
   }
 
@@ -522,7 +483,7 @@ function ProductPickerDialog({
               </div>
             </div>
 
-            <div className="grid gap-2 sm:gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-3">
               {filteredProducts.map((product) => {
                 const selected = selectedIds.includes(product.id)
                 return (
@@ -531,9 +492,7 @@ function ProductPickerDialog({
                     type="button"
                     onClick={() => toggleProduct(product.id)}
                     className={`group grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 bg-white p-2 text-left ring-1 transition-colors sm:block sm:p-3 ${
-                      selected
-                        ? "ring-neutral-950"
-                        : "ring-border/60 hover:bg-neutral-50"
+                      selected ? "ring-neutral-950" : "ring-border/60 hover:bg-neutral-50"
                     }`}
                   >
                     <div className="relative size-[4.5rem] overflow-hidden bg-muted sm:aspect-[4/5] sm:size-auto">
@@ -546,40 +505,32 @@ function ProductPickerDialog({
                           sizes="(max-width: 640px) 72px, 220px"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-xs uppercase text-muted-foreground">
+                        <div className="flex h-full items-center justify-center text-xs text-muted-foreground uppercase">
                           Luxian
                         </div>
                       )}
                       {selected && (
-                        <span className="absolute right-2 top-2 bg-neutral-950 px-2 py-1 text-xs font-medium text-white">
+                        <span className="absolute top-2 right-2 bg-neutral-950 px-2 py-1 text-xs font-medium text-white">
                           <span className="hidden sm:inline">Selected</span>
                           <span className="sm:hidden">On</span>
                         </span>
                       )}
                     </div>
                     <div className="min-w-0 sm:mt-3">
-                      <p className="line-clamp-2 text-sm font-medium leading-snug sm:text-base">
-                        {product.name}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {product.category?.name ?? "Uncategorized"}
-                      </p>
+                      <p className="line-clamp-2 text-sm leading-snug font-medium sm:text-base">{product.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{product.category?.name ?? "Uncategorized"}</p>
                     </div>
                   </button>
                 )
               })}
             </div>
 
-            {!filteredProducts.length && (
-              <p className="text-sm text-muted-foreground">No matching products to add.</p>
-            )}
+            {!filteredProducts.length && <p className="text-sm text-muted-foreground">No matching products to add.</p>}
           </div>
 
-          <aside className="hidden min-h-0 border-t border-border/60 bg-muted/30 p-4 sm:p-5 lg:block lg:border-l lg:border-t-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Selected so far
-            </p>
-            <div className="mt-3 flex max-h-28 gap-2 overflow-x-auto lg:mt-4 lg:block lg:max-h-[46svh] lg:space-y-2 lg:overflow-y-auto lg:overflow-x-visible">
+          <aside className="hidden min-h-0 border-t border-border/60 bg-muted/30 p-4 sm:p-5 lg:block lg:border-t-0 lg:border-l">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Selected so far</p>
+            <div className="mt-3 flex max-h-28 gap-2 overflow-x-auto lg:mt-4 lg:block lg:max-h-[46svh] lg:space-y-2 lg:overflow-x-visible lg:overflow-y-auto">
               {selectedProducts.map((product) => (
                 <div
                   key={product.id}
@@ -606,9 +557,7 @@ function ProductPickerDialog({
                   </button>
                 </div>
               ))}
-              {!selectedProducts.length && (
-                <p className="text-sm text-muted-foreground">Nothing selected yet.</p>
-              )}
+              {!selectedProducts.length && <p className="text-sm text-muted-foreground">Nothing selected yet.</p>}
             </div>
 
             <DialogFooter className="mt-5">

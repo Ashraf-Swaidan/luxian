@@ -3,11 +3,7 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  AiSearchIcon,
-  FilterHorizontalIcon,
-  PackageAddIcon,
-} from "@hugeicons/core-free-icons"
+import { AiSearchIcon, FilterHorizontalIcon, PackageAddIcon } from "@hugeicons/core-free-icons"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -16,15 +12,10 @@ import { StoreImage } from "@/components/common/store-image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
+import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
 import { createProduct, getProducts } from "@/features/products/api"
 import type { ProductListParams } from "@/features/products/types"
 import { toastApiError } from "@/lib/error-message"
@@ -55,7 +46,7 @@ export function AdminProductsPanel() {
       minStock: toNumber(minStock),
       maxStock: toNumber(maxStock),
     }),
-    [categoryId, maxPrice, maxStock, minPrice, minStock, page, search],
+    [categoryId, maxPrice, maxStock, minPrice, minStock, page, search]
   )
 
   const { data: products, isPending: productsLoading } = useQuery({
@@ -80,7 +71,7 @@ export function AdminProductsPanel() {
         <span className="flex size-12 shrink-0 items-center justify-center bg-[oklch(0.82_0.16_85)] text-neutral-950 transition-transform group-hover:scale-105">
           <HugeiconsIcon icon={PackageAddIcon} className="size-6" strokeWidth={1.7} />
         </span>
-        <span className="block font-display text-4xl font-bold uppercase leading-none text-neutral-950 sm:text-5xl">
+        <span className="block font-display text-4xl leading-none font-bold text-neutral-950 uppercase sm:text-5xl">
           Add New Product
         </span>
       </button>
@@ -177,11 +168,7 @@ export function AdminProductsPanel() {
           <>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {products.data.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/admin/products/${product.id}`}
-                  className="group block bg-white"
-                >
+                <Link key={product.id} href={`/admin/products/${product.id}`} className="group block bg-white">
                   <div className="relative aspect-[4/5] overflow-hidden bg-muted">
                     {product.imageUrl ? (
                       <StoreImage
@@ -197,7 +184,7 @@ export function AdminProductsPanel() {
                       </div>
                     )}
                   </div>
-                  <h2 className="mt-3 whitespace-normal break-words text-base font-medium leading-snug text-neutral-950">
+                  <h2 className="mt-3 text-base leading-snug font-medium break-words whitespace-normal text-neutral-950">
                     {product.name}
                   </h2>
                 </Link>
@@ -250,10 +237,15 @@ function NewProductForm({
 
   const createMutation = useMutation({
     mutationFn: createProduct,
-    onSuccess: () => {
-      toast.success("Product added")
+    onSuccess: async () => {
       onCreated()
       void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+      try {
+        await revalidatePublicHomepage()
+        toast.success("Product added")
+      } catch {
+        toast.warning("Product added. Public page may take a moment to refresh.")
+      }
     },
     onError: (error) => toastApiError(error),
   })
@@ -279,12 +271,7 @@ function NewProductForm({
             ))}
           </select>
         </div>
-        <TextField
-          label="Description"
-          value={description}
-          onChange={setDescription}
-          className="sm:col-span-2"
-        />
+        <TextField label="Description" value={description} onChange={setDescription} className="sm:col-span-2" />
         <ImageUploadField
           id="new-product-image"
           folder="products"
@@ -315,15 +302,7 @@ function NewProductForm({
   )
 }
 
-function NumberFilter({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-}) {
+function NumberFilter({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
   return <TextField label={label} type="number" value={value} onChange={onChange} />
 }
 

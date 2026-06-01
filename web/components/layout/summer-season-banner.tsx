@@ -1,31 +1,12 @@
-"use client"
-
 import Link from "next/link"
-import { useQuery } from "@tanstack/react-query"
 
 import { StoreImage } from "@/components/common/store-image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getHomepageSettings } from "@/features/homepage/api"
-import { queryKeys } from "@/lib/query-keys"
+import type { HomepageSettings } from "@/lib/types/homepage"
 
-export function SummerSeasonBanner() {
-  const { data: homepage, isPending } = useQuery({
-    queryKey: queryKeys.homepage,
-    queryFn: getHomepageSettings,
-  })
+export function SummerSeasonBanner({ homepage }: { homepage: HomepageSettings }) {
   const imageUrl = homepage?.bannerImageUrl ?? "/hero-assets/banner.png"
   const href = homepage?.bannerCollectionId ? `/products?collectionId=${homepage.bannerCollectionId}` : "/products"
   const buttonText = homepage?.bannerButtonText || "See Collection"
-
-  if (isPending) {
-    return (
-      <section className="bg-white px-6 pb-6 sm:px-10 sm:pb-8 lg:px-14 lg:pb-10">
-        <div className="mx-auto h-[88svh] min-h-[660px] w-full max-w-[92rem] overflow-hidden sm:aspect-[16/10] sm:h-auto sm:min-h-0">
-          <Skeleton className="h-full w-full rounded-none" />
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section className="bg-white px-6 pb-6 sm:px-10 sm:pb-8 lg:px-14 lg:pb-10">

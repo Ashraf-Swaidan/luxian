@@ -1,36 +1,9 @@
-"use client"
-
-import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
 import { StoreImage } from "@/components/common/store-image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getHomepageSettings } from "@/features/homepage/api"
-import { queryKeys } from "@/lib/query-keys"
 import type { Collection } from "@/lib/types/collection"
 
-export function CollectionPairSection() {
-  const { data: homepage, isPending } = useQuery({
-    queryKey: queryKeys.homepage,
-    queryFn: getHomepageSettings,
-  })
-
-  if (isPending) {
-    return (
-      <section className="relative overflow-hidden bg-white px-6 py-16 sm:px-10 sm:py-20 lg:px-14">
-        <GradientWash />
-        <div className="relative mx-auto grid w-full max-w-[92rem] gap-6 md:grid-cols-2">
-          <Skeleton className="aspect-[5/4] rounded-none" />
-          <Skeleton className="aspect-[5/4] rounded-none" />
-        </div>
-      </section>
-    )
-  }
-
-  const collections = [homepage?.pairLeftCollection, homepage?.pairRightCollection].filter(
-    Boolean
-  ) as Collection[]
-
+export function CollectionPairSection({ collections }: { collections: Collection[] }) {
   if (!collections.length) {
     return null
   }
@@ -48,7 +21,8 @@ export function CollectionPairSection() {
 }
 
 function CollectionPairCard({ collection }: { collection: Collection }) {
-  const imageUrl = collection.imageUrl ?? collection.collectionProducts?.find((item) => item.product.imageUrl)?.product.imageUrl
+  const imageUrl =
+    collection.imageUrl ?? collection.collectionProducts?.find((item) => item.product.imageUrl)?.product.imageUrl
 
   return (
     <Link href={`/products?collectionId=${collection.id}`} className="group block">

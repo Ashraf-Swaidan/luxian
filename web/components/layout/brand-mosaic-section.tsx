@@ -1,12 +1,7 @@
-"use client"
-
-import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
 import { StoreImage } from "@/components/common/store-image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getHomepageSettings } from "@/features/homepage/api"
-import { queryKeys } from "@/lib/query-keys"
+import type { HomepageSettings } from "@/lib/types/homepage"
 import { cn } from "@/lib/utils"
 
 import styles from "./brand-mosaic-section.module.css"
@@ -70,12 +65,7 @@ const brandMosaicItems: BrandMosaicItem[] = [
   },
 ]
 
-export function BrandMosaicSection() {
-  const { data: homepage, isPending } = useQuery({
-    queryKey: queryKeys.homepage,
-    queryFn: getHomepageSettings,
-  })
-
+export function BrandMosaicSection({ homepage }: { homepage: HomepageSettings }) {
   return (
     <section className="bg-neutral-950 px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-10 lg:py-24">
       <div className="mx-auto w-full max-w-[112rem]">
@@ -94,13 +84,13 @@ export function BrandMosaicSection() {
           </Link>
         </div>
 
-        {isPending ? <BrandMosaicSkeleton /> : <BrandMosaicImages homepage={homepage} />}
+        <BrandMosaicImages homepage={homepage} />
       </div>
     </section>
   )
 }
 
-function BrandMosaicImages({ homepage }: { homepage: Awaited<ReturnType<typeof getHomepageSettings>> | undefined }) {
+function BrandMosaicImages({ homepage }: { homepage: HomepageSettings }) {
   return (
     <div className={styles.mosaicGrid}>
       {brandMosaicItems.map((item, index) => (
@@ -121,16 +111,6 @@ function BrandMosaicImages({ homepage }: { homepage: Awaited<ReturnType<typeof g
             {String(index + 1).padStart(2, "0")} / {item.label}
           </figcaption>
         </figure>
-      ))}
-    </div>
-  )
-}
-
-function BrandMosaicSkeleton() {
-  return (
-    <div className={styles.mosaicGrid}>
-      {brandMosaicItems.map((item) => (
-        <Skeleton key={item.src} className={cn("rounded-none bg-white/10", styles.mosaicItem, item.areaClassName)} />
       ))}
     </div>
   )

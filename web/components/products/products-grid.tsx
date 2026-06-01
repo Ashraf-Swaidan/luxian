@@ -1,19 +1,13 @@
-"use client"
-
-import { useEffect } from "react"
 import Link from "next/link"
-import { useQuery } from "@tanstack/react-query"
 
-import { ApiErrorState } from "@/components/common/api-error-state"
 import { EmptyState } from "@/components/common/empty-state"
 import { StoreImage } from "@/components/common/store-image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getHomepageSettings } from "@/features/homepage/api"
-import { getProducts } from "@/features/products/api"
-import { toastApiError } from "@/lib/error-message"
-import { queryKeys } from "@/lib/query-keys"
+import type { Collection } from "@/lib/types/collection"
+import type { Product } from "@/lib/types/product"
 
 type ProductsGridProps = {
+  latestCollection: Collection | null
+  products: Product[]
   title?: string
   limit?: number
 }
@@ -21,66 +15,12 @@ type ProductsGridProps = {
 const DEFAULT_COLLECTION_DESCRIPTION =
   "Shop our latest Luxian collection, featuring technical silhouettes, sharp utility, and standout everyday pieces."
 
-export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: ProductsGridProps) {
-  const params = { page: 1, limit }
-
-  const {
-    data: homepage,
-    isPending: isHomepagePending,
-    isError: isHomepageError,
-    error: homepageError,
-    refetch: refetchHomepage,
-  } = useQuery({
-    queryKey: queryKeys.homepage,
-    queryFn: getHomepageSettings,
-  })
-  const latestCollectionProducts =
-    homepage?.latestCollection?.collectionProducts?.map((item) => item.product).slice(0, 3) ?? []
-  const shouldLoadFallbackProducts = !isHomepagePending && latestCollectionProducts.length === 0
-  const { data, isPending, isError, error, refetch } = useQuery({
-    queryKey: queryKeys.products.list(params),
-    queryFn: () => getProducts(params),
-    enabled: shouldLoadFallbackProducts,
-  })
-
-  useEffect(() => {
-    if (isHomepageError) {
-      toastApiError(homepageError, "Failed to load homepage")
-    } else if (isError) {
-      toastApiError(error, "Failed to load products")
-    }
-  }, [isHomepageError, homepageError, isError, error])
-
-  if (isHomepagePending || (shouldLoadFallbackProducts && isPending)) {
-    return (
-      <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5">
-          {Array.from({ length: limit }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[4/5] w-full" />
-          ))}
-        </div>
-      </CollectionSection>
-    )
-  }
-
-  if (isHomepageError) {
-    return (
-      <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
-        <ApiErrorState error={homepageError} onRetry={() => void refetchHomepage()} />
-      </CollectionSection>
-    )
-  }
-
-  if (isError) {
-    return (
-      <CollectionSection description={DEFAULT_COLLECTION_DESCRIPTION} title={title}>
-        <ApiErrorState error={error} onRetry={() => void refetch()} />
-      </CollectionSection>
-    )
-  }
-
-  const latestCollection = homepage?.latestCollection
-  const products = latestCollectionProducts.length ? latestCollectionProducts : (data?.data ?? [])
+export function ProductsGrid({
+  latestCollection,
+  limit = 3,
+  products,
+  title = "LATEST COLLECTION",
+}: ProductsGridProps) {
   const sectionTitle = latestCollection?.name.toUpperCase() ?? title
   const description = latestCollection?.description ?? DEFAULT_COLLECTION_DESCRIPTION
 
@@ -100,7 +40,7 @@ export function ProductsGrid({ limit = 3, title = "LATEST COLLECTION" }: Product
   return (
     <CollectionSection description={description} title={sectionTitle}>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-5">
-        {products.slice(0, 3).map((product) => (
+        {products.slice(0, limit).map((product) => (
           <Link
             key={product.id}
             href={`/products/${product.id}`}

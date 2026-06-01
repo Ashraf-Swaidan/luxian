@@ -3,33 +3,21 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useSyncExternalStore } from "react"
-import { useQuery } from "@tanstack/react-query"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons"
 
 import { StoreImage } from "@/components/common/store-image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { getProducts } from "@/features/products/api"
-import { queryKeys } from "@/lib/query-keys"
+import type { Product } from "@/lib/types/product"
 import { cn } from "@/lib/utils"
 
-const HERO_PRODUCT_LIMIT = 3
 const HERO_THUMBNAIL_QUERY = "(min-width: 640px)"
 
-export function HomeHero() {
+export function HomeHero({ products }: { products: Product[] }) {
   const showThumbnails = useSyncExternalStore(
     subscribeToThumbnailViewport,
     getThumbnailViewportSnapshot,
-    getThumbnailViewportServerSnapshot,
+    getThumbnailViewportServerSnapshot
   )
-
-  const { data, isPending } = useQuery({
-    queryKey: queryKeys.products.list({ page: 1, limit: HERO_PRODUCT_LIMIT }),
-    queryFn: () => getProducts({ page: 1, limit: HERO_PRODUCT_LIMIT }),
-    enabled: showThumbnails,
-  })
-
-  const products = data?.data ?? []
 
   return (
     <section className="relative isolate min-h-svh overflow-hidden bg-[oklch(0.89_0.03_92)]">
@@ -43,12 +31,12 @@ export function HomeHero() {
       />
 
       <div
-        className="pointer-events-none absolute left-1/2 top-[17svh] z-0 flex w-max -translate-x-1/2 select-none items-center justify-center sm:top-[9svh] lg:top-[6svh]"
+        className="pointer-events-none absolute top-[17svh] left-1/2 z-0 flex w-max -translate-x-1/2 items-center justify-center select-none sm:top-[9svh] lg:top-[6svh]"
         aria-hidden
       >
         <span
           className={cn(
-            "whitespace-nowrap font-display text-[38vw] font-bold uppercase leading-none text-neutral-950/[0.88] sm:text-[27vw] lg:text-[20vw]",
+            "font-display text-[38vw] leading-none font-bold whitespace-nowrap text-neutral-950/[0.88] uppercase sm:text-[27vw] lg:text-[20vw]"
           )}
         >
           LUXIAN
@@ -76,70 +64,40 @@ export function HomeHero() {
       <div className="absolute bottom-5 left-4 z-20 max-w-[15rem] sm:bottom-10 sm:left-8 sm:max-w-sm lg:left-12">
         <Link
           href="/products"
-          className="inline-flex h-11 items-center gap-2.5 rounded-md bg-white px-4 pr-5 text-sm font-medium text-neutral-950 transition-all hover:-translate-y-0.5 hover:brightness-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950/20"
+          className="inline-flex h-11 items-center gap-2.5 rounded-md bg-white px-4 pr-5 text-sm font-medium text-neutral-950 transition-all hover:-translate-y-0.5 hover:brightness-[0.98] focus-visible:ring-2 focus-visible:ring-neutral-950/20 focus-visible:outline-none"
         >
-          <Image
-            src="/luxian-logo.png"
-            alt=""
-            width={22}
-            height={22}
-            className="shrink-0 rounded-sm"
-            aria-hidden
-          />
+          <Image src="/luxian-logo.png" alt="" width={22} height={22} className="shrink-0 rounded-sm" aria-hidden />
           <span>Shop now</span>
-          <HugeiconsIcon
-            icon={ArrowRight01Icon}
-            className="size-3.5 opacity-60"
-            strokeWidth={2}
-            aria-hidden
-          />
+          <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5 opacity-60" strokeWidth={2} aria-hidden />
         </Link>
         <p className="mt-3 hidden text-xs leading-relaxed text-neutral-950/70 min-[440px]:block sm:text-sm">
           Technical streetwear essentials with sculptural volume, clean utility, and everyday edge.
         </p>
       </div>
 
-      {showThumbnails && (
-        <div className="absolute bottom-10 right-4 z-20 grid grid-cols-2 grid-rows-2 gap-3 lg:bottom-14 lg:right-10">
-          {isPending
-            ? Array.from({ length: HERO_PRODUCT_LIMIT }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className={cn(
-                    "size-16 rounded-md bg-white/70 lg:size-20",
-                    i === 0 && "col-start-1 row-start-2",
-                    i === 1 && "col-start-2 row-start-2",
-                    i === 2 && "col-start-2 row-start-1",
-                  )}
-                />
-              ))
-            : products.slice(0, HERO_PRODUCT_LIMIT).map((product, index) => (
-                <Link
-                  key={product.id}
-                  href={`/products/${product.id}`}
-                  className={cn(
-                    "group relative size-16 overflow-hidden rounded-md transition-transform hover:-translate-y-1 lg:size-20",
-                    index === 0 && "col-start-1 row-start-2",
-                    index === 1 && "col-start-2 row-start-2",
-                    index === 2 && "col-start-2 row-start-1",
-                  )}
-                  title={product.name}
-                >
-                  {product.imageUrl ? (
-                    <StoreImage
-                      src={product.imageUrl}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center rounded-md bg-white/70 p-1 text-center text-[9px] font-medium uppercase tracking-wide text-neutral-950/55">
-                      {product.name.slice(0, 12)}
-                    </div>
-                  )}
-                </Link>
-              ))}
+      {showThumbnails && products.length > 0 && (
+        <div className="absolute right-4 bottom-10 z-20 grid grid-cols-2 grid-rows-2 gap-3 lg:right-10 lg:bottom-14">
+          {products.slice(0, 3).map((product, index) => (
+            <Link
+              key={product.id}
+              href={`/products/${product.id}`}
+              className={cn(
+                "group relative size-16 overflow-hidden rounded-md transition-transform hover:-translate-y-1 lg:size-20",
+                index === 0 && "col-start-1 row-start-2",
+                index === 1 && "col-start-2 row-start-2",
+                index === 2 && "col-start-2 row-start-1"
+              )}
+              title={product.name}
+            >
+              {product.imageUrl ? (
+                <StoreImage src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="80px" />
+              ) : (
+                <div className="flex h-full items-center justify-center rounded-md bg-white/70 p-1 text-center text-[9px] font-medium tracking-wide text-neutral-950/55 uppercase">
+                  {product.name.slice(0, 12)}
+                </div>
+              )}
+            </Link>
+          ))}
         </div>
       )}
     </section>

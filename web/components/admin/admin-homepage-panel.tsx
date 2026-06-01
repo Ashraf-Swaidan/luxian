@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCollections } from "@/features/collections/api"
 import { getHomepageSettings, updateHomepageSettings } from "@/features/homepage/api"
+import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
 import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 import type { Collection } from "@/lib/types/collection"
@@ -88,10 +89,15 @@ function HomepageSettingsForm({
         bannerButtonText,
         ...brandImages,
       }),
-    onSuccess: (next) => {
-      toast.success("Homepage saved")
+    onSuccess: async (next) => {
       queryClient.setQueryData(queryKeys.homepage, next)
       void queryClient.invalidateQueries({ queryKey: queryKeys.homepage })
+      try {
+        await revalidatePublicHomepage()
+        toast.success("Homepage saved")
+      } catch {
+        toast.warning("Saved. Public page may take a moment to refresh.")
+      }
     },
     onError: (error) => toastApiError(error),
   })

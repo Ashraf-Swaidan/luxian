@@ -10,12 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  createCategory,
-  deactivateCategory,
-  getCategories,
-  updateCategory,
-} from "@/features/categories/api"
+import { createCategory, deactivateCategory, getCategories, updateCategory } from "@/features/categories/api"
+import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
 import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 import type { Category } from "@/lib/types/category"
@@ -29,11 +25,16 @@ function NewCategoryForm({ onCreated }: { onCreated: () => void }) {
 
   const createMutation = useMutation({
     mutationFn: createCategory,
-    onSuccess: () => {
-      toast.success("Category created")
+    onSuccess: async () => {
       onCreated()
       void queryClient.invalidateQueries({ queryKey: queryKeys.categories.all })
       void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+      try {
+        await revalidatePublicHomepage()
+        toast.success("Category created")
+      } catch {
+        toast.warning("Category created. Public page may take a moment to refresh.")
+      }
     },
     onError: (e) => toastApiError(e),
   })
@@ -42,29 +43,15 @@ function NewCategoryForm({ onCreated }: { onCreated: () => void }) {
     <>
       <div className="space-y-2">
         <Label htmlFor="cat-name">Name</Label>
-        <Input
-          id="cat-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Electronics"
-        />
+        <Input id="cat-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Electronics" />
       </div>
       <div className="space-y-2">
         <Label htmlFor="cat-slug">Slug</Label>
-        <Input
-          id="cat-slug"
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          placeholder="electronics"
-        />
+        <Input id="cat-slug" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="electronics" />
       </div>
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="cat-desc">Description</Label>
-        <Input
-          id="cat-desc"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <Input id="cat-desc" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
       <ImageUploadField
         id="cat-image"
@@ -103,16 +90,14 @@ export function AdminCategoriesPanel() {
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.categories.all })
     void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+    void revalidatePublicHomepage().catch(() => {
+      toast.warning("Saved. Public page may take a moment to refresh.")
+    })
   }
 
   const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      body,
-    }: {
-      id: string
-      body: { name?: string; imageUrl?: string | null }
-    }) => updateCategory(id, body),
+    mutationFn: ({ id, body }: { id: string; body: { name?: string; imageUrl?: string | null } }) =>
+      updateCategory(id, body),
     onSuccess: () => {
       toast.success("Category updated")
       invalidate()
@@ -143,9 +128,7 @@ export function AdminCategoriesPanel() {
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Active categories</h2>
         {isPending && <Skeleton className="h-24 w-full" />}
-        {!isPending && !categories?.length && (
-          <p className="text-sm text-muted-foreground">No active categories.</p>
-        )}
+        {!isPending && !categories?.length && <p className="text-sm text-muted-foreground">No active categories.</p>}
         <ul className="space-y-2">
           {categories?.map((cat) => (
             <CategoryRow
@@ -190,11 +173,7 @@ function CategoryRow({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            className="h-8 w-40"
-          />
+          <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 w-40" />
           <Button type="button" size="sm" variant="ghost" onClick={() => setShowImage((v) => !v)}>
             {showImage ? "Hide image" : "Image"}
           </Button>

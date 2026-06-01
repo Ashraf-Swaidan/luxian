@@ -10,15 +10,10 @@ import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
+import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
 import { deactivateProduct, getProduct, updateProduct } from "@/features/products/api"
 import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
@@ -31,7 +26,11 @@ export function AdminProductEditor() {
   const queryClient = useQueryClient()
   const id = typeof params.id === "string" ? params.id : ""
 
-  const { data: product, isPending, isError } = useQuery({
+  const {
+    data: product,
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: queryKeys.products.detail(id),
     queryFn: () => getProduct(id),
     enabled: Boolean(id),
@@ -71,14 +70,24 @@ export function AdminProductEditor() {
       key={product.id}
       product={product}
       categories={categories}
-      onSaved={(updatedProduct) => {
-        toast.success("Changes saved")
+      onSaved={async (updatedProduct) => {
         queryClient.setQueryData(queryKeys.products.detail(id), updatedProduct)
         void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+        try {
+          await revalidatePublicHomepage()
+          toast.success("Changes saved")
+        } catch {
+          toast.warning("Changes saved. Public page may take a moment to refresh.")
+        }
       }}
-      onHidden={() => {
-        toast.success("Product hidden from the shop")
+      onHidden={async () => {
         void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+        try {
+          await revalidatePublicHomepage()
+          toast.success("Product hidden from the shop")
+        } catch {
+          toast.warning("Product hidden. Public page may take a moment to refresh.")
+        }
         router.push("/admin/products")
       }}
     />
@@ -92,8 +101,8 @@ function AdminProductEditorForm({
   product,
 }: {
   categories: { id: string; name: string }[] | undefined
-  onHidden: () => void
-  onSaved: (product: Product) => void
+  onHidden: () => void | Promise<void>
+  onSaved: (product: Product) => void | Promise<void>
   product: Product
 }) {
   const [name, setName] = useState(product.name)
@@ -158,7 +167,7 @@ function AdminProductEditorForm({
         <div className="space-y-7">
           <div className="space-y-3">
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger className="h-8 w-fit border-x-0 border-t-0 bg-transparent px-0 text-xs font-medium uppercase tracking-wider text-[var(--luxian-teal)] focus-visible:ring-0">
+              <SelectTrigger className="h-8 w-fit border-x-0 border-t-0 bg-transparent px-0 text-xs font-medium tracking-wider text-[var(--luxian-teal)] uppercase focus-visible:ring-0">
                 <SelectValue placeholder="Choose category" />
               </SelectTrigger>
               <SelectContent>
@@ -173,7 +182,7 @@ function AdminProductEditorForm({
               value={name}
               onChange={(event) => setName(event.target.value)}
               rows={3}
-              className="min-h-44 w-full resize-none bg-transparent font-display text-5xl font-bold uppercase leading-none outline-none"
+              className="min-h-44 w-full resize-none bg-transparent font-display text-5xl leading-none font-bold uppercase outline-none"
             />
             <textarea
               value={description}
@@ -222,15 +231,7 @@ function AdminProductEditorForm({
   )
 }
 
-function PlainField({
-  label,
-  onChange,
-  value,
-}: {
-  label: string
-  onChange: (value: string) => void
-  value: string
-}) {
+function PlainField({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
