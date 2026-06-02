@@ -70,6 +70,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Prisma / API generated output
 api/generated/
+api/prisma.config.js
+api/prisma.config.js.map
+api/prisma.config.d.ts
 *.db
 *.db-journal
 
