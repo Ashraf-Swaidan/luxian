@@ -8,7 +8,6 @@ import {
   ArrowUp01Icon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
-  DeliveryTruck01Icon,
 } from "@hugeicons/core-free-icons"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -27,59 +26,67 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getAdminOrdersRequest, updateAdminOrderStatusRequest } from "@/features/orders/api"
+import {
+  cancelSupplierOrderRequest,
+  getSupplierOrdersRequest,
+  receiveSupplierOrderRequest,
+} from "@/features/suppliers/api"
 import { adminPrimaryButtonClass } from "@/lib/admin-section-colors"
 import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import { queryKeys } from "@/lib/query-keys"
 import { useDebouncedValue } from "@/lib/use-debounced-value"
-import type { Order, OrderStatus } from "@/lib/types/order"
+import type { SupplierOrder, SupplierOrderStatus } from "@/lib/types/supplier"
 import { cn } from "@/lib/utils"
 
-const PAGE_SIZE = 8
-const ORDER_FILTERS: Array<OrderStatus | "ALL"> = [
-  "PROCESSING",
-  "SHIPPED",
-  "DELIVERED",
-  "CANCELLED",
-  "ALL",
-]
-const ordersAccent = adminPrimaryButtonClass("orders")
+const PAGE_SIZE = 6
+const statuses: SupplierOrderStatus[] = ["ON_THE_WAY", "RECEIVED", "CANCELLED"]
+const supplierAccent = adminPrimaryButtonClass("suppliers")
 
-const statusLabels: Record<OrderStatus | "ALL", string> = {
-  ALL: "All",
-  PENDING: "Pending",
-  PROCESSING: "Processing",
-  SHIPPED: "Shipped",
-  DELIVERED: "Delivered",
+const statusLabels: Record<SupplierOrderStatus, string> = {
+  ON_THE_WAY: "On the way",
+  RECEIVED: "Received",
   CANCELLED: "Cancelled",
 }
 
-export function AdminOrdersPanel() {
+export function SupplierOrdersView() {
   const queryClient = useQueryClient()
-  const [status, setStatus] = useState<OrderStatus | "ALL">("PROCESSING")
   const [search, setSearch] = useState("")
+  const [status, setStatus] = useState<SupplierOrderStatus>("ON_THE_WAY")
   const [page, setPage] = useState(1)
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [confirmation, setConfirmation] = useState<{
-    order: Order
-    nextStatus: OrderStatus
-    restock?: boolean
+    action: "receive" | "cancel"
+    order: SupplierOrder
   } | null>(null)
   const debouncedSearch = useDebouncedValue(search, 250)
 
   const { data: orders, isPending } = useQuery({
-    queryKey: queryKeys.orders.admin(status),
-    queryFn: () => getAdminOrdersRequest(status),
+    queryKey: queryKeys.suppliers.orders("ALL"),
+    queryFn: () => getSupplierOrdersRequest("ALL"),
   })
 
-  const transition = useMutation({
-    mutationFn: ({ id, restock, status }: { id: string; status: OrderStatus; restock?: boolean }) =>
-      updateAdminOrderStatusRequest(id, { status, restock }),
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["supplier-orders"] })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+  }
+
+  const receiveMutation = useMutation({
+    mutationFn: receiveSupplierOrderRequest,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["orders", "admin"] })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
-      toast.success("Order updated")
+      invalidate()
+      toast.success("Supplier order received")
+      setConfirmation(null)
+    },
+    onError: (error) => toastApiError(error),
+  })
+
+  const cancelMutation = useMutation({
+    mutationFn: cancelSupplierOrderRequest,
+    onSuccess: () => {
+      invalidate()
+      toast.success("Supplier order cancelled")
       setConfirmation(null)
     },
     onError: (error) => toastApiError(error),
@@ -87,33 +94,34 @@ export function AdminOrdersPanel() {
 
   const filteredOrders = useMemo(() => {
     const term = debouncedSearch.trim().toLowerCase()
-    const list = [...(orders ?? [])].sort(
-      (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-    )
+    const list = [...(orders ?? [])]
+      .filter((order) => order.status === status)
+      .sort(
+        (left, right) =>
+          new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+      )
 
     if (!term) return list
 
     return list.filter((order) => {
-      const customerName = getCustomerName(order)
       const haystack = [
         order.orderNumber,
-        customerName,
-        order.user?.email,
-        order.shippingAddress,
-        ...order.orderItems.map((item) => item.product.name),
+        order.supplier.name,
+        order.notes,
+        ...order.items.map((item) => item.product.name),
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
       return haystack.includes(term)
     })
-  }, [orders, debouncedSearch])
+  }, [orders, debouncedSearch, status])
 
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE)))
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
   const pageItems = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
-  const toggleExpanded = (orderId: string) => {
+  const setExpanded = (orderId: string) => {
     setExpandedIds((current) => {
       const next = new Set(current)
       if (next.has(orderId)) next.delete(orderId)
@@ -122,28 +130,34 @@ export function AdminOrdersPanel() {
     })
   }
 
+  const executeConfirmation = () => {
+    if (!confirmation) return
+    if (confirmation.action === "receive") receiveMutation.mutate(confirmation.order.id)
+    else cancelMutation.mutate(confirmation.order.id)
+  }
+
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-[minmax(0,1fr)_9.5rem] gap-3 md:grid-cols-[minmax(0,1fr)_14rem] md:items-end">
         <div className="space-y-2">
-          <Label htmlFor="admin-order-search" className="flex items-center gap-2 text-xs uppercase">
+          <Label htmlFor="supplier-order-search" className="flex items-center gap-2 text-xs uppercase">
             <HugeiconsIcon icon={AiSearchIcon} className="size-4" strokeWidth={1.8} />
-            Search orders
+            Search supplier orders
           </Label>
           <Input
-            id="admin-order-search"
+            id="supplier-order-search"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value)
               setPage(1)
             }}
-            placeholder="Order, customer, product, or address"
+            placeholder="Order, supplier, product, or notes"
             className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="admin-order-status" className="text-xs uppercase">
+          <Label htmlFor="supplier-order-status" className="text-xs uppercase">
             Status
           </Label>
           <div className="relative">
@@ -154,17 +168,17 @@ export function AdminOrdersPanel() {
               )}
             />
             <select
-              id="admin-order-status"
+              id="supplier-order-status"
               value={status}
               onChange={(event) => {
-                setStatus(event.target.value as OrderStatus | "ALL")
+                setStatus(event.target.value as SupplierOrderStatus)
                 setPage(1)
               }}
               className="h-10 w-full border-x-0 border-t-0 border-b border-border/80 bg-transparent pl-4 text-sm outline-none"
             >
-              {ORDER_FILTERS.map((value) => (
-                <option key={value} value={value}>
-                  {statusLabels[value]}
+              {statuses.map((option) => (
+                <option key={option} value={option}>
+                  {statusLabels[option]}
                 </option>
               ))}
             </select>
@@ -172,63 +186,56 @@ export function AdminOrdersPanel() {
         </div>
       </div>
 
-      {isPending ? (
-        <OrdersSkeleton />
-      ) : (
-        <div className="divide-y divide-border/60 md:divide-y-0 md:space-y-3">
-          {pageItems.length ? (
-            pageItems.map((order) => (
-              <AdminOrderCard
-                key={order.id}
-                order={order}
-                expanded={expandedIds.has(order.id)}
-                onToggleExpanded={() => toggleExpanded(order.id)}
-                onConfirm={setConfirmation}
-              />
-            ))
-          ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">No orders found.</p>
-          )}
-        </div>
-      )}
+      <section className="space-y-4">
+        {isPending ? (
+          <OrdersSkeleton />
+        ) : (
+          <div className="divide-y divide-border/60 md:divide-y-0 md:space-y-3">
+            {pageItems.length ? (
+              pageItems.map((order) => (
+                <SupplierOrderCard
+                  key={order.id}
+                  order={order}
+                  expanded={expandedIds.has(order.id)}
+                  onToggleExpanded={() => setExpanded(order.id)}
+                  onConfirm={setConfirmation}
+                />
+              ))
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">No orders found.</p>
+            )}
+          </div>
+        )}
 
-      {!isPending && filteredOrders.length > PAGE_SIZE ? (
-        <PaginationControls page={currentPage} totalPages={totalPages} onPageChange={setPage} />
-      ) : null}
+        {!isPending && filteredOrders.length > PAGE_SIZE ? (
+          <PaginationControls page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+        ) : null}
+      </section>
 
-      <ConfirmOrderTransitionDialog
+      <ConfirmOrderActionDialog
         confirmation={confirmation}
-        busy={transition.isPending}
+        busy={receiveMutation.isPending || cancelMutation.isPending}
         onOpenChange={(open) => {
           if (!open) setConfirmation(null)
         }}
-        onConfirm={() => {
-          if (!confirmation) return
-          transition.mutate({
-            id: confirmation.order.id,
-            status: confirmation.nextStatus,
-            restock: confirmation.restock,
-          })
-        }}
+        onConfirm={executeConfirmation}
       />
     </div>
   )
 }
 
-function AdminOrderCard({
+function SupplierOrderCard({
   expanded,
   onConfirm,
   onToggleExpanded,
   order,
 }: {
   expanded: boolean
-  onConfirm: (input: { order: Order; nextStatus: OrderStatus; restock?: boolean }) => void
+  onConfirm: (confirmation: { action: "receive" | "cancel"; order: SupplierOrder }) => void
   onToggleExpanded: () => void
-  order: Order
+  order: SupplierOrder
 }) {
-  const [restock, setRestock] = useState(true)
-  const customerName = getCustomerName(order)
-  const profit = getOrderProfit(order)
+  const total = getOrderTotal(order)
   const itemCount = getItemCount(order)
 
   return (
@@ -240,7 +247,7 @@ function AdminOrderCard({
       >
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <p className="truncate text-base font-semibold leading-tight">{customerName}</p>
+            <p className="truncate text-base font-semibold leading-tight">{order.supplier.name}</p>
             <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium uppercase", getStatusBadgeClass(order.status))}>
               {statusLabels[order.status]}
             </span>
@@ -251,10 +258,8 @@ function AdminOrderCard({
         </div>
         <div className="flex shrink-0 items-start gap-2">
           <div className="text-right">
-            <p className="text-sm font-medium tabular-nums">{formatPrice(order.totalAmount)}</p>
-            <p className={cn("text-[11px]", profit >= 0 ? "text-emerald-700" : "text-red-700")}>
-              Profit {formatPrice(String(profit))}
-            </p>
+            <p className="text-sm font-medium tabular-nums">{formatPrice(String(total))}</p>
+            <p className="text-[11px] text-muted-foreground">total</p>
           </div>
           <span className="flex size-8 items-center justify-center text-muted-foreground">
             <HugeiconsIcon icon={expanded ? ArrowUp01Icon : ArrowDown01Icon} className="size-4" strokeWidth={1.8} />
@@ -265,7 +270,7 @@ function AdminOrderCard({
       {expanded ? (
         <div className="mt-4 space-y-4 border-t border-border/60 pt-4">
           <div className="space-y-3">
-            {order.orderItems.map((item) => (
+            {order.items.map((item) => (
               <div
                 key={item.id}
                 className="grid grid-cols-[3rem_minmax(0,1fr)_auto] gap-3 text-sm md:grid-cols-[3.5rem_minmax(0,1fr)_4rem_7rem_7rem] md:items-center"
@@ -290,81 +295,62 @@ function AdminOrderCard({
                   <p className="text-xs text-muted-foreground">{item.product.sku}</p>
                 </div>
                 <div className="self-center text-right text-xs tabular-nums md:hidden">
-                  <p>{item.quantity} x {formatPrice(item.price)}</p>
+                  <p>{item.quantity} x {formatPrice(item.unitCost)}</p>
                   <p className="font-medium text-foreground">{formatPrice(String(getLineTotal(item)))}</p>
                 </div>
                 <span className="hidden text-right tabular-nums text-muted-foreground md:block">{item.quantity}</span>
-                <span className="hidden text-right tabular-nums text-muted-foreground md:block">{formatPrice(item.price)}</span>
+                <span className="hidden text-right tabular-nums text-muted-foreground md:block">{formatPrice(item.unitCost)}</span>
                 <span className="hidden text-right font-medium tabular-nums md:block">{formatPrice(String(getLineTotal(item)))}</span>
               </div>
             ))}
           </div>
 
-          {order.shippingAddress ? (
-            <p className="bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">{order.shippingAddress}</p>
+          {order.notes ? (
+            <p className="bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">{order.notes}</p>
+          ) : null}
+
+          {order.receivedAt || order.cancelledAt ? (
+            <p className="text-xs text-muted-foreground">
+              {order.receivedAt ? `Received ${formatDate(order.receivedAt)}` : null}
+              {order.cancelledAt ? `Cancelled ${formatDate(order.cancelledAt)}` : null}
+            </p>
           ) : null}
 
           <div className="flex items-center justify-between border-t border-border/60 pt-3">
             <span className="text-sm font-medium">Order total</span>
-            <span className="text-sm font-semibold tabular-nums">{formatPrice(order.totalAmount)}</span>
+            <span className="text-sm font-semibold tabular-nums">{formatPrice(String(total))}</span>
           </div>
 
-          {(order.status === "PROCESSING" || order.status === "SHIPPED") && (
-            <div className="flex flex-col gap-3 border-t border-border/60 pt-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" checked={restock} onChange={(event) => setRestock(event.target.checked)} />
-                Restock if cancelled
-              </label>
-              <div className="flex flex-wrap justify-end gap-2">
-                {order.status === "PROCESSING" ? (
-                  <Button
-                    size="sm"
-                    className={cn(ordersAccent)}
-                    onClick={() => onConfirm({ order, nextStatus: "SHIPPED" })}
-                  >
-                    <HugeiconsIcon icon={DeliveryTruck01Icon} className="size-4" strokeWidth={1.8} />
-                    Ship
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    className={cn(ordersAccent)}
-                    onClick={() => onConfirm({ order, nextStatus: "DELIVERED" })}
-                  >
-                    <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4" strokeWidth={1.8} />
-                    Deliver
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => onConfirm({ order, nextStatus: "CANCELLED", restock })}
-                >
-                  <HugeiconsIcon icon={Cancel01Icon} className="size-4" strokeWidth={1.8} />
-                  Cancel
-                </Button>
-              </div>
+          {order.status === "ON_THE_WAY" ? (
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button type="button" size="sm" className={cn(supplierAccent)} onClick={() => onConfirm({ action: "receive", order })}>
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4" strokeWidth={1.8} />
+                Receive
+              </Button>
+              <Button type="button" size="sm" variant="destructive" onClick={() => onConfirm({ action: "cancel", order })}>
+                <HugeiconsIcon icon={Cancel01Icon} className="size-4" strokeWidth={1.8} />
+                Cancel
+              </Button>
             </div>
-          )}
+          ) : null}
         </div>
       ) : null}
     </article>
   )
 }
 
-function ConfirmOrderTransitionDialog({
+function ConfirmOrderActionDialog({
   busy,
   confirmation,
   onConfirm,
   onOpenChange,
 }: {
   busy: boolean
-  confirmation: { order: Order; nextStatus: OrderStatus; restock?: boolean } | null
+  confirmation: { action: "receive" | "cancel"; order: SupplierOrder } | null
   onConfirm: () => void
   onOpenChange: (open: boolean) => void
 }) {
-  const nextStatus = confirmation?.nextStatus
-  const isCancel = nextStatus === "CANCELLED"
+  const receiving = confirmation?.action === "receive"
 
   return (
     <Dialog open={Boolean(confirmation)} onOpenChange={onOpenChange}>
@@ -372,19 +358,17 @@ function ConfirmOrderTransitionDialog({
         <div className="p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="font-sans text-xl normal-case tracking-normal">
-              {isCancel ? "Cancel customer order?" : `Mark order ${nextStatus?.toLowerCase()}?`}
+              {receiving ? "Receive supplier order?" : "Cancel supplier order?"}
             </DialogTitle>
             <DialogDescription>
-              {isCancel
-                ? confirmation?.restock
-                  ? "This will cancel the order and return its items to stock."
-                  : "This will cancel the order without changing stock."
-                : "This will update the customer order workflow state."}
+              {receiving
+                ? "This will add the ordered quantities to sellable stock and update current product costs."
+                : "This will close the incoming supplier order without changing product stock."}
             </DialogDescription>
           </DialogHeader>
           {confirmation ? (
             <div className="mt-4 bg-muted/30 p-3 text-sm">
-              <p className="font-medium">{getCustomerName(confirmation.order)}</p>
+              <p className="font-medium">{confirmation.order.supplier.name}</p>
               <p className="text-muted-foreground">
                 {confirmation.order.orderNumber} · {formatDate(confirmation.order.createdAt)}
               </p>
@@ -399,12 +383,12 @@ function ConfirmOrderTransitionDialog({
           </DialogClose>
           <Button
             type="button"
-            variant={isCancel ? "destructive" : "default"}
-            className={!isCancel ? cn(ordersAccent) : undefined}
+            variant={receiving ? "default" : "destructive"}
+            className={receiving ? cn(supplierAccent) : undefined}
             disabled={busy}
             onClick={onConfirm}
           >
-            {busy ? "Working..." : isCancel ? "Cancel order" : "Confirm"}
+            {busy ? "Working..." : receiving ? "Receive order" : "Cancel order"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -439,30 +423,23 @@ function PaginationControls({
 function OrdersSkeleton() {
   return (
     <div className="space-y-2">
-      {Array.from({ length: 6 }).map((_, index) => (
+      {Array.from({ length: 5 }).map((_, index) => (
         <Skeleton key={index} className="h-24 w-full" />
       ))}
     </div>
   )
 }
 
-function getCustomerName(order: Order) {
-  return [order.user?.firstName, order.user?.lastName].filter(Boolean).join(" ") || order.user?.email || "Customer"
+function getItemCount(order: SupplierOrder) {
+  return order.items.reduce((sum, item) => sum + item.quantity, 0)
 }
 
-function getItemCount(order: Order) {
-  return order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
+function getLineTotal(item: SupplierOrder["items"][number]) {
+  return Number(item.unitCost) * item.quantity
 }
 
-function getLineTotal(item: Order["orderItems"][number]) {
-  return Number(item.price) * item.quantity
-}
-
-function getOrderProfit(order: Order) {
-  return order.orderItems.reduce(
-    (sum, item) => sum + (Number(item.price) - Number(item.costAtSale)) * item.quantity,
-    0,
-  )
+function getOrderTotal(order: SupplierOrder) {
+  return order.items.reduce((sum, item) => sum + getLineTotal(item), 0)
 }
 
 function formatDate(value: string) {
@@ -473,18 +450,14 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
-function getStatusDotClass(status: OrderStatus | "ALL") {
-  if (status === "PROCESSING") return "bg-[oklch(0.78_0.13_25)]"
-  if (status === "SHIPPED") return "bg-[oklch(0.72_0.14_195)]"
-  if (status === "DELIVERED") return "bg-neutral-950"
-  if (status === "CANCELLED") return "bg-destructive"
-  return "bg-muted-foreground"
+function getStatusDotClass(status: SupplierOrderStatus) {
+  if (status === "ON_THE_WAY") return "bg-[oklch(0.84_0.12_160)]"
+  if (status === "RECEIVED") return "bg-neutral-950"
+  return "bg-destructive"
 }
 
-function getStatusBadgeClass(status: OrderStatus) {
-  if (status === "PROCESSING") return "bg-[oklch(0.78_0.13_25)] text-neutral-950"
-  if (status === "SHIPPED") return "bg-[oklch(0.72_0.14_195)] text-neutral-950"
-  if (status === "DELIVERED") return "bg-neutral-950 text-white"
-  if (status === "CANCELLED") return "bg-destructive/10 text-destructive"
-  return "bg-muted text-muted-foreground"
+function getStatusBadgeClass(status: SupplierOrderStatus) {
+  if (status === "ON_THE_WAY") return "bg-[oklch(0.84_0.12_160)] text-neutral-950"
+  if (status === "RECEIVED") return "bg-neutral-950 text-white"
+  return "bg-destructive/10 text-destructive"
 }

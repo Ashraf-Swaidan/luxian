@@ -1,18 +1,5 @@
-import Link from "next/link"
-
-import { AdminBackLink } from "@/components/admin/admin-back-link"
+import { AdminNav } from "@/components/admin/admin-nav"
 import { RequireAdmin } from "@/components/auth/require-admin"
-import { cn } from "@/lib/utils"
-
-const adminLinks = [
-  { href: "/admin", label: "Overview", exact: true },
-  { href: "/admin/categories", label: "Categories" },
-  { href: "/admin/collections", label: "Collections" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/suppliers", label: "Suppliers" },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/homepage", label: "Homepage" },
-]
 
 export default function AdminLayout({
   children,
@@ -29,21 +16,8 @@ export default function AdminLayout({
             </p>
             <h1 className="text-2xl font-medium tracking-tight">Store management</h1>
           </div>
-          <nav className="flex flex-wrap gap-2">
-            {adminLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "rounded-md border border-border/60 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground",
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <AdminNav />
         </div>
-        <AdminBackLink />
         {children}
       </div>
     </RequireAdmin>
