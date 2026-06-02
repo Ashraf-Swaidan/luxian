@@ -12,6 +12,7 @@ type ProductCardProps = {
 
 export function ProductCard({ product, onProductClick }: ProductCardProps) {
   const outOfStock = product.stock < 1
+  const incomingSoon = outOfStock && Boolean(product.incomingStock && product.incomingStock > 0)
 
   return (
     <Link
@@ -38,7 +39,7 @@ export function ProductCard({ product, onProductClick }: ProductCardProps) {
           )}
           {outOfStock && (
             <span className="absolute left-2 top-2 rounded-sm bg-background/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:left-3 sm:top-3 sm:px-2.5 sm:text-[10px]">
-              Sold out
+              {incomingSoon ? "More soon" : "Sold out"}
             </span>
           )}
         </div>

@@ -67,6 +67,7 @@ export function ProductDetail() {
   }
 
   const outOfStock = product.stock < 1
+  const incomingSoon = outOfStock && Boolean(product.incomingStock && product.incomingStock > 0)
 
   return (
     <div className="space-y-16">
@@ -91,7 +92,7 @@ export function ProductDetail() {
           <div className="space-y-3">
             <AddToCartButton productId={product.id} disabled={outOfStock} />
             <p className="text-xs text-muted-foreground">
-              {outOfStock ? "Out of stock" : `${product.stock} in stock`}
+              {outOfStock ? (incomingSoon ? "More stock coming soon" : "Out of stock") : `${product.stock} in stock`}
               {product.sku ? ` · ${product.sku}` : ""}
             </p>
           </div>

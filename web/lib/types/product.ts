@@ -15,11 +15,39 @@ export type Product = {
   name: string
   description: string | null
   price: string
+  cost: string
   stock: number
+  incomingStock?: number
   sku: string
   imageUrl: string | null
   isActive: boolean
   categoryId: string
   category?: Category
   images?: ProductImage[]
+}
+
+export type StockMovementType =
+  | "SUPPLIER_RECEIVED"
+  | "CUSTOMER_ORDER"
+  | "ORDER_RESTOCK"
+
+export type StockMovement = {
+  id: string
+  productId: string
+  quantityDelta: number
+  type: StockMovementType
+  orderId: string | null
+  supplierOrderId: string | null
+  note: string | null
+  createdAt: string
+  order?: {
+    id: string
+    orderNumber: string
+    status: string
+  } | null
+  supplierOrder?: {
+    id: string
+    orderNumber: string
+    status: string
+  } | null
 }

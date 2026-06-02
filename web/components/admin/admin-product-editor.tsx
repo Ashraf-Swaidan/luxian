@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
 import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
-import { deactivateProduct, getProduct, updateProduct } from "@/features/products/api"
+import { deactivateProduct, getProduct, getProductStockMovements, updateProduct } from "@/features/products/api"
 import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import { queryKeys } from "@/lib/query-keys"
@@ -111,6 +111,7 @@ function AdminProductEditorForm({
   const [sku, setSku] = useState(product.sku)
   const [categoryId, setCategoryId] = useState(product.categoryId)
   const [price, setPrice] = useState(product.price)
+  const [cost, setCost] = useState(product.cost)
   const [stock, setStock] = useState(String(product.stock))
   const [imageUrl, setImageUrl] = useState<string | null>(product.imageUrl)
 
@@ -122,6 +123,7 @@ function AdminProductEditorForm({
         sku,
         categoryId,
         price: Number.parseFloat(price),
+        cost: Number.parseFloat(cost) || 0,
         stock: Number.parseInt(stock, 10) || 0,
         imageUrl,
       }),
@@ -141,6 +143,7 @@ function AdminProductEditorForm({
     sku !== product.sku ||
     categoryId !== product.categoryId ||
     price !== product.price ||
+    cost !== product.cost ||
     stock !== String(product.stock) ||
     imageUrl !== product.imageUrl
 
@@ -196,6 +199,7 @@ function AdminProductEditorForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <PlainField label="Price" value={price} onChange={setPrice} />
+            <PlainField label="Cost" value={cost} onChange={setCost} />
             <PlainField label="Stock" value={stock} onChange={setStock} />
           </div>
 
@@ -221,6 +225,8 @@ function AdminProductEditorForm({
 
       <AdminProductGallery product={product} coverUrl={imageUrl} onCoverChange={setImageUrl} />
 
+      <StockMovementHistory productId={product.id} />
+
       <div className="flex justify-end border-t border-border/60 pt-6">
         <Button
           type="button"
@@ -232,6 +238,45 @@ function AdminProductEditorForm({
         </Button>
       </div>
     </div>
+  )
+}
+
+function StockMovementHistory({ productId }: { productId: string }) {
+  const { data: movements, isPending } = useQuery({
+    queryKey: queryKeys.products.stockMovements(productId),
+    queryFn: () => getProductStockMovements(productId),
+  })
+
+  return (
+    <section className="space-y-4 border-t border-border/60 pt-8">
+      <div>
+        <h2 className="text-lg font-medium">Stock history</h2>
+        <p className="text-sm text-muted-foreground">Recent supplier intake, checkout, and restock movements.</p>
+      </div>
+      {isPending ? (
+        <Skeleton className="h-28 w-full" />
+      ) : movements?.length ? (
+        <div className="divide-y divide-border/60 bg-white ring-1 ring-border/60">
+          {movements.map((movement) => (
+            <div key={movement.id} className="grid gap-2 p-4 text-sm sm:grid-cols-[8rem_1fr_auto] sm:items-center">
+              <span className={movement.quantityDelta > 0 ? "font-medium text-emerald-700" : "font-medium text-red-700"}>
+                {movement.quantityDelta > 0 ? "+" : ""}
+                {movement.quantityDelta}
+              </span>
+              <div>
+                <p className="font-medium">{movement.type.replaceAll("_", " ").toLowerCase()}</p>
+                <p className="text-xs text-muted-foreground">
+                  {movement.note ?? movement.order?.orderNumber ?? movement.supplierOrder?.orderNumber ?? "Inventory movement"}
+                </p>
+              </div>
+              <time className="text-xs text-muted-foreground">{new Date(movement.createdAt).toLocaleDateString()}</time>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">No stock movements have been recorded yet.</p>
+      )}
+    </section>
   )
 }
 

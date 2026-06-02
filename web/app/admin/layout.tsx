@@ -8,6 +8,8 @@ const adminLinks = [
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/collections", label: "Collections" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/suppliers", label: "Suppliers" },
+  { href: "/admin/orders", label: "Orders" },
   { href: "/admin/homepage", label: "Homepage" },
 ]
 

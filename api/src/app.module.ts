@@ -15,6 +15,7 @@ import { HomepageModule } from './modules/homepage/homepage.module';
 import { MediaModule } from './modules/media/media.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { PersonalizationModule } from './modules/personalization/personalization.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PersonalizationModule } from './modules/personalization/personalization
     MediaModule,
     FavoritesModule,
     PersonalizationModule,
+    SuppliersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -44,7 +44,9 @@ export class ProductsService {
     private readonly personalizationService: PersonalizationService,
   ) {}
 
-  async findOneActive(id: string): Promise<ProductDetail> {
+  async findOneActive(
+    id: string,
+  ): Promise<ProductDetail & { incomingStock: number }> {
     const product = await this.prisma.product.findFirst({
       where: { id, isActive: true },
       include: productDetailInclude,
@@ -54,7 +56,7 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    return this.attachIncomingStock(product);
   }
 
   async findProductContext(
@@ -137,7 +139,9 @@ export class ProductsService {
         allMatching,
         { categoryFilterId: query.categoryId },
       );
-      const data = ranked.slice(skip, skip + limit);
+      const data = await this.attachIncomingStock(
+        ranked.slice(skip, skip + limit),
+      );
 
       return {
         data,
@@ -150,7 +154,7 @@ export class ProductsService {
       };
     }
 
-    const [data, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
         include: { category: true },
@@ -162,7 +166,7 @@ export class ProductsService {
     ]);
 
     return {
-      data,
+      data: await this.attachIncomingStock(rows),
       meta: {
         page,
         limit,
@@ -219,7 +223,7 @@ export class ProductsService {
       take: limit,
     });
 
-    return rows.map((row) => row.product);
+    return this.attachIncomingStock(rows.map((row) => row.product));
   }
 
   private async findSimilarProducts(
@@ -265,7 +269,7 @@ export class ProductsService {
       candidates,
     );
 
-    return candidates
+    const similar = candidates
       .map((candidate) => ({
         product: candidate,
         score: this.scoreSimilarProduct(
@@ -284,6 +288,41 @@ export class ProductsService {
       })
       .slice(0, limit)
       .map((row) => row.product);
+
+    return this.attachIncomingStock(similar);
+  }
+
+  private async attachIncomingStock<T extends { id: string }>(
+    products: T[],
+  ): Promise<Array<T & { incomingStock: number }>>;
+  private async attachIncomingStock<T extends { id: string }>(
+    product: T,
+  ): Promise<T & { incomingStock: number }>;
+  private async attachIncomingStock<T extends { id: string }>(
+    input: T | T[],
+  ): Promise<(T & { incomingStock: number }) | Array<T & { incomingStock: number }>> {
+    const products = Array.isArray(input) ? input : [input];
+    if (products.length === 0) {
+      return Array.isArray(input) ? [] : { ...input, incomingStock: 0 };
+    }
+
+    const rows = await this.prisma.supplierOrderItem.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: products.map((product) => product.id) },
+        supplierOrder: { status: 'ON_THE_WAY' },
+      },
+      _sum: { quantity: true },
+    });
+    const incomingByProductId = new Map(
+      rows.map((row) => [row.productId, row._sum.quantity ?? 0]),
+    );
+    const withIncoming = products.map((product) => ({
+      ...product,
+      incomingStock: incomingByProductId.get(product.id) ?? 0,
+    }));
+
+    return Array.isArray(input) ? withIncoming : withIncoming[0];
   }
 
   private scoreSimilarProduct(
@@ -380,7 +419,7 @@ export class ProductsService {
     ]);
 
     return {
-      data: rows.map((row) => row.product),
+      data: await this.attachIncomingStock(rows.map((row) => row.product)),
       meta: {
         page,
         limit,
@@ -440,6 +479,7 @@ export class ProductsService {
           name: dto.name,
           sku: dto.sku,
           price: dto.price,
+          cost: dto.cost ?? 0,
           stock: dto.stock ?? 0,
           categoryId: dto.categoryId,
           description: dto.description,
@@ -502,6 +542,32 @@ export class ProductsService {
     } catch (error) {
       this.handlePrismaError(error, 'Failed to update product');
     }
+  }
+
+  async getStockMovements(productId: string) {
+    await this.ensureExists(productId);
+
+    return this.prisma.stockMovement.findMany({
+      where: { productId },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+      include: {
+        order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+          },
+        },
+        supplierOrder: {
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+          },
+        },
+      },
+    });
   }
 
   async deactivate(id: string): Promise<Product> {

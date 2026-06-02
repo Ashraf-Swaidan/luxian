@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Folder01Icon, Home11Icon, PackageIcon, PackageOpenIcon } from "@hugeicons/core-free-icons"
+import { Folder01Icon, Home11Icon, PackageAddIcon, PackageIcon, PackageOpenIcon } from "@hugeicons/core-free-icons"
 
 const adminCards = [
   {
@@ -26,6 +26,18 @@ const adminCards = [
     title: "Homepage",
     icon: Home11Icon,
     color: "bg-[oklch(0.92_0.08_330)]",
+  },
+  {
+    href: "/admin/suppliers",
+    title: "Suppliers",
+    icon: PackageAddIcon,
+    color: "bg-[oklch(0.84_0.12_160)]",
+  },
+  {
+    href: "/admin/orders",
+    title: "Orders",
+    icon: PackageOpenIcon,
+    color: "bg-[oklch(0.78_0.13_25)]",
   },
 ]
 

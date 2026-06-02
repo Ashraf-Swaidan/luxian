@@ -1,15 +1,20 @@
 import { Skeleton } from "@/components/ui/skeleton"
+import { StoreShell } from "@/components/layout/store-shell"
 
 export function PageLoading() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-6 py-10">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-4 w-72 max-w-full" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Skeleton className="aspect-[4/3] w-full rounded-md" />
-        <Skeleton className="aspect-[4/3] w-full rounded-md" />
-        <Skeleton className="aspect-[4/3] w-full rounded-md" />
-      </div>
-    </div>
+    <main className="py-8 sm:py-12">
+      <StoreShell>
+        <div className="mb-8 space-y-3">
+          <Skeleton className="h-8 w-56 sm:h-9 sm:w-72" />
+          <Skeleton className="h-4 w-full max-w-md" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[4/5] w-full rounded-md" />
+          ))}
+        </div>
+      </StoreShell>
+    </main>
   )
 }

@@ -46,6 +46,18 @@ enum VisitorEventType {
   COLLECTION_FILTER
 }
 
+enum SupplierOrderStatus {
+  ON_THE_WAY
+  RECEIVED
+  CANCELLED
+}
+
+enum StockMovementType {
+  SUPPLIER_RECEIVED
+  CUSTOMER_ORDER
+  ORDER_RESTOCK
+}
+
 model User {
   id           String  @id @default(uuid())
   email        String  @unique
@@ -73,6 +85,7 @@ model Product {
   name        String
   description String?
   price       Decimal @db.Decimal(10, 2)
+  cost        Decimal @default(0) @db.Decimal(10, 2)
   stock       Int     @default(0)
   sku         String  @unique
   imageUrl    String?
@@ -84,6 +97,8 @@ model Product {
   collectionProducts CollectionProduct[]
   images             ProductImage[]
   favoritedBy        FavoriteProduct[]
+  supplierOrderItems SupplierOrderItem[]
+  stockMovements     StockMovement[]
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -125,6 +140,66 @@ model FavoriteProduct {
   @@index([userId, createdAt])
   @@index([productId])
   @@map("favorite_products")
+}
+
+model Supplier {
+  id            String  @id @default(uuid())
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String?
+  notes         String?
+  isActive      Boolean @default(true)
+
+  orders SupplierOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@map("suppliers")
+}
+
+model SupplierOrder {
+  id          String              @id @default(uuid())
+  orderNumber String              @unique @default(cuid())
+  status      SupplierOrderStatus @default(ON_THE_WAY)
+  notes       String?
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  items          SupplierOrderItem[]
+  stockMovements StockMovement[]
+
+  receivedAt  DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("supplier_orders")
+}
+
+model SupplierOrderItem {
+  id       String  @id @default(uuid())
+  quantity Int
+  unitCost Decimal @db.Decimal(10, 2)
+
+  supplierOrderId String
+  supplierOrder   SupplierOrder @relation(fields: [supplierOrderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierOrderId])
+  @@index([productId])
+  @@map("supplier_order_items")
 }
 
 model Category {
@@ -255,11 +330,12 @@ model MediaAsset {
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  id         String  @id @default(uuid())
+  quantity   Int
+  price      Decimal @db.Decimal(10, 2)
+  costAtSale Decimal @default(0) @db.Decimal(10, 2)
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
 
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -301,8 +377,9 @@ model Order {
 
   shippingAddress String?
 
-  orderItems OrderItem[]
-  payment    Payment?
+  orderItems     OrderItem[]
+  payment        Payment?
+  stockMovements StockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -311,6 +388,30 @@ model Order {
   @@index([orderNumber])
   @@index([status])
   @@map("orders")
+}
+
+model StockMovement {
+  id            String            @id @default(uuid())
+  type          StockMovementType
+  quantityDelta Int
+  note          String?
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  supplierOrderId String?
+  supplierOrder   SupplierOrder? @relation(fields: [supplierOrderId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([type, createdAt])
+  @@index([orderId])
+  @@index([supplierOrderId])
+  @@map("stock_movements")
 }
 
 model Cart {

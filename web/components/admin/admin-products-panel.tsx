@@ -229,6 +229,7 @@ function NewProductForm({
   const [name, setName] = useState("")
   const [sku, setSku] = useState("")
   const [price, setPrice] = useState("")
+  const [cost, setCost] = useState("")
   const [stock, setStock] = useState("10")
   const [categoryId, setCategoryId] = useState("")
   const [description, setDescription] = useState("")
@@ -256,6 +257,7 @@ function NewProductForm({
         <TextField label="Product name" value={name} onChange={setName} />
         <TextField label="Product code" value={sku} onChange={setSku} />
         <TextField label="Price" type="number" value={price} onChange={setPrice} />
+        <TextField label="Cost" type="number" value={cost} onChange={setCost} />
         <TextField label="Stock" type="number" value={stock} onChange={setStock} />
         <div className="space-y-2 sm:col-span-2">
           <Label>Category</Label>
@@ -288,6 +290,7 @@ function NewProductForm({
               name,
               sku,
               price: Number.parseFloat(price),
+              cost: Number.parseFloat(cost) || 0,
               stock: Number.parseInt(stock, 10) || 0,
               categoryId: defaultCategory,
               description: description || undefined,

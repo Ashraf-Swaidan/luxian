@@ -13,6 +13,7 @@ export type OrderItem = {
   id: string
   quantity: number
   price: string
+  costAtSale: string
   productId: string
   product: Product
 }
@@ -36,6 +37,13 @@ export type Order = {
   payment: Payment | null
   createdAt: string
   updatedAt: string
+  user?: {
+    id: string
+    firstName: string | null
+    lastName: string | null
+    email: string
+    role: string
+  }
 }
 
 export type CheckoutInput = {

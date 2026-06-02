@@ -23,6 +23,11 @@ export class CreateProductDto {
   @Min(0)
   price: number;
 
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @IsOptional()
+  cost?: number;
+
   @IsInt()
   @Min(0)
   @IsOptional()

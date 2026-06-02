@@ -24,6 +24,11 @@ export class UpdateProductDto {
   @IsOptional()
   price?: number;
 
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @IsOptional()
+  cost?: number;
+
   @IsInt()
   @Min(0)
   @IsOptional()

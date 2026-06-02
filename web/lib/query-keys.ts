@@ -29,11 +29,17 @@ export const queryKeys = {
     }) => [...queryKeys.products.all, "list", params ?? {}] as const,
     detail: (id: string) => [...queryKeys.products.all, id] as const,
     context: (id: string) => [...queryKeys.products.all, id, "context"] as const,
+    stockMovements: (id: string) => [...queryKeys.products.all, id, "stock-movements"] as const,
   },
   cart: ["cart"] as const,
   orders: {
     all: ["orders"] as const,
     detail: (id: string) => [...queryKeys.orders.all, id] as const,
+    admin: (status?: string) => ["orders", "admin", status ?? "ALL"] as const,
+  },
+  suppliers: {
+    all: ["suppliers"] as const,
+    orders: (status?: string) => ["supplier-orders", status ?? "ALL"] as const,
   },
   favorites: {
     all: ["favorites"] as const,

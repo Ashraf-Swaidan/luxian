@@ -45,6 +45,13 @@ export class ProductsController {
     return this.productsService.findProductContext(id, query, visitorId);
   }
 
+  @Get(':id/stock-movements')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  getStockMovements(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productsService.getStockMovements(id);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.findOneActive(id);

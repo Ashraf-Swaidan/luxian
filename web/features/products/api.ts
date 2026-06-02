@@ -1,7 +1,7 @@
 import { api } from "@/lib/api-client"
 import { getVisitorIdHeaders } from "@/lib/visitor-id"
 import type { Collection } from "@/lib/types/collection"
-import type { Product, ProductImage } from "@/lib/types/product"
+import type { Product, ProductImage, StockMovement } from "@/lib/types/product"
 import type { PaginatedProducts, ProductListParams } from "@/features/products/types"
 
 function buildProductsQuery(params?: ProductListParams) {
@@ -89,6 +89,7 @@ export type CreateProductInput = {
   name: string
   sku: string
   price: number
+  cost?: number
   stock?: number
   categoryId: string
   description?: string
@@ -126,4 +127,8 @@ export function reorderProductImages(productId: string, imageIds: string[]) {
 
 export function deleteProductImage(productId: string, imageId: string) {
   return api.delete<{ id: string; key: string | null }>(`products/${productId}/images/${imageId}`)
+}
+
+export function getProductStockMovements(productId: string) {
+  return api.get<StockMovement[]>(`products/${productId}/stock-movements`)
 }
