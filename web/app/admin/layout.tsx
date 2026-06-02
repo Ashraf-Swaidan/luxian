@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { AdminBackLink } from "@/components/admin/admin-back-link"
 import { RequireAdmin } from "@/components/auth/require-admin"
 import { cn } from "@/lib/utils"
 
@@ -42,6 +43,7 @@ export default function AdminLayout({
             ))}
           </nav>
         </div>
+        <AdminBackLink />
         {children}
       </div>
     </RequireAdmin>

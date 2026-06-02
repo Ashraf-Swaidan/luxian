@@ -26,23 +26,34 @@ function SheetOverlay({ className, ...props }: React.ComponentProps<typeof Dialo
     <DialogPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-black/45 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
-        className
+        "fixed inset-0 z-50 bg-black/45 duration-150 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
+        className,
       )}
       {...props}
     />
   )
 }
 
-function SheetContent({ className, children, ...props }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+function SheetContent({
+  side = "right",
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  side?: "right" | "bottom"
+}) {
   return (
     <SheetPortal>
       <SheetOverlay />
       <DialogPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed inset-y-0 right-0 z-50 flex w-[min(88vw,24rem)] flex-col bg-background p-6 shadow-2xl ring-1 ring-foreground/10 duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:animate-in data-[state=open]:slide-in-from-right",
-          className
+          "fixed z-50 flex flex-col bg-background shadow-2xl ring-1 ring-foreground/10 duration-150 data-[state=closed]:animate-out data-[state=open]:animate-in",
+          side === "right" &&
+            "inset-y-0 right-0 h-full w-[min(88vw,24rem)] p-6 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+          side === "bottom" &&
+            "inset-x-0 bottom-0 h-[100dvh] max-h-[100dvh] w-full max-w-none gap-0 overflow-hidden rounded-none p-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+          className,
         )}
         {...props}
       >
