@@ -5,6 +5,7 @@ import { useState } from "react"
 
 import { getStatsCustomers } from "@/features/stats/api"
 import { queryKeys } from "@/lib/query-keys"
+import { CUSTOMER_RANK_OPTIONS, type StatsRankBy } from "@/lib/stats-ranking"
 
 import { CountLineChart } from "./dashboard-charts"
 import {
@@ -14,6 +15,7 @@ import {
   DashboardSection,
   formatUsd,
   MonthYearFilter,
+  RankBySelect,
   type MonthYearFilterValue,
 } from "./dashboard-shared"
 
@@ -23,10 +25,11 @@ export function CustomersTab() {
     year: now.getFullYear(),
     month: now.getMonth() + 1,
   })
+  const [rankBy, setRankBy] = useState<StatsRankBy>("balanced")
 
   const { data, isPending, isError } = useQuery({
-    queryKey: queryKeys.stats.customers({ year: period.year, month: period.month }),
-    queryFn: () => getStatsCustomers({ year: period.year, month: period.month }),
+    queryKey: queryKeys.stats.customers({ year: period.year, month: period.month, rankBy }),
+    queryFn: () => getStatsCustomers({ year: period.year, month: period.month, rankBy }),
   })
 
   if (isPending) {
@@ -39,11 +42,14 @@ export function CustomersTab() {
 
   return (
     <div className="space-y-6">
-      <MonthYearFilter value={period} onChange={setPeriod} showAllTime />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <MonthYearFilter value={period} onChange={setPeriod} showAllTime />
+        <RankBySelect value={rankBy} onChange={setRankBy} options={CUSTOMER_RANK_OPTIONS} />
+      </div>
 
       <DashboardSection
         title="Top customers"
-        description={`By spend for ${period.year}-${String(period.month).padStart(2, "0")}`}
+        description={`For ${period.year}-${String(period.month).padStart(2, "0")}`}
       >
         {data.topCustomers.length === 0 ? (
           <DashboardEmpty message="No customer orders in this period." />

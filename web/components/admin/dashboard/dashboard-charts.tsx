@@ -134,15 +134,19 @@ export function CountLineChart({
 export function HorizontalBarChart({
   data,
   nameKey,
+  valueFormatter,
   valueKey,
   valueLabel,
   className,
+  compact = false,
 }: {
   data: Record<string, string | number>[]
   nameKey: string
   valueKey: string
   valueLabel: string
+  valueFormatter?: (value: number) => string
   className?: string
+  compact?: boolean
 }) {
   const config = { [valueKey]: { label: valueLabel, color: "oklch(0.55 0.12 195)" } } satisfies ChartConfig
 
@@ -151,12 +155,40 @@ export function HorizontalBarChart({
   }
 
   return (
-    <ChartContainer config={config} className={className ?? "aspect-[1.6/1] w-full min-h-[260px]"}>
+    <ChartContainer
+      config={config}
+      className={
+        className ??
+        (compact
+          ? "aspect-[2.8/1] w-full min-h-[140px] max-h-[180px]"
+          : "aspect-[1.6/1] w-full min-h-[260px]")
+      }
+    >
       <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16, top: 8, bottom: 0 }}>
         <CartesianGrid horizontal={false} />
-        <XAxis type="number" tickLine={false} axisLine={false} />
-        <YAxis type="category" dataKey={nameKey} tickLine={false} axisLine={false} width={120} />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <XAxis
+          type="number"
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={valueFormatter ? (value) => valueFormatter(Number(value)) : undefined}
+        />
+        <YAxis
+          type="category"
+          dataKey={nameKey}
+          tickLine={false}
+          axisLine={false}
+          width={compact ? 96 : 120}
+        />
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              formatter={(value) => [
+                valueFormatter ? valueFormatter(Number(value)) : value,
+                valueLabel,
+              ]}
+            />
+          }
+        />
         <Bar dataKey={valueKey} fill={`var(--color-${valueKey})`} radius={4} />
       </BarChart>
     </ChartContainer>

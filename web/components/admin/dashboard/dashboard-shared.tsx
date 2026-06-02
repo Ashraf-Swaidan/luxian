@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 
+import { StoreImage } from "@/components/common/store-image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { StatsRankBy } from "@/lib/types/stats"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatPrice } from "@/lib/format-price"
 import { cn } from "@/lib/utils"
@@ -159,6 +161,74 @@ export function DashboardLoading({ rows = 3 }: { rows?: number }) {
 
 export function DashboardEmpty({ message }: { message: string }) {
   return <p className="text-sm text-muted-foreground">{message}</p>
+}
+
+export function RankBySelect({
+  label = "Rank by",
+  onChange,
+  options,
+  value,
+}: {
+  label?: string
+  onChange: (value: StatsRankBy) => void
+  options: { value: StatsRankBy; label: string }[]
+  value: StatsRankBy
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <Select value={value} onValueChange={(next) => onChange(next as StatsRankBy)}>
+        <SelectTrigger className="h-9 w-[11rem]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+export function ProductThumb({ imageUrl, name }: { imageUrl: string | null; name: string }) {
+  return (
+    <div className="relative size-11 shrink-0 overflow-hidden bg-muted ring-1 ring-border/60 sm:size-12">
+      {imageUrl ? (
+        <StoreImage src={imageUrl} alt={name} fill className="object-cover" sizes="48px" />
+      ) : (
+        <div className="flex h-full items-center justify-center px-1 text-center text-[9px] font-medium tracking-wide text-muted-foreground uppercase">
+          No image
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function ProductNameCell({
+  href,
+  imageUrl,
+  name,
+  sku,
+}: {
+  href: string
+  imageUrl: string | null
+  name: string
+  sku?: string
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <ProductThumb imageUrl={imageUrl} name={name} />
+      <div className="min-w-0">
+        <Link href={href} className="block truncate font-medium hover:underline">
+          {name}
+        </Link>
+        {sku && <p className="truncate text-xs text-muted-foreground">{sku}</p>}
+      </div>
+    </div>
+  )
 }
 
 export function ViewAllLink({ href, label }: { href: string; label: string }) {

@@ -54,6 +54,6 @@ export const queryKeys = {
     orders: (params?: Record<string, unknown>) => ["stats", "orders", params ?? {}] as const,
     products: (params?: Record<string, unknown>) => ["stats", "products", params ?? {}] as const,
     customers: (params?: Record<string, unknown>) => ["stats", "customers", params ?? {}] as const,
-    suppliers: ["stats", "suppliers"] as const,
+    suppliers: (params?: Record<string, unknown>) => ["stats", "suppliers", params ?? {}] as const,
   },
 }

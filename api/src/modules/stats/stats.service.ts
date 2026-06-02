@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OrderStatus, Prisma, SupplierOrderStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SalesStatsQueryDto, StatsQueryDto } from './dto/stats-query.dto';
+import { rankItems, type StatsRankBy } from './stats-ranking';
 import {
   ACTIVE_ORDER_WHERE,
   currentYearMonth,
@@ -14,6 +15,10 @@ import {
   startOfMonth,
   toNumber,
 } from './stats.utils';
+
+function resolveRankBy(rankBy?: StatsRankBy): StatsRankBy {
+  return rankBy ?? 'balanced';
+}
 
 const adminOrderSummaryInclude = {
   user: {
@@ -157,8 +162,8 @@ export class StatsService {
       }),
       this.getOrdersOverTime(trendFrom, now),
       this.getAverageOrderValue(),
-      this.getTopCollections(),
-      this.getTopCategories(),
+      this.getTopCollections(resolveRankBy(query.rankBy)),
+      this.getTopCategories(resolveRankBy(query.rankBy)),
       this.prisma.order.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
@@ -186,7 +191,7 @@ export class StatsService {
 
     const [needingRestock, topProducts] = await Promise.all([
       this.getProductsNeedingRestock(),
-      this.getTopProducts(periodStart, periodEnd),
+      this.getTopProducts(periodStart, periodEnd, resolveRankBy(query.rankBy)),
     ]);
 
     return { needingRestock, topProducts };
@@ -204,14 +209,14 @@ export class StatsService {
     const periodEnd = endOfMonth(selected.year, selected.month);
 
     const [topCustomers, newCustomersOverTime] = await Promise.all([
-      this.getTopCustomers(periodStart, periodEnd),
+      this.getTopCustomers(periodStart, periodEnd, resolveRankBy(query.rankBy)),
       this.getNewCustomersOverTime(trendFrom, now),
     ]);
 
     return { topCustomers, newCustomersOverTime };
   }
 
-  async getSuppliers() {
+  async getSuppliers(query: StatsQueryDto = {}) {
     const now = new Date();
     const trendFrom = new Date(now);
     trendFrom.setMonth(trendFrom.getMonth() - 11);
@@ -226,7 +231,7 @@ export class StatsService {
       itemsOnTheWay,
     ] = await Promise.all([
       this.getSupplierSpendingTrend(trendFrom, now),
-      this.getTopSuppliers(),
+      this.getTopSuppliers(resolveRankBy(query.rankBy)),
       this.prisma.supplierOrder.groupBy({
         by: ['status'],
         _count: { _all: true },
@@ -366,68 +371,76 @@ export class StatsService {
     return toNumber(result._avg.totalAmount);
   }
 
-  private async getTopCollections() {
+  private async getTopCollections(rankBy: StatsRankBy) {
     const rows = await this.prisma.$queryRaw<
       {
         collectionId: string;
         name: string;
         unitsSold: bigint;
         revenue: unknown;
+        profit: unknown;
       }[]
     >`
       SELECT
         c.id AS "collectionId",
         c.name,
         COALESCE(SUM(oi.quantity), 0)::bigint AS "unitsSold",
-        COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue
+        COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue,
+        COALESCE(SUM((oi.price - oi."costAtSale") * oi.quantity), 0) AS profit
       FROM order_items oi
       INNER JOIN orders o ON o.id = oi."orderId"
       INNER JOIN collection_products cp ON cp."productId" = oi."productId"
       INNER JOIN collections c ON c.id = cp."collectionId"
       WHERE o.status != 'CANCELLED'
       GROUP BY c.id, c.name
-      ORDER BY "unitsSold" DESC
-      LIMIT 8
+      LIMIT 40
     `;
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       collectionId: row.collectionId,
       name: row.name,
       unitsSold: Number(row.unitsSold),
       revenue: toNumber(row.revenue),
+      profit: toNumber(row.profit),
     }));
+
+    return rankItems(items, rankBy, 8);
   }
 
-  private async getTopCategories() {
+  private async getTopCategories(rankBy: StatsRankBy) {
     const rows = await this.prisma.$queryRaw<
       {
         categoryId: string;
         name: string;
         unitsSold: bigint;
         revenue: unknown;
+        profit: unknown;
       }[]
     >`
       SELECT
         cat.id AS "categoryId",
         cat.name,
         COALESCE(SUM(oi.quantity), 0)::bigint AS "unitsSold",
-        COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue
+        COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue,
+        COALESCE(SUM((oi.price - oi."costAtSale") * oi.quantity), 0) AS profit
       FROM order_items oi
       INNER JOIN orders o ON o.id = oi."orderId"
       INNER JOIN products p ON p.id = oi."productId"
       INNER JOIN categories cat ON cat.id = p."categoryId"
       WHERE o.status != 'CANCELLED'
       GROUP BY cat.id, cat.name
-      ORDER BY "unitsSold" DESC
-      LIMIT 8
+      LIMIT 40
     `;
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       categoryId: row.categoryId,
       name: row.name,
       unitsSold: Number(row.unitsSold),
       revenue: toNumber(row.revenue),
+      profit: toNumber(row.profit),
     }));
+
+    return rankItems(items, rankBy, 8);
   }
 
   private async countProductsNeedingRestock() {
@@ -447,9 +460,10 @@ export class StatsService {
         sku: string;
         stock: number;
         restockLimit: number;
+        imageUrl: string | null;
       }[]
     >`
-      SELECT id, name, sku, stock, "restockLimit"
+      SELECT id, name, sku, stock, "restockLimit", "imageUrl"
       FROM products
       WHERE "isActive" = true AND stock <= "restockLimit"
       ORDER BY stock ASC, name ASC
@@ -478,12 +492,13 @@ export class StatsService {
     }));
   }
 
-  private async getTopProducts(from: Date, to: Date) {
+  private async getTopProducts(from: Date, to: Date, rankBy: StatsRankBy) {
     const rows = await this.prisma.$queryRaw<
       {
         productId: string;
         name: string;
         sku: string;
+        imageUrl: string | null;
         unitsSold: bigint;
         revenue: unknown;
         profit: unknown;
@@ -493,6 +508,7 @@ export class StatsService {
         p.id AS "productId",
         p.name,
         p.sku,
+        p."imageUrl",
         COALESCE(SUM(oi.quantity), 0)::bigint AS "unitsSold",
         COALESCE(SUM(oi.price * oi.quantity), 0) AS revenue,
         COALESCE(SUM((oi.price - oi."costAtSale") * oi.quantity), 0) AS profit
@@ -502,22 +518,24 @@ export class StatsService {
       WHERE o.status != 'CANCELLED'
         AND o."createdAt" >= ${from}
         AND o."createdAt" <= ${to}
-      GROUP BY p.id, p.name, p.sku
-      ORDER BY "unitsSold" DESC
-      LIMIT 10
+      GROUP BY p.id, p.name, p.sku, p."imageUrl"
+      LIMIT 40
     `;
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       productId: row.productId,
       name: row.name,
       sku: row.sku,
+      imageUrl: row.imageUrl,
       unitsSold: Number(row.unitsSold),
       revenue: toNumber(row.revenue),
       profit: toNumber(row.profit),
     }));
+
+    return rankItems(items, rankBy, 10);
   }
 
-  private async getTopCustomers(from: Date, to: Date) {
+  private async getTopCustomers(from: Date, to: Date, rankBy: StatsRankBy) {
     const rows = await this.prisma.$queryRaw<
       {
         userId: string;
@@ -541,11 +559,10 @@ export class StatsService {
         AND o."createdAt" >= ${from}
         AND o."createdAt" <= ${to}
       GROUP BY u.id, u.email, u."firstName", u."lastName"
-      ORDER BY "totalSpent" DESC
-      LIMIT 10
+      LIMIT 40
     `;
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       userId: row.userId,
       email: row.email,
       firstName: row.firstName,
@@ -553,6 +570,13 @@ export class StatsService {
       orderCount: Number(row.orderCount),
       totalSpent: toNumber(row.totalSpent),
     }));
+
+    const customerRankBy =
+      rankBy === 'units' || rankBy === 'revenue' || rankBy === 'profit'
+        ? 'spent'
+        : rankBy;
+
+    return rankItems(items, customerRankBy, 10);
   }
 
   private async getNewCustomersOverTime(from: Date, to: Date) {
@@ -596,7 +620,7 @@ export class StatsService {
     }));
   }
 
-  private async getTopSuppliers() {
+  private async getTopSuppliers(rankBy: StatsRankBy) {
     const rows = await this.prisma.$queryRaw<
       {
         supplierId: string;
@@ -615,16 +639,22 @@ export class StatsService {
       INNER JOIN supplier_order_items soi ON soi."supplierOrderId" = so.id
       WHERE so.status = 'RECEIVED'
       GROUP BY s.id, s.name
-      ORDER BY "totalSpent" DESC
-      LIMIT 10
+      LIMIT 40
     `;
 
-    return rows.map((row) => ({
+    const items = rows.map((row) => ({
       supplierId: row.supplierId,
       name: row.name,
       orderCount: Number(row.orderCount),
       totalSpent: toNumber(row.totalSpent),
     }));
+
+    const supplierRankBy =
+      rankBy === 'units' || rankBy === 'revenue' || rankBy === 'profit'
+        ? 'spent'
+        : rankBy;
+
+    return rankItems(items, supplierRankBy, 10);
   }
 
   private serializeOrder(order: Prisma.OrderGetPayload<{ include: typeof adminOrderSummaryInclude }>) {

@@ -14,6 +14,10 @@ export class StatsQueryDto {
   @Min(1)
   @Max(12)
   month?: number;
+
+  @IsOptional()
+  @IsIn(['balanced', 'units', 'revenue', 'profit', 'orders', 'spent'])
+  rankBy?: 'balanced' | 'units' | 'revenue' | 'profit' | 'orders' | 'spent';
 }
 
 export class SalesStatsQueryDto extends StatsQueryDto {

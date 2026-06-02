@@ -38,7 +38,7 @@ export class StatsController {
   }
 
   @Get('suppliers')
-  getSuppliers() {
-    return this.statsService.getSuppliers();
+  getSuppliers(@Query() query: StatsQueryDto) {
+    return this.statsService.getSuppliers(query);
   }
 }

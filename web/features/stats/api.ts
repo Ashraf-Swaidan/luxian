@@ -25,6 +25,9 @@ function buildStatsQuery(params?: StatsPeriodParams & { granularity?: string }) 
   if ("granularity" in params && params.granularity) {
     search.set("granularity", params.granularity)
   }
+  if (params.rankBy) {
+    search.set("rankBy", params.rankBy)
+  }
 
   const qs = search.toString()
   return qs ? `?${qs}` : ""
@@ -50,6 +53,6 @@ export function getStatsCustomers(params?: StatsPeriodParams) {
   return api.get<StatsCustomers>(`admin/stats/customers${buildStatsQuery(params)}`)
 }
 
-export function getStatsSuppliers() {
-  return api.get<StatsSuppliers>("admin/stats/suppliers")
+export function getStatsSuppliers(params?: StatsPeriodParams) {
+  return api.get<StatsSuppliers>(`admin/stats/suppliers${buildStatsQuery(params)}`)
 }

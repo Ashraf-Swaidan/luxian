@@ -1,9 +1,17 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
 
 import { getStatsSuppliers } from "@/features/stats/api"
 import { queryKeys } from "@/lib/query-keys"
+import {
+  chartLabelForRank,
+  chartValueForRank,
+  chartValueFormatter,
+  SUPPLIER_RANK_OPTIONS,
+  type StatsRankBy,
+} from "@/lib/stats-ranking"
 
 import {
   HorizontalBarChart,
@@ -16,12 +24,15 @@ import {
   DashboardLoading,
   DashboardSection,
   formatUsd,
+  RankBySelect,
 } from "./dashboard-shared"
 
 export function SuppliersTab() {
+  const [rankBy, setRankBy] = useState<StatsRankBy>("balanced")
+
   const { data, isPending, isError } = useQuery({
-    queryKey: queryKeys.stats.suppliers,
-    queryFn: getStatsSuppliers,
+    queryKey: queryKeys.stats.suppliers({ rankBy }),
+    queryFn: () => getStatsSuppliers({ rankBy }),
   })
 
   if (isPending) {
@@ -32,8 +43,15 @@ export function SuppliersTab() {
     return <p className="text-sm text-destructive">Could not load supplier insights.</p>
   }
 
+  const supplierChart = data.topSuppliers.map((row) => ({
+    name: row.name,
+    value: chartValueForRank(rankBy, row, data.topSuppliers),
+  }))
+
   return (
     <div className="space-y-6">
+      <RankBySelect value={rankBy} onChange={setRankBy} options={SUPPLIER_RANK_OPTIONS} />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <DashboardKpiCard label="Open supplier orders" value={String(data.openOrdersCount)} />
         <DashboardKpiCard label="Units on the way" value={String(data.itemsOnTheWay)} />
@@ -44,19 +62,18 @@ export function SuppliersTab() {
       </DashboardSection>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <DashboardSection title="Top suppliers" description="By total received spend">
+        <DashboardSection title="Top suppliers" description={`Ranked by ${chartLabelForRank(rankBy).toLowerCase()}`}>
           {data.topSuppliers.length === 0 ? (
             <DashboardEmpty message="No received supplier orders yet." />
           ) : (
             <>
               <HorizontalBarChart
-                data={data.topSuppliers.map((row) => ({
-                  name: row.name,
-                  totalSpent: row.totalSpent,
-                }))}
+                compact
+                data={supplierChart}
                 nameKey="name"
-                valueKey="totalSpent"
-                valueLabel="Total spent"
+                valueKey="value"
+                valueLabel={chartLabelForRank(rankBy)}
+                valueFormatter={(value) => chartValueFormatter(rankBy, value)}
               />
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-left text-sm">

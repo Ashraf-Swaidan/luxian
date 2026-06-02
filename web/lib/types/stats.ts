@@ -46,12 +46,14 @@ export type StatsOrders = {
     name: string
     unitsSold: number
     revenue: number
+    profit: number
   }[]
   topCategories: {
     categoryId: string
     name: string
     unitsSold: number
     revenue: number
+    profit: number
   }[]
   recentOrders: Order[]
 }
@@ -61,6 +63,7 @@ export type StatsProducts = {
     id: string
     name: string
     sku: string
+    imageUrl: string | null
     stock: number
     restockLimit: number
     incomingStock: number
@@ -69,6 +72,7 @@ export type StatsProducts = {
     productId: string
     name: string
     sku: string
+    imageUrl: string | null
     unitsSold: number
     revenue: number
     profit: number
@@ -102,9 +106,18 @@ export type StatsSuppliers = {
 
 export type SalesGranularity = "daily" | "monthly" | "yearly"
 
+export type StatsRankBy =
+  | "balanced"
+  | "units"
+  | "revenue"
+  | "profit"
+  | "orders"
+  | "spent"
+
 export type StatsPeriodParams = {
   year?: number
   month?: number
+  rankBy?: StatsRankBy
 }
 
 export type StatsSalesParams = StatsPeriodParams & {
