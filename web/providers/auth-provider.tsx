@@ -15,6 +15,7 @@ import {
   logoutRequest,
   registerRequest,
 } from "@/features/auth/api"
+import { ApiError } from "@/lib/api-client"
 import { clearAuth, getStoredUser, saveUser } from "@/lib/auth-storage"
 import { SESSION_EXPIRED_EVENT } from "@/lib/session-events"
 import type { AuthUser, LoginInput, RegisterInput } from "@/lib/types/auth"
@@ -28,6 +29,10 @@ type AuthContextValue = {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function isConfirmedAuthFailure(error: unknown) {
+  return error instanceof ApiError && error.statusCode === 401
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -43,9 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const me = await getMeRequest()
       setUser(me)
       saveUser(me)
-    } catch {
-      clearAuth()
-      setUser(null)
+    } catch (error) {
+      if (isConfirmedAuthFailure(error)) {
+        clearAuth()
+        setUser(null)
+      }
     } finally {
       setIsLoading(false)
     }

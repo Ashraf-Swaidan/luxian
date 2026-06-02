@@ -6,6 +6,7 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
+import { IsHexColor } from './hex-color.validator';
 
 export class UpdateHomepageSettingsDto {
   @ValidateIf((_, value) => value != null && value !== '')
@@ -102,4 +103,64 @@ export class UpdateHomepageSettingsDto {
   @IsUrl()
   @IsOptional()
   brandImage6Url?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  heroBackgroundColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  heroTextColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  heroCtaBackgroundColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  heroCtaTextColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  bannerCtaBackgroundColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  bannerCtaTextColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  mosaicBackgroundColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  mosaicTextColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  mosaicCtaBackgroundColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  mosaicCtaTextColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  pairGradientStartColor?: string | null;
+
+  @ValidateIf((_, value) => value != null && value !== '')
+  @IsHexColor()
+  @IsOptional()
+  pairGradientEndColor?: string | null;
 }

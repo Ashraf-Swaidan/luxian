@@ -98,7 +98,7 @@ export class HomepageService {
       this.ensureCollectionExists(dto.heroCollectionId),
     ]);
 
-    const normalizedDto = this.normalizeHeroTextFields(dto);
+    const normalizedDto = this.normalizeSettingsDto(dto);
     const before = await this.prisma.homepageSettings.findUnique({
       where: { id: HOMEPAGE_ID },
     });
@@ -179,7 +179,7 @@ export class HomepageService {
     };
   }
 
-  private normalizeHeroTextFields(dto: UpdateHomepageSettingsDto) {
+  private normalizeSettingsDto(dto: UpdateHomepageSettingsDto) {
     const trimToNull = (value: string | null | undefined) => {
       if (value === undefined) {
         return undefined;
@@ -189,8 +189,30 @@ export class HomepageService {
       return trimmed ? trimmed : null;
     };
 
+    const colorFields = [
+      'heroBackgroundColor',
+      'heroTextColor',
+      'heroCtaBackgroundColor',
+      'heroCtaTextColor',
+      'bannerCtaBackgroundColor',
+      'bannerCtaTextColor',
+      'mosaicBackgroundColor',
+      'mosaicTextColor',
+      'mosaicCtaBackgroundColor',
+      'mosaicCtaTextColor',
+      'pairGradientStartColor',
+      'pairGradientEndColor',
+    ] as const;
+
+    const normalizedColors = Object.fromEntries(
+      colorFields
+        .filter((field) => dto[field] !== undefined)
+        .map((field) => [field, trimToNull(dto[field])]),
+    );
+
     return {
       ...dto,
+      ...normalizedColors,
       ...(dto.heroWordmark !== undefined
         ? { heroWordmark: trimToNull(dto.heroWordmark) }
         : {}),

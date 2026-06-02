@@ -137,7 +137,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    return this.issueAuthResponse(this.toSafeUser(user));
+    return this.issueRefreshResponse(this.toSafeUser(user), refreshToken);
   }
 
   async logout(userId: string): Promise<{ message: string }> {
@@ -197,6 +197,48 @@ export class AuthService {
   ): Promise<{ response: AuthResponseDto; tokens: AuthTokens }> {
     const tokens = await this.generateTokens(user.id, user.email);
     await this.persistRefreshToken(user.id, tokens.refreshToken);
+    const response = await this.buildAuthResponse(user);
+
+    return {
+      tokens,
+      response,
+    };
+  }
+
+  private async issueRefreshResponse(
+    user: Pick<
+      User,
+      | 'id'
+      | 'email'
+      | 'firstName'
+      | 'lastName'
+      | 'role'
+      | 'staffRoleId'
+      | 'isStaffActive'
+    >,
+    refreshToken: string,
+  ): Promise<{ response: AuthResponseDto; tokens: AuthTokens }> {
+    const accessToken = await this.generateAccessToken(user.id, user.email);
+    const response = await this.buildAuthResponse(user);
+
+    return {
+      tokens: { accessToken, refreshToken },
+      response,
+    };
+  }
+
+  private async buildAuthResponse(
+    user: Pick<
+      User,
+      | 'id'
+      | 'email'
+      | 'firstName'
+      | 'lastName'
+      | 'role'
+      | 'staffRoleId'
+      | 'isStaffActive'
+    >,
+  ): Promise<AuthResponseDto> {
     const permissions = await this.permissionsService.resolvePermissionsForUser(
       user,
     );
@@ -209,21 +251,28 @@ export class AuthService {
       : null;
 
     return {
-      tokens,
-      response: {
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          permissions,
-          staffRoleId: user.staffRoleId,
-          staffRoleName: staffRole?.name ?? null,
-        },
-        csrfToken: '',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        permissions,
+        staffRoleId: user.staffRoleId,
+        staffRoleName: staffRole?.name ?? null,
       },
+      csrfToken: '',
     };
+  }
+
+  private async generateAccessToken(
+    userId: string,
+    email: string,
+  ): Promise<string> {
+    return this.jwtService.signAsync(
+      { sub: userId, email },
+      { expiresIn: '15m' },
+    );
   }
 
   private async generateTokens(
@@ -233,7 +282,7 @@ export class AuthService {
     const payload = { sub: userId, email };
     const refreshId = randomBytes(16).toString('hex');
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, { expiresIn: '15m' }),
+      this.generateAccessToken(userId, email),
       this.jwtService.signAsync({ ...payload, refreshId }, { expiresIn: '7d' }),
     ]);
     return { accessToken, refreshToken };

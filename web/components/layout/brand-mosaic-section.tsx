@@ -66,19 +66,44 @@ const brandMosaicItems: BrandMosaicItem[] = [
 ]
 
 export function BrandMosaicSection({ homepage }: { homepage: HomepageSettings }) {
+  const sectionBg = homepage.mosaicBackgroundColor
+  const sectionText = homepage.mosaicTextColor
+  const ctaBg = homepage.mosaicCtaBackgroundColor
+  const ctaText = homepage.mosaicCtaTextColor
+  const customText = Boolean(sectionText)
+  const eyebrowClass = customText ? "opacity-50" : "text-white/50"
+
   return (
-    <section className="bg-neutral-950 px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-10 lg:py-24">
+    <section
+      className={cn(
+        "px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-24",
+        !sectionBg && "bg-neutral-950",
+        !sectionText && "text-white",
+      )}
+      style={{
+        ...(sectionBg ? { backgroundColor: sectionBg } : {}),
+        ...(sectionText ? { color: sectionText } : {}),
+      }}
+    >
       <div className="mx-auto w-full max-w-[112rem]">
         <div className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
-            <p className="text-xs font-medium tracking-wide text-white/50 uppercase">Luxian visual world</p>
+            <p className={cn("text-xs font-medium tracking-wide uppercase", eyebrowClass)}>Luxian visual world</p>
             <h2 className="mt-3 max-w-4xl font-display text-5xl leading-[0.9] font-black uppercase sm:text-6xl lg:text-7xl">
               Built for the whole destination
             </h2>
           </div>
           <Link
             href="/products"
-            className="inline-flex h-11 w-fit items-center bg-white px-5 text-sm font-semibold text-neutral-950 transition-transform hover:scale-[1.02]"
+            className={cn(
+              "inline-flex h-11 w-fit items-center px-5 text-sm font-semibold transition-transform hover:scale-[1.02]",
+              !ctaBg && "bg-white",
+              !ctaText && "text-neutral-950",
+            )}
+            style={{
+              ...(ctaBg ? { backgroundColor: ctaBg } : {}),
+              ...(ctaText ? { color: ctaText } : {}),
+            }}
           >
             Shop Luxian
           </Link>

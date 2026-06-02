@@ -27,6 +27,18 @@ export type HomepageSettings = {
   brandImage4Url: string | null
   brandImage5Url: string | null
   brandImage6Url: string | null
+  heroBackgroundColor: string | null
+  heroTextColor: string | null
+  heroCtaBackgroundColor: string | null
+  heroCtaTextColor: string | null
+  bannerCtaBackgroundColor: string | null
+  bannerCtaTextColor: string | null
+  mosaicBackgroundColor: string | null
+  mosaicTextColor: string | null
+  mosaicCtaBackgroundColor: string | null
+  mosaicCtaTextColor: string | null
+  pairGradientStartColor: string | null
+  pairGradientEndColor: string | null
   createdAt: string
   updatedAt: string
 }

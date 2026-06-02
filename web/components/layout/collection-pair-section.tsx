@@ -1,16 +1,25 @@
 import Link from "next/link"
 
 import { StoreImage } from "@/components/common/store-image"
+import { cn } from "@/lib/utils"
+import { pairGradientStyle } from "@/lib/homepage-section-styles"
 import type { Collection } from "@/lib/types/collection"
+import type { HomepageSettings } from "@/lib/types/homepage"
 
-export function CollectionPairSection({ collections }: { collections: Collection[] }) {
+export function CollectionPairSection({
+  collections,
+  homepage,
+}: {
+  collections: Collection[]
+  homepage?: Pick<HomepageSettings, "pairGradientStartColor" | "pairGradientEndColor"> | null
+}) {
   if (!collections.length) {
     return null
   }
 
   return (
     <section className="relative overflow-hidden bg-white px-6 py-16 sm:px-10 sm:py-20 lg:px-14">
-      <GradientWash />
+      <GradientWash homepage={homepage} />
       <div className="relative mx-auto grid w-full max-w-[92rem] gap-6 md:grid-cols-2">
         {collections.map((collection) => (
           <CollectionPairCard key={collection.id} collection={collection} />
@@ -50,11 +59,22 @@ function CollectionPairCard({ collection }: { collection: Collection }) {
   )
 }
 
-function GradientWash() {
+function GradientWash({
+  homepage,
+}: {
+  homepage?: Pick<HomepageSettings, "pairGradientStartColor" | "pairGradientEndColor"> | null
+}) {
+  const customStyle = pairGradientStyle(homepage)
+
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-1/2 h-2/3 -translate-y-1/2 bg-[linear-gradient(90deg,transparent,oklch(0.9_0.07_178_/_0.35),oklch(0.93_0.08_80_/_0.28),transparent)] blur-3xl"
+      className={cn(
+        "pointer-events-none absolute inset-x-0 top-1/2 h-2/3 -translate-y-1/2 blur-3xl",
+        !customStyle &&
+          "bg-[linear-gradient(90deg,transparent,oklch(0.9_0.07_178_/_0.35),oklch(0.93_0.08_80_/_0.28),transparent)]",
+      )}
+      style={customStyle}
     />
   )
 }

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
+import { HomepageColorField, HomepageColorFields } from "@/components/admin/homepage-color-field"
 import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { StoreImage } from "@/components/common/store-image"
 import { HomeHero } from "@/components/layout/home-hero"
@@ -36,6 +37,7 @@ import { queryKeys } from "@/lib/query-keys"
 import type { Collection } from "@/lib/types/collection"
 import type { HomepageSettings } from "@/lib/types/homepage"
 import type { Product } from "@/lib/types/product"
+import { HOMEPAGE_COLOR_DEFAULTS } from "@/lib/homepage-color-defaults"
 import { cn } from "@/lib/utils"
 
 const NONE = "none"
@@ -498,6 +500,32 @@ function SectionEditor({
               <TextField label="Mobile heading" value={draft.heroHeading} onChange={(v) => patchDraft({ heroHeading: v })} placeholder="Sculptural streetwear" className="sm:col-span-2" />
               <TextField label="Mobile tagline" value={draft.heroTagline} onChange={(v) => patchDraft({ heroTagline: v })} placeholder="Technical essentials..." className="sm:col-span-2" />
             </div>
+            <HomepageColorFields>
+              <HomepageColorField
+                label="Background"
+                defaultColor={HOMEPAGE_COLOR_DEFAULTS.heroBackground}
+                value={draft.heroBackgroundColor}
+                onChange={(heroBackgroundColor) => patchDraft({ heroBackgroundColor })}
+              />
+              <HomepageColorField
+                label="Text"
+                defaultColor={HOMEPAGE_COLOR_DEFAULTS.heroText}
+                value={draft.heroTextColor}
+                onChange={(heroTextColor) => patchDraft({ heroTextColor })}
+              />
+              <HomepageColorField
+                label="CTA background"
+                defaultColor={HOMEPAGE_COLOR_DEFAULTS.heroCtaBackground}
+                value={draft.heroCtaBackgroundColor}
+                onChange={(heroCtaBackgroundColor) => patchDraft({ heroCtaBackgroundColor })}
+              />
+              <HomepageColorField
+                label="CTA text"
+                defaultColor={HOMEPAGE_COLOR_DEFAULTS.heroCtaText}
+                value={draft.heroCtaTextColor}
+                onChange={(heroCtaTextColor) => patchDraft({ heroCtaTextColor })}
+              />
+            </HomepageColorFields>
           </div>
         </div>
       )}
@@ -533,6 +561,20 @@ function SectionEditor({
             <p className="text-sm leading-relaxed text-muted-foreground">
               Controls the campaign image, CTA label, and which collection the button opens.
             </p>
+            <HomepageColorFields title="Banner CTA colors">
+              <HomepageColorField
+                label="CTA background"
+                defaultColor={HOMEPAGE_COLOR_DEFAULTS.bannerCtaBackground}
+                value={draft.bannerCtaBackgroundColor}
+                onChange={(bannerCtaBackgroundColor) => patchDraft({ bannerCtaBackgroundColor })}
+              />
+              <HomepageColorField
+                label="CTA text"
+                defaultColor={HOMEPAGE_COLOR_DEFAULTS.bannerCtaText}
+                value={draft.bannerCtaTextColor}
+                onChange={(bannerCtaTextColor) => patchDraft({ bannerCtaTextColor })}
+              />
+            </HomepageColorFields>
           </div>
         </div>
       )}
@@ -566,23 +608,65 @@ function SectionEditor({
           <p className="text-sm leading-relaxed text-muted-foreground">
             These six images feed the homepage collage in order. Empty slots use prepared Luxian brand assets.
           </p>
+          <HomepageColorFields>
+            <HomepageColorField
+              label="Section background"
+              defaultColor={HOMEPAGE_COLOR_DEFAULTS.mosaicBackground}
+              value={draft.mosaicBackgroundColor}
+              onChange={(mosaicBackgroundColor) => patchDraft({ mosaicBackgroundColor })}
+            />
+            <HomepageColorField
+              label="Text"
+              defaultColor={HOMEPAGE_COLOR_DEFAULTS.mosaicText}
+              value={draft.mosaicTextColor}
+              onChange={(mosaicTextColor) => patchDraft({ mosaicTextColor })}
+            />
+            <HomepageColorField
+              label="CTA background"
+              defaultColor={HOMEPAGE_COLOR_DEFAULTS.mosaicCtaBackground}
+              value={draft.mosaicCtaBackgroundColor}
+              onChange={(mosaicCtaBackgroundColor) => patchDraft({ mosaicCtaBackgroundColor })}
+            />
+            <HomepageColorField
+              label="CTA text"
+              defaultColor={HOMEPAGE_COLOR_DEFAULTS.mosaicCtaText}
+              value={draft.mosaicCtaTextColor}
+              onChange={(mosaicCtaTextColor) => patchDraft({ mosaicCtaTextColor })}
+            />
+          </HomepageColorFields>
         </div>
       )}
 
       {sectionId === "pair" && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <CollectionSelect
-            label="Left collection"
-            value={draft.pairLeftCollectionId ?? ""}
-            onChange={(value) => patchDraft({ pairLeftCollectionId: value || null })}
-            collections={collections}
-          />
-          <CollectionSelect
-            label="Right collection"
-            value={draft.pairRightCollectionId ?? ""}
-            onChange={(value) => patchDraft({ pairRightCollectionId: value || null })}
-            collections={collections}
-          />
+        <div className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <CollectionSelect
+              label="Left collection"
+              value={draft.pairLeftCollectionId ?? ""}
+              onChange={(value) => patchDraft({ pairLeftCollectionId: value || null })}
+              collections={collections}
+            />
+            <CollectionSelect
+              label="Right collection"
+              value={draft.pairRightCollectionId ?? ""}
+              onChange={(value) => patchDraft({ pairRightCollectionId: value || null })}
+              collections={collections}
+            />
+          </div>
+          <HomepageColorFields title="Background wash">
+            <HomepageColorField
+              label="Gradient start"
+              defaultColor={HOMEPAGE_COLOR_DEFAULTS.pairGradientStart}
+              value={draft.pairGradientStartColor}
+              onChange={(pairGradientStartColor) => patchDraft({ pairGradientStartColor })}
+            />
+            <HomepageColorField
+              label="Gradient end"
+              defaultColor={HOMEPAGE_COLOR_DEFAULTS.pairGradientEnd}
+              value={draft.pairGradientEndColor}
+              onChange={(pairGradientEndColor) => patchDraft({ pairGradientEndColor })}
+            />
+          </HomepageColorFields>
         </div>
       )}
     </div>
@@ -656,7 +740,7 @@ function HomepageDraftPreview({
             <SummerSeasonBanner homepage={preview.homepage} />
             <NowTrending products={preview.trendingProducts} />
             <BrandMosaicSection homepage={preview.homepage} />
-            <CollectionPairSection collections={preview.pairCollections} />
+            <CollectionPairSection collections={preview.pairCollections} homepage={preview.homepage} />
           </main>
         </div>
       </SheetContent>

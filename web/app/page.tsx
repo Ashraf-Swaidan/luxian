@@ -31,7 +31,7 @@ export default async function Page() {
       <SummerSeasonBanner homepage={bundle.homepage} />
       <NowTrending products={bundle.trendingProducts} />
       <BrandMosaicSection homepage={bundle.homepage} />
-      <CollectionPairSection collections={bundle.pairCollections} />
+      <CollectionPairSection collections={bundle.pairCollections} homepage={bundle.homepage} />
     </main>
   )
 }

@@ -334,6 +334,19 @@ model HomepageSettings {
   brandImage5Url String?
   brandImage6Url String?
 
+  heroBackgroundColor      String?
+  heroTextColor            String?
+  heroCtaBackgroundColor   String?
+  heroCtaTextColor         String?
+  bannerCtaBackgroundColor String?
+  bannerCtaTextColor       String?
+  mosaicBackgroundColor    String?
+  mosaicTextColor          String?
+  mosaicCtaBackgroundColor String?
+  mosaicCtaTextColor       String?
+  pairGradientStartColor   String?
+  pairGradientEndColor     String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

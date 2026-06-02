@@ -1,4 +1,12 @@
 import type { UpdateHomepageSettingsInput } from "@/features/homepage/api"
+import {
+  colorFieldsFromDraft,
+  colorFieldsFromSettings,
+  colorFieldsPayload,
+  colorPayloadValue,
+  HOMEPAGE_COLOR_DRAFT_KEYS,
+  type HomepageColorDraftFields,
+} from "@/lib/homepage-colors"
 import type { Collection } from "@/lib/types/collection"
 import type { HomepageSettings } from "@/lib/types/homepage"
 import type { Product } from "@/lib/types/product"
@@ -19,13 +27,14 @@ export type HomepageDraft = Pick<
   | "brandImage4Url"
   | "brandImage5Url"
   | "brandImage6Url"
-> & {
-  heroWordmark: string
-  heroEyebrow: string
-  heroHeading: string
-  heroTagline: string
-  bannerButtonText: string
-}
+> &
+  HomepageColorDraftFields & {
+    heroWordmark: string
+    heroEyebrow: string
+    heroHeading: string
+    heroTagline: string
+    bannerButtonText: string
+  }
 
 export type HomepageSectionId = "hero" | "latest" | "banner" | "trending" | "mosaic" | "pair"
 
@@ -62,6 +71,7 @@ const DRAFT_COMPARE_KEYS: (keyof HomepageDraft)[] = [
   "brandImage4Url",
   "brandImage5Url",
   "brandImage6Url",
+  ...HOMEPAGE_COLOR_DRAFT_KEYS,
 ]
 
 export function createDraftFromSettings(settings: HomepageSettings): HomepageDraft {
@@ -85,6 +95,7 @@ export function createDraftFromSettings(settings: HomepageSettings): HomepageDra
     brandImage4Url: settings.brandImage4Url,
     brandImage5Url: settings.brandImage5Url,
     brandImage6Url: settings.brandImage6Url,
+    ...colorFieldsFromSettings(settings),
   }
 }
 
@@ -99,6 +110,9 @@ function normalizeDraftValue(key: keyof HomepageDraft, value: HomepageDraft[keyo
     key === "heroTagline"
   ) {
     return (value as string | null) ?? ""
+  }
+  if (HOMEPAGE_COLOR_DRAFT_KEYS.includes(key as (typeof HOMEPAGE_COLOR_DRAFT_KEYS)[number])) {
+    return colorPayloadValue(String(value ?? "")) ?? null
   }
   return value ?? null
 }
@@ -133,6 +147,7 @@ export function buildHomepagePayload(draft: HomepageDraft): UpdateHomepageSettin
     brandImage4Url: draft.brandImage4Url,
     brandImage5Url: draft.brandImage5Url,
     brandImage6Url: draft.brandImage6Url,
+    ...colorFieldsPayload(draft),
   }
 }
 
@@ -182,6 +197,7 @@ function mergeDraftIntoSettings(
     brandImage4Url: draft.brandImage4Url,
     brandImage5Url: draft.brandImage5Url,
     brandImage6Url: draft.brandImage6Url,
+    ...colorFieldsFromDraft(draft),
   }
 }
 
