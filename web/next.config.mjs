@@ -31,9 +31,30 @@ if (imageHost) {
   })
 }
 
+/** Nest API origin for rewrites, e.g. https://luxian.onrender.com (no /api/v1 suffix). */
+function getApiUpstream() {
+  const raw = process.env.API_UPSTREAM?.trim()
+  if (!raw) {
+    return null
+  }
+  return raw.replace(/\/$/, "")
+}
+
 const nextConfig = {
   images: {
     remotePatterns,
+  },
+  async rewrites() {
+    const upstream = getApiUpstream()
+    if (!upstream) {
+      return []
+    }
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${upstream}/api/v1/:path*`,
+      },
+    ]
   },
 }
 

@@ -34,7 +34,17 @@ function getBaseUrl(): string {
   if (!url) {
     throw new Error("NEXT_PUBLIC_API_URL is not set")
   }
-  return url.replace(/\/$/, "")
+  const base = url.replace(/\/$/, "")
+  if (base.startsWith("http://") || base.startsWith("https://")) {
+    return base
+  }
+  if (base.startsWith("/")) {
+    if (typeof window === "undefined") {
+      throw new Error("Relative NEXT_PUBLIC_API_URL requires a browser (use an absolute URL for SSR)")
+    }
+    return `${window.location.origin}${base}`
+  }
+  return base
 }
 
 function getRequestTimeoutMs(): number {
