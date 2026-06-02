@@ -16,6 +16,7 @@ import {
   registerRequest,
 } from "@/features/auth/api"
 import { clearAuth, getStoredUser, saveUser } from "@/lib/auth-storage"
+import { SESSION_EXPIRED_EVENT } from "@/lib/session-events"
 import type { AuthUser, LoginInput, RegisterInput } from "@/lib/types/auth"
 
 type AuthContextValue = {
@@ -53,6 +54,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void bootstrap()
   }, [bootstrap])
+
+  useEffect(() => {
+    const onSessionExpired = () => {
+      setUser(null)
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
+  }, [])
 
   const login = useCallback(async (input: LoginInput) => {
     const response = await loginRequest(input)

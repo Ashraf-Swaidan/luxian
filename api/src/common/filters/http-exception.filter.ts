@@ -69,6 +69,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
     }
 
+    if (this.isDatabaseUnavailable(exception)) {
+      return {
+        statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+        message:
+          'The database is temporarily unavailable. Please wait a moment and try again.',
+        error: 'Service Unavailable',
+      };
+    }
+
     const isProduction = process.env.NODE_ENV === 'production';
 
     return {
@@ -80,6 +89,27 @@ export class HttpExceptionFilter implements ExceptionFilter {
           : 'Internal server error',
       error: 'Internal Server Error',
     };
+  }
+
+  private isDatabaseUnavailable(exception: unknown): boolean {
+    if (exception instanceof Prisma.PrismaClientInitializationError) {
+      return true;
+    }
+
+    const message =
+      exception instanceof Error ? exception.message : String(exception);
+    const lower = message.toLowerCase();
+
+    return (
+      lower.includes('timeout exceeded when trying to connect') ||
+      lower.includes('connection terminated due to connection timeout') ||
+      lower.includes('connection terminated unexpectedly') ||
+      lower.includes('connect etimedout') ||
+      lower.includes('econnrefused') ||
+      lower.includes('enetunreach') ||
+      lower.includes("can't reach database server") ||
+      lower.includes('server closed the connection unexpectedly')
+    );
   }
 
   private fromHttpException(exception: HttpException): {

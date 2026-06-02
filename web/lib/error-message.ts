@@ -97,7 +97,23 @@ export function getFriendlyErrorMessage(
     return "We are having trouble reaching the server. Please check your connection and try again."
   }
 
+  if (error instanceof ApiError && error.statusCode === 503) {
+    const raw = getErrorMessage(error).toLowerCase()
+    if (raw.includes("database") || raw.includes("unavailable")) {
+      return "The store database is waking up or busy. Wait a few seconds and try again."
+    }
+    return "The server is temporarily unavailable. Please try again in a moment."
+  }
+
   if (error instanceof ApiError && error.statusCode >= 500) {
+    const raw = getErrorMessage(error).toLowerCase()
+    if (
+      raw.includes("timeout exceeded when trying to connect") ||
+      raw.includes("connection terminated") ||
+      raw.includes("database")
+    ) {
+      return "The store database is waking up or busy. Wait a few seconds and try again."
+    }
     return "Something went wrong on our side. Please try again in a moment."
   }
 
@@ -113,7 +129,11 @@ export function getFriendlyErrorMessage(
 
   if (error instanceof ApiError && error.statusCode === 403) {
     const raw = getErrorMessage(error)
-    if (raw.toLowerCase() === "forbidden" || raw.toLowerCase() === "insufficient permissions") {
+    const normalized = raw.toLowerCase()
+    if (normalized.includes("csrf")) {
+      return "Your session needs a quick refresh. Reload the page and try again."
+    }
+    if (normalized === "forbidden" || normalized === "insufficient permissions") {
       return "You do not have permission to do that."
     }
     return raw

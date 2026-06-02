@@ -1,5 +1,6 @@
 import { clearAuth, saveUser } from "@/lib/auth-storage"
 import { getCsrfTokenFromCookie } from "@/lib/csrf"
+import { dispatchSessionExpired } from "@/lib/session-events"
 import type { AuthResponse } from "@/lib/types/auth"
 
 /** Matches Nest `HttpExceptionFilter` error body */
@@ -70,18 +71,30 @@ function createTimeoutSignal() {
   return { signal: controller.signal, clear: () => clearTimeout(timeoutId) }
 }
 
-async function parseBody<T>(response: Response): Promise<T> {
-  const text = await response.text()
+function parseJsonBody<T>(text: string): T | null {
   if (!text) {
-    return undefined as T
+    return null
   }
-
-  const contentType = response.headers.get("content-type") ?? ""
-  if (contentType.includes("application/json")) {
+  try {
     return JSON.parse(text) as T
+  } catch {
+    return null
   }
+}
 
-  return text as T
+function getErrorMessageText(body: ApiErrorBody): string {
+  return Array.isArray(body.message) ? body.message.join(" ") : body.message
+}
+
+function isInvalidCsrfError(status: number, body: ApiErrorBody | null): boolean {
+  if (status !== 403 || !body) {
+    return false
+  }
+  return getErrorMessageText(body).toLowerCase().includes("csrf")
+}
+
+function shouldAttemptSessionRefresh(status: number, body: ApiErrorBody | null): boolean {
+  return status === 401 || isInvalidCsrfError(status, body)
 }
 
 let refreshInFlight: Promise<boolean> | null = null
@@ -96,23 +109,24 @@ async function refreshTokens(): Promise<boolean> {
     })
       .then(async (response) => {
         if (!response.ok) {
-          clearAuth()
           return false
         }
         const body = (await response.json()) as AuthResponse
         saveUser(body.user)
         return true
       })
-      .catch(() => {
-        clearAuth()
-        return false
-      })
+      .catch(() => false)
       .finally(() => {
         refreshInFlight = null
       })
   }
 
   return refreshInFlight
+}
+
+async function handleAuthFailure() {
+  clearAuth()
+  dispatchSessionExpired()
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -152,28 +166,26 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     timeout.clear()
   }
 
-  if (!response.ok && response.status === 401 && auth && !_retry) {
-    const refreshed = await refreshTokens()
-    if (refreshed) {
-      return request<T>(path, { ...options, _retry: true })
-    }
-  }
+  const text = await response.text()
 
   if (!response.ok) {
-    try {
-      const errorBody = (await parseBody<ApiErrorBody>(response)) as ApiErrorBody
-      if (errorBody?.statusCode && errorBody?.message) {
-        throw new ApiError(errorBody)
+    const errorBody = parseJsonBody<ApiErrorBody>(text)
+
+    if (auth && !_retry && shouldAttemptSessionRefresh(response.status, errorBody)) {
+      const refreshed = await refreshTokens()
+      if (refreshed) {
+        return request<T>(path, { ...options, _retry: true })
       }
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error
-      }
+      await handleAuthFailure()
+    }
+
+    if (errorBody?.statusCode && errorBody?.message) {
+      throw new ApiError(errorBody)
     }
     throw new Error(`${method} ${url} failed with ${response.status}`)
   }
 
-  return parseBody<T>(response)
+  return (parseJsonBody<T>(text) ?? (undefined as T))
 }
 
 export type UploadImageResponse = {
@@ -218,28 +230,26 @@ async function uploadRequest<T>(
     timeout.clear()
   }
 
-  if (response.status === 401 && auth && !_retry) {
-    const refreshed = await refreshTokens()
-    if (refreshed) {
-      return uploadRequest<T>(path, formData, { ...options, _retry: true })
-    }
-  }
+  const text = await response.text()
 
   if (!response.ok) {
-    try {
-      const errorBody = (await parseBody<ApiErrorBody>(response)) as ApiErrorBody
-      if (errorBody?.statusCode && errorBody?.message) {
-        throw new ApiError(errorBody)
+    const errorBody = parseJsonBody<ApiErrorBody>(text)
+
+    if (auth && !_retry && shouldAttemptSessionRefresh(response.status, errorBody)) {
+      const refreshed = await refreshTokens()
+      if (refreshed) {
+        return uploadRequest<T>(path, formData, { ...options, _retry: true })
       }
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error
-      }
+      await handleAuthFailure()
+    }
+
+    if (errorBody?.statusCode && errorBody?.message) {
+      throw new ApiError(errorBody)
     }
     throw new Error(`POST ${url} failed with ${response.status}`)
   }
 
-  return parseBody<T>(response)
+  return (parseJsonBody<T>(text) ?? (undefined as T))
 }
 
 export const api = {

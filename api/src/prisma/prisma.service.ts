@@ -24,16 +24,24 @@ export class PrismaService
     const logger = new Logger(PrismaService.name);
     const connectionTimeoutMillis = readPositiveInt(
       'DB_CONNECTION_TIMEOUT_MS',
-      10_000,
+      20_000,
     );
-    const queryTimeoutMillis = readPositiveInt('DB_QUERY_TIMEOUT_MS', 15_000);
+    const queryTimeoutMillis = readPositiveInt('DB_QUERY_TIMEOUT_MS', 20_000);
     const pool = new Pool({
       connectionString: process.env['DATABASE_URL'],
       connectionTimeoutMillis,
       query_timeout: queryTimeoutMillis,
       statement_timeout: queryTimeoutMillis,
-      idleTimeoutMillis: 30_000,
+      idleTimeoutMillis: 20_000,
       max: readPositiveInt('DB_POOL_MAX', 5),
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
+      maxUses: 7_500,
+      allowExitOnIdle: false,
+      ssl:
+        process.env['DATABASE_SSL'] === 'false'
+          ? undefined
+          : { rejectUnauthorized: false },
     });
 
     const adapter = new PrismaPg(pool, {

@@ -30,11 +30,12 @@ export class AuthCookieService {
       maxAge: REFRESH_TOKEN_MAX_AGE_SEC * 1000,
     });
 
+    // Keep CSRF cookie alive with the refresh session so admin forms still work after access JWT expires
     res.cookie(AUTH_COOKIE_NAMES.csrf, csrfToken, {
       ...base,
       httpOnly: false,
       path: AUTH_COOKIE_PATHS.access,
-      maxAge: ACCESS_TOKEN_MAX_AGE_SEC * 1000,
+      maxAge: REFRESH_TOKEN_MAX_AGE_SEC * 1000,
     });
 
     return csrfToken;
