@@ -86,8 +86,9 @@ model Product {
   description String?
   price       Decimal @db.Decimal(10, 2)
   cost        Decimal @default(0) @db.Decimal(10, 2)
-  stock       Int     @default(0)
-  sku         String  @unique
+  stock        Int @default(0)
+  restockLimit Int @default(10)
+  sku          String  @unique
   imageUrl    String?
   isActive    Boolean @default(true)
 

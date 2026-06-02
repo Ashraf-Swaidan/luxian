@@ -34,6 +34,11 @@ export class UpdateProductDto {
   @IsOptional()
   stock?: number;
 
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  restockLimit?: number;
+
   @IsUUID()
   @IsOptional()
   categoryId?: string;

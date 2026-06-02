@@ -33,6 +33,11 @@ export class CreateProductDto {
   @IsOptional()
   stock?: number;
 
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  restockLimit?: number;
+
   @IsUUID()
   categoryId: string;
 

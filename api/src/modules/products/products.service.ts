@@ -481,6 +481,7 @@ export class ProductsService {
           price: dto.price,
           cost: dto.cost ?? 0,
           stock: dto.stock ?? 0,
+          restockLimit: dto.restockLimit ?? 10,
           categoryId: dto.categoryId,
           description: dto.description,
           imageUrl: dto.imageUrl,

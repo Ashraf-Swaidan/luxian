@@ -91,6 +91,7 @@ export type CreateProductInput = {
   price: number
   cost?: number
   stock?: number
+  restockLimit?: number
   categoryId: string
   description?: string
   imageUrl?: string

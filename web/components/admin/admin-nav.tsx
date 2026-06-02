@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 
 const adminLinks = [
   { href: "/admin", label: "Overview", exact: true },
+  { href: "/admin/dashboard", label: "Dashboard" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/collections", label: "Collections" },
   { href: "/admin/products", label: "Products" },

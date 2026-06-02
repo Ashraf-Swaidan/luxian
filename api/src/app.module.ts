@@ -16,6 +16,7 @@ import { MediaModule } from './modules/media/media.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { PersonalizationModule } from './modules/personalization/personalization.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SuppliersModule } from './modules/suppliers/suppliers.module';
     FavoritesModule,
     PersonalizationModule,
     SuppliersModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

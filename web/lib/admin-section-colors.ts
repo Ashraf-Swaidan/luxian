@@ -30,6 +30,11 @@ export const adminSectionStyles = {
     button:
       "border-transparent bg-[oklch(0.78_0.13_25)] text-neutral-950 hover:bg-[oklch(0.74_0.13_25)]",
   },
+  dashboard: {
+    card: "bg-[oklch(0.88_0.1_250)]",
+    button:
+      "border-transparent bg-[oklch(0.88_0.1_250)] text-neutral-950 hover:bg-[oklch(0.84_0.1_250)]",
+  },
 } as const
 
 export type AdminSectionKey = keyof typeof adminSectionStyles
@@ -45,5 +50,6 @@ export function getAdminSectionFromPath(pathname: string): AdminSectionKey | nul
   if (pathname.startsWith("/admin/categories")) return "categories"
   if (pathname.startsWith("/admin/homepage")) return "homepage"
   if (pathname.startsWith("/admin/orders")) return "orders"
+  if (pathname.startsWith("/admin/dashboard")) return "dashboard"
   return null
 }

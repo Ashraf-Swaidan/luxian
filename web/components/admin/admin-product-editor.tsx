@@ -113,6 +113,7 @@ function AdminProductEditorForm({
   const [price, setPrice] = useState(product.price)
   const [cost, setCost] = useState(product.cost)
   const [stock, setStock] = useState(String(product.stock))
+  const [restockLimit, setRestockLimit] = useState(String(product.restockLimit ?? 10))
   const [imageUrl, setImageUrl] = useState<string | null>(product.imageUrl)
 
   const saveMutation = useMutation({
@@ -125,6 +126,7 @@ function AdminProductEditorForm({
         price: Number.parseFloat(price),
         cost: Number.parseFloat(cost) || 0,
         stock: Number.parseInt(stock, 10) || 0,
+        restockLimit: Number.parseInt(restockLimit, 10) || 0,
         imageUrl,
       }),
     onSuccess: onSaved,
@@ -145,6 +147,7 @@ function AdminProductEditorForm({
     price !== product.price ||
     cost !== product.cost ||
     stock !== String(product.stock) ||
+    restockLimit !== String(product.restockLimit ?? 10) ||
     imageUrl !== product.imageUrl
 
   return (
@@ -201,6 +204,7 @@ function AdminProductEditorForm({
             <PlainField label="Price" value={price} onChange={setPrice} />
             <PlainField label="Cost" value={cost} onChange={setCost} />
             <PlainField label="Stock" value={stock} onChange={setStock} />
+            <PlainField label="Restock limit" value={restockLimit} onChange={setRestockLimit} />
           </div>
 
           <PlainField label="Product code" value={sku} onChange={setSku} />

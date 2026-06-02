@@ -17,6 +17,7 @@ export type Product = {
   price: string
   cost: string
   stock: number
+  restockLimit: number
   incomingStock?: number
   sku: string
   imageUrl: string | null
