@@ -15,7 +15,7 @@ export type Product = {
   name: string
   description: string | null
   price: string
-  cost: string
+  cost?: string
   stock: number
   restockLimit: number
   incomingStock?: number

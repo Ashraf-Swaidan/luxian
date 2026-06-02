@@ -1,5 +1,4 @@
 import { api } from "@/lib/api-client"
-import { getAccessToken } from "@/lib/auth-storage"
 import type { DeleteMediaAssetResponse, MediaAsset, MediaOwnerType } from "@/lib/types/media"
 
 export type ImageHistoryParams = {
@@ -23,12 +22,11 @@ export function deleteImageAsset(id: string) {
 }
 
 export async function deleteStorageObject(key: string) {
-  const token = getAccessToken()
   const response = await fetch("/api/uploadthing/delete", {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ key }),
   })

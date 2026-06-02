@@ -9,10 +9,6 @@ export function registerRequest(body: RegisterInput) {
   return api.post<AuthResponse>("auth/register", body, { auth: false })
 }
 
-export function refreshRequest(refreshToken: string) {
-  return api.post<AuthResponse>("auth/refresh", { refreshToken }, { auth: false })
-}
-
 export function logoutRequest() {
   return api.post<{ message: string }>("auth/logout")
 }

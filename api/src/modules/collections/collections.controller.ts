@@ -9,10 +9,10 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { Roles } from '../auth/decorators/roles.decorators';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions/permission.registry';
 import {
   AddCollectionProductDto,
   AddCollectionProductsDto,
@@ -32,8 +32,8 @@ export class CollectionsController {
   }
 
   @Get('admin/list')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   findAllForAdmin() {
     return this.collectionsService.findAllForAdmin();
   }
@@ -44,15 +44,15 @@ export class CollectionsController {
   }
 
   @Post()
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   create(@Body() dto: CreateCollectionDto) {
     return this.collectionsService.create(dto);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCollectionDto,
@@ -61,15 +61,15 @@ export class CollectionsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   deactivate(@Param('id', ParseUUIDPipe) id: string) {
     return this.collectionsService.deactivate(id);
   }
 
   @Post(':id/products')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   addProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddCollectionProductDto,
@@ -78,8 +78,8 @@ export class CollectionsController {
   }
 
   @Post(':id/products/bulk')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   addProducts(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddCollectionProductsDto,
@@ -88,8 +88,8 @@ export class CollectionsController {
   }
 
   @Delete(':id/products/:productId')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   removeProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -98,8 +98,8 @@ export class CollectionsController {
   }
 
   @Patch(':id/products/reorder')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.CATALOG_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   reorderProducts(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ReorderCollectionProductsDto,

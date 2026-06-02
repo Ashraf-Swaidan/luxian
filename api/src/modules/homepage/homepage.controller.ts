@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { Roles } from '../auth/decorators/roles.decorators';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions/permission.registry';
 import { UpdateHomepageSettingsDto } from './dto/update-homepage-settings.dto';
 import { HomepageService } from './homepage.service';
 
@@ -16,8 +16,8 @@ export class HomepageController {
   }
 
   @Patch()
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.HOMEPAGE_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   updateSettings(@Body() dto: UpdateHomepageSettingsDto) {
     return this.homepageService.updateSettings(dto);
   }

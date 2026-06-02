@@ -6,18 +6,24 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthResponseDto, AuthUserDto } from './dto/auth-response.dto';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
-import { RefreshDto } from './dto/refresh.dto';
 import { User } from '@prisma/client';
+import { PermissionsService } from './permissions/permissions.service';
+import type { Permission } from './permissions/permission.registry';
 
 type RefreshPayload = {
   sub: string;
   email: string;
   refreshId: string;
+};
+
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
 };
 
 @Injectable()
@@ -27,9 +33,13 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(registerDto: RegisterDto): Promise<{
+    response: AuthResponseDto;
+    tokens: AuthTokens;
+  }> {
     const { email, password, firstName, lastName } = registerDto;
 
     const existingUser = await this.prisma.user.findUnique({
@@ -56,6 +66,8 @@ export class AuthService {
           firstName: true,
           lastName: true,
           role: true,
+          staffRoleId: true,
+          isStaffActive: true,
         },
       });
 
@@ -68,7 +80,10 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(loginDto: LoginDto): Promise<{
+    response: AuthResponseDto;
+    tokens: AuthTokens;
+  }> {
     const { email, password } = loginDto;
 
     const user = await this.prisma.user.findUnique({
@@ -84,12 +99,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.role === 'STAFF' && !user.isStaffActive) {
+      throw new UnauthorizedException('Account is deactivated');
+    }
+
     return this.issueAuthResponse(this.toSafeUser(user));
   }
 
-  async refresh(refreshDto: RefreshDto): Promise<AuthResponseDto> {
-    const { refreshToken } = refreshDto;
-
+  async refresh(refreshToken: string): Promise<{
+    response: AuthResponseDto;
+    tokens: AuthTokens;
+  }> {
     let payload: RefreshPayload;
     try {
       payload = await this.jwtService.verifyAsync<RefreshPayload>(refreshToken);
@@ -103,6 +123,10 @@ export class AuthService {
 
     if (!user?.refreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (user.role === 'STAFF' && !user.isStaffActive) {
+      throw new UnauthorizedException('Account is deactivated');
     }
 
     const isRefreshValid = await bcrypt.compare(
@@ -124,18 +148,88 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
+  async buildAuthUserDto(userId: string): Promise<AuthUserDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        staffRoleId: true,
+        isStaffActive: true,
+        staffRole: { select: { name: true } },
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const permissions = await this.permissionsService.resolvePermissionsForUser(
+      user,
+    );
+
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      permissions,
+      staffRoleId: user.staffRoleId,
+      staffRoleName: user.staffRole?.name ?? null,
+    };
+  }
+
   private async issueAuthResponse(
-    user: AuthResponseDto['user'],
-  ): Promise<AuthResponseDto> {
+    user: Pick<
+      User,
+      | 'id'
+      | 'email'
+      | 'firstName'
+      | 'lastName'
+      | 'role'
+      | 'staffRoleId'
+      | 'isStaffActive'
+    >,
+  ): Promise<{ response: AuthResponseDto; tokens: AuthTokens }> {
     const tokens = await this.generateTokens(user.id, user.email);
     await this.persistRefreshToken(user.id, tokens.refreshToken);
-    return { ...tokens, user };
+    const permissions = await this.permissionsService.resolvePermissionsForUser(
+      user,
+    );
+
+    const staffRole = user.staffRoleId
+      ? await this.prisma.staffRole.findUnique({
+          where: { id: user.staffRoleId },
+          select: { name: true },
+        })
+      : null;
+
+    return {
+      tokens,
+      response: {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          permissions,
+          staffRoleId: user.staffRoleId,
+          staffRoleName: staffRole?.name ?? null,
+        },
+        csrfToken: '',
+      },
+    };
   }
 
   private async generateTokens(
     userId: string,
     email: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<AuthTokens> {
     const payload = { sub: userId, email };
     const refreshId = randomBytes(16).toString('hex');
     const [accessToken, refreshToken] = await Promise.all([
@@ -156,13 +250,26 @@ export class AuthService {
     });
   }
 
-  private toSafeUser(user: User): AuthResponseDto['user'] {
+  private toSafeUser(
+    user: User,
+  ): Pick<
+    User,
+    | 'id'
+    | 'email'
+    | 'firstName'
+    | 'lastName'
+    | 'role'
+    | 'staffRoleId'
+    | 'isStaffActive'
+  > {
     return {
       id: user.id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      staffRoleId: user.staffRoleId,
+      isStaffActive: user.isStaffActive,
     };
   }
 }

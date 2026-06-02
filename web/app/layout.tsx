@@ -1,5 +1,6 @@
 import { Geist_Mono, Outfit } from "next/font/google"
 import localFont from "next/font/local"
+import type { Metadata } from "next"
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin"
 import { extractRouterConfig } from "uploadthing/server"
 
@@ -34,6 +35,24 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metadata: Metadata = {
+  title: {
+    default: "Luxian",
+    template: "%s | Luxian",
+  },
+  description:
+    "Shop Luxian streetwear — technical silhouettes, sharp utility, and standout everyday pieces.",
+  icons: {
+    icon: [
+      { url: "/favicon_io/favicon.ico", sizes: "any" },
+      { url: "/favicon_io/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon_io/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/favicon_io/apple-touch-icon.png",
+  },
+  manifest: "/favicon_io/site.webmanifest",
+}
 
 export default function RootLayout({
   children,

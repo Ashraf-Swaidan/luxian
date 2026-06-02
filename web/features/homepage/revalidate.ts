@@ -1,12 +1,7 @@
-import { getAccessToken } from "@/lib/auth-storage"
-
 export async function revalidatePublicHomepage() {
-  const token = getAccessToken()
   const response = await fetch("/api/cache/revalidate", {
     method: "POST",
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    credentials: "include",
   })
 
   if (!response.ok) {

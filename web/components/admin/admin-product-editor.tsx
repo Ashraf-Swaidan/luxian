@@ -15,7 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCategories } from "@/features/categories/api"
 import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
-import { deactivateProduct, getProduct, getProductStockMovements, updateProduct } from "@/features/products/api"
+import {
+  deactivateProduct,
+  getAdminProduct,
+  getProductStockMovements,
+  updateProduct,
+} from "@/features/products/api"
+import { canReadProductCost, canWriteProductCost } from "@/lib/permissions"
+import { useAuth } from "@/providers/auth-provider"
 import { toastApiError } from "@/lib/error-message"
 import { formatPrice } from "@/lib/format-price"
 import { queryKeys } from "@/lib/query-keys"
@@ -33,7 +40,7 @@ export function AdminProductEditor() {
     isError,
   } = useQuery({
     queryKey: queryKeys.products.detail(id),
-    queryFn: () => getProduct(id),
+    queryFn: () => getAdminProduct(id),
     enabled: Boolean(id),
   })
 
@@ -106,12 +113,15 @@ function AdminProductEditorForm({
   onSaved: (product: Product) => void | Promise<void>
   product: Product
 }) {
+  const { user } = useAuth()
+  const showCost = canReadProductCost(user)
+  const canEditCost = canWriteProductCost(user)
   const [name, setName] = useState(product.name)
   const [description, setDescription] = useState(product.description ?? "")
   const [sku, setSku] = useState(product.sku)
   const [categoryId, setCategoryId] = useState(product.categoryId)
   const [price, setPrice] = useState(product.price)
-  const [cost, setCost] = useState(product.cost)
+  const [cost, setCost] = useState(product.cost ?? "0")
   const [stock, setStock] = useState(String(product.stock))
   const [restockLimit, setRestockLimit] = useState(String(product.restockLimit ?? 10))
   const [imageUrl, setImageUrl] = useState<string | null>(product.imageUrl)
@@ -124,7 +134,7 @@ function AdminProductEditorForm({
         sku,
         categoryId,
         price: Number.parseFloat(price),
-        cost: Number.parseFloat(cost) || 0,
+        ...(canEditCost ? { cost: Number.parseFloat(cost) || 0 } : {}),
         stock: Number.parseInt(stock, 10) || 0,
         restockLimit: Number.parseInt(restockLimit, 10) || 0,
         imageUrl,
@@ -145,7 +155,7 @@ function AdminProductEditorForm({
     sku !== product.sku ||
     categoryId !== product.categoryId ||
     price !== product.price ||
-    cost !== product.cost ||
+    (showCost && cost !== (product.cost ?? "0")) ||
     stock !== String(product.stock) ||
     restockLimit !== String(product.restockLimit ?? 10) ||
     imageUrl !== product.imageUrl
@@ -202,7 +212,14 @@ function AdminProductEditorForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <PlainField label="Price" value={price} onChange={setPrice} />
-            <PlainField label="Cost" value={cost} onChange={setCost} />
+            {showCost ? (
+              <PlainField
+                label="Cost"
+                value={cost}
+                onChange={setCost}
+                disabled={!canEditCost}
+              />
+            ) : null}
             <PlainField label="Stock" value={stock} onChange={setStock} />
             <PlainField label="Restock limit" value={restockLimit} onChange={setRestockLimit} />
           </div>
@@ -284,12 +301,23 @@ function StockMovementHistory({ productId }: { productId: string }) {
   )
 }
 
-function PlainField({ label, onChange, value }: { label: string; onChange: (value: string) => void; value: string }) {
+function PlainField({
+  label,
+  onChange,
+  value,
+  disabled,
+}: {
+  label: string
+  onChange: (value: string) => void
+  value: string
+  disabled?: boolean
+}) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
       <Input
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         className="border-x-0 border-t-0 bg-transparent px-0 focus-visible:ring-0"
       />

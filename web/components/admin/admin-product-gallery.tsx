@@ -26,7 +26,8 @@ import {
   updateProductImage,
 } from "@/features/products/api"
 import { deleteStorageObject } from "@/features/media/api"
-import { getAccessToken } from "@/lib/auth-storage"
+import { hasPermission } from "@/lib/permissions"
+import { PERMISSIONS } from "@/lib/permissions"
 import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
 import { useUploadThing } from "@/lib/uploadthing"
@@ -50,7 +51,7 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
   const displayImages = buildDisplayImages(images, product, coverUrl)
   const [pendingDelete, setPendingDelete] = useState<ProductImage | null>(null)
   const { user } = useAuth()
-  const isAdmin = user?.role === "ADMIN"
+  const canManageMedia = hasPermission(user, PERMISSIONS.MEDIA_WRITE)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const detailKey = queryKeys.products.detail(product.id)
@@ -70,10 +71,6 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
   })
 
   const { startUpload, isUploading } = useUploadThing("adminImage", {
-    headers: (): Record<string, string> => {
-      const token = getAccessToken()
-      return { Authorization: `Bearer ${token ?? ""}` }
-    },
     onClientUploadComplete: (res) => {
       const url = res[0]?.ufsUrl ?? res[0]?.url
       if (url) {
@@ -84,7 +81,7 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
   })
 
   const pickGalleryImage = () => {
-    if (!isAdmin || addMutation.isPending || isUploading) {
+    if (!canManageMedia || addMutation.isPending || isUploading) {
       return
     }
     fileInputRef.current?.click()
@@ -278,7 +275,7 @@ export function AdminProductGallery({ product, coverUrl, onCoverChange }: AdminP
 
           <li>
             <GalleryAddCard
-              disabled={!isAdmin || isAdding}
+              disabled={!canManageMedia || isAdding}
               isUploading={isAdding}
               inputId={`product-gallery-add-${product.id}`}
               inputRef={fileInputRef}

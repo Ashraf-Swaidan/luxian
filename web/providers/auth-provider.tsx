@@ -15,12 +15,7 @@ import {
   logoutRequest,
   registerRequest,
 } from "@/features/auth/api"
-import {
-  clearAuth,
-  getAccessToken,
-  getStoredUser,
-  saveAuth,
-} from "@/lib/auth-storage"
+import { clearAuth, getStoredUser, saveUser } from "@/lib/auth-storage"
 import type { AuthUser, LoginInput, RegisterInput } from "@/lib/types/auth"
 
 type AuthContextValue = {
@@ -38,13 +33,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const bootstrap = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setUser(null)
-      setIsLoading(false)
-      return
-    }
-
     const cached = getStoredUser()
     if (cached) {
       setUser(cached)
@@ -53,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await getMeRequest()
       setUser(me)
+      saveUser(me)
     } catch {
       clearAuth()
       setUser(null)
@@ -67,21 +56,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (input: LoginInput) => {
     const response = await loginRequest(input)
-    saveAuth(response)
+    saveUser(response.user)
     setUser(response.user)
   }, [])
 
   const register = useCallback(async (input: RegisterInput) => {
     const response = await registerRequest(input)
-    saveAuth(response)
+    saveUser(response.user)
     setUser(response.user)
   }, [])
 
   const logout = useCallback(async () => {
     try {
-      if (getAccessToken()) {
-        await logoutRequest()
-      }
+      await logoutRequest()
     } finally {
       clearAuth()
       setUser(null)

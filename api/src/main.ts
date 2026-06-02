@@ -2,10 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import cookieParser from 'cookie-parser';
+import { CsrfGuard } from './modules/auth/guards/csrf.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
   app.setGlobalPrefix('api/v1');
 
   app.enableCors({
@@ -24,6 +27,8 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+
+  app.useGlobalGuards(app.get(CsrfGuard));
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -8,11 +8,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Role } from '@prisma/client';
 import { memoryStorage } from 'multer';
-import { Roles } from '../auth/decorators/roles.decorators';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions/permission.registry';
 import { UploadsService } from './uploads.service';
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -23,8 +23,8 @@ export class UploadsController {
 
   /** Admin — upload product/category image to Cloudflare R2 */
   @Post('image')
-  @Roles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Permissions(PERMISSIONS.MEDIA_WRITE)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

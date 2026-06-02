@@ -58,6 +58,10 @@ export function getProduct(id: string) {
   return api.get<Product>(`products/${id}`, { auth: false })
 }
 
+export function getAdminProduct(id: string) {
+  return api.get<Product>(`products/${id}/manage`)
+}
+
 export type ProductContext = {
   product: Product
   collection: Collection | null

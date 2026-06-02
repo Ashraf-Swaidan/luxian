@@ -108,7 +108,7 @@ export function ProductPicker({
       onSelectedChange(next)
       return
     }
-    const unitCost = Number.parseFloat(product.cost) || 0
+    const unitCost = Number.parseFloat(product.cost ?? "0") || 0
     onSelectedChange({
       ...selected,
       [product.id]: { product, quantity: 1, unitCost },
@@ -127,7 +127,7 @@ export function ProductPicker({
     const next = { ...selected }
     for (const product of products) {
       if (!next[product.id]) {
-        const unitCost = Number.parseFloat(product.cost) || 0
+        const unitCost = Number.parseFloat(product.cost ?? "0") || 0
         next[product.id] = { product, quantity: 1, unitCost }
       }
     }
@@ -318,7 +318,7 @@ export function ProductPicker({
                     <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {product.sku}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">{formatPrice(product.cost)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{formatPrice(product.cost ?? "0")}</TableCell>
                     <TableCell className="hidden text-right tabular-nums md:table-cell">
                       {product.stock}
                     </TableCell>

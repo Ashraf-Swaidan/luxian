@@ -8,13 +8,14 @@ import { useEffect, useRef, useState } from "react"
 import { SiteHeaderAuth } from "@/components/layout/site-header-auth"
 import { SiteHeaderMobileMenu } from "@/components/layout/site-header-mobile-menu"
 import { SiteHeaderNav } from "@/components/layout/site-header-nav"
+import { canAccessAdmin } from "@/lib/permissions"
 import { useAuth } from "@/providers/auth-provider"
 import { cn } from "@/lib/utils"
 
 export function SiteHeader() {
   const pathname = usePathname()
   const { user } = useAuth()
-  const isAdmin = user?.role === "ADMIN"
+  const isAdmin = canAccessAdmin(user)
 
   return <SiteHeaderFrame key={pathname} isAdmin={isAdmin} pathname={pathname} />
 }

@@ -3,6 +3,7 @@ import { PrismaClient, Role } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 import { seedFashionCatalog } from './seed-fashion';
+import { DEFAULT_STAFF_ROLE_PRESETS } from '../src/modules/auth/permissions/permission.registry';
 
 const SALT_ROUNDS = 12;
 const DEMO_PASSWORD = 'Secret1!';
@@ -98,6 +99,26 @@ async function main() {
       categoryId: clothing.id,
     },
   });
+
+  for (const preset of DEFAULT_STAFF_ROLE_PRESETS) {
+    await prisma.staffRole.upsert({
+      where: { slug: preset.slug },
+      update: {
+        name: preset.name,
+        description: preset.description,
+        isSystem: true,
+      },
+      create: {
+        name: preset.name,
+        slug: preset.slug,
+        description: preset.description,
+        isSystem: true,
+        permissions: {
+          create: preset.permissions.map((permission) => ({ permission })),
+        },
+      },
+    });
+  }
 
   const fashion = await seedFashionCatalog(prisma);
 

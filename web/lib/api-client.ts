@@ -1,4 +1,5 @@
-import { clearAuth, getAccessToken, getRefreshToken, saveAuth } from "@/lib/auth-storage"
+import { clearAuth, saveUser } from "@/lib/auth-storage"
+import { getCsrfTokenFromCookie } from "@/lib/csrf"
 import type { AuthResponse } from "@/lib/types/auth"
 
 /** Matches Nest `HttpExceptionFilter` error body */
@@ -43,13 +44,14 @@ function getRequestTimeoutMs(): number {
 type RequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE"
   body?: unknown
-  token?: string | null
   headers?: HeadersInit
-  /** Skip Bearer header (login, register, refresh) */
+  /** Include session cookies (default true for authenticated API calls) */
   auth?: boolean
   /** Internal: prevent infinite refresh loops */
   _retry?: boolean
 }
+
+const MUTATING_METHODS = new Set(["POST", "PATCH", "DELETE", "PUT"])
 
 function mergeHeaders(base?: HeadersInit, extra?: HeadersInit): Headers {
   const merged = new Headers(base)
@@ -85,20 +87,20 @@ async function parseBody<T>(response: Response): Promise<T> {
 let refreshInFlight: Promise<boolean> | null = null
 
 async function refreshTokens(): Promise<boolean> {
-  const refreshToken = getRefreshToken()
-  if (!refreshToken) {
-    clearAuth()
-    return false
-  }
-
   if (!refreshInFlight) {
-    refreshInFlight = request<AuthResponse>("auth/refresh", {
+    const base = getBaseUrl()
+    refreshInFlight = fetch(`${base}/auth/refresh`, {
       method: "POST",
-      body: { refreshToken },
-      auth: false,
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
     })
-      .then((response) => {
-        saveAuth(response)
+      .then(async (response) => {
+        if (!response.ok) {
+          clearAuth()
+          return false
+        }
+        const body = (await response.json()) as AuthResponse
+        saveUser(body.user)
         return true
       })
       .catch(() => {
@@ -114,7 +116,7 @@ async function refreshTokens(): Promise<boolean> {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token, headers, auth = true, _retry = false } = options
+  const { method = "GET", body, headers, auth = true, _retry = false } = options
   const base = getBaseUrl()
   const normalizedPath = path.startsWith("/") ? path : path ? `/${path}` : ""
   const url = `${base}${normalizedPath}`
@@ -124,9 +126,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     requestHeaders.set("Content-Type", "application/json")
   }
 
-  const bearer = token ?? (auth ? getAccessToken() : null)
-  if (bearer) {
-    requestHeaders.set("Authorization", `Bearer ${bearer}`)
+  if (auth && MUTATING_METHODS.has(method)) {
+    const csrf = getCsrfTokenFromCookie()
+    if (csrf) {
+      requestHeaders.set("X-CSRF-Token", csrf)
+    }
   }
 
   const timeout = createTimeoutSignal()
@@ -136,6 +140,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       method,
       headers: requestHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      credentials: "include",
       signal: timeout.signal,
     })
   } catch (error) {
@@ -147,7 +152,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     timeout.clear()
   }
 
-  if (response.status === 401 && auth && !_retry) {
+  if (!response.ok && response.status === 401 && auth && !_retry) {
     const refreshed = await refreshTokens()
     if (refreshed) {
       return request<T>(path, { ...options, _retry: true })
@@ -181,15 +186,17 @@ async function uploadRequest<T>(
   formData: FormData,
   options: Omit<RequestOptions, "method" | "body" | "headers"> = {},
 ): Promise<T> {
-  const { token, auth = true, _retry = false } = options
+  const { auth = true, _retry = false } = options
   const base = getBaseUrl()
   const normalizedPath = path.startsWith("/") ? path : `/${path}`
   const url = `${base}${normalizedPath}`
 
   const requestHeaders = new Headers()
-  const bearer = token ?? (auth ? getAccessToken() : null)
-  if (bearer) {
-    requestHeaders.set("Authorization", `Bearer ${bearer}`)
+  if (auth) {
+    const csrf = getCsrfTokenFromCookie()
+    if (csrf) {
+      requestHeaders.set("X-CSRF-Token", csrf)
+    }
   }
 
   const timeout = createTimeoutSignal()
@@ -199,6 +206,7 @@ async function uploadRequest<T>(
       method: "POST",
       headers: requestHeaders,
       body: formData,
+      credentials: "include",
       signal: timeout.signal,
     })
   } catch (error) {

@@ -9,7 +9,8 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { getAccessToken } from "@/lib/auth-storage"
+import { hasAnyPermission } from "@/lib/permissions"
+import { PERMISSIONS } from "@/lib/permissions"
 import { toastApiError } from "@/lib/error-message"
 import type { UploadFolder } from "@/features/uploads/api"
 import { useUploadThing } from "@/lib/uploadthing"
@@ -43,14 +44,10 @@ export function ImageUploadField({
   owner,
 }: ImageUploadFieldProps) {
   const { user } = useAuth()
-  const isAdmin = user?.role === "ADMIN"
+  const canUpload = hasAnyPermission(user, [PERMISSIONS.MEDIA_WRITE, PERMISSIONS.PRODUCTS_WRITE])
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { startUpload, isUploading } = useUploadThing("adminImage", {
-    headers: (): Record<string, string> => {
-      const token = getAccessToken()
-      return { Authorization: `Bearer ${token ?? ""}` }
-    },
     onClientUploadComplete: (res) => {
       const url = res[0]?.ufsUrl ?? res[0]?.url
       if (url) {
@@ -64,7 +61,7 @@ export function ImageUploadField({
   })
 
   const pickFile = () => {
-    if (!isAdmin) {
+    if (!canUpload) {
       return
     }
     inputRef.current?.click()
@@ -103,8 +100,8 @@ export function ImageUploadField({
           )}
         </div>
         <div
-          role={isAdmin ? "button" : undefined}
-          tabIndex={isAdmin ? 0 : undefined}
+          role={canUpload ? "button" : undefined}
+          tabIndex={canUpload ? 0 : undefined}
           onClick={pickFile}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -114,7 +111,7 @@ export function ImageUploadField({
           }}
           className={cn(
             "group relative min-h-[26rem] overflow-hidden bg-muted",
-            isAdmin && "cursor-pointer",
+            canUpload && "cursor-pointer",
             previewSize,
           )}
         >
@@ -125,7 +122,7 @@ export function ImageUploadField({
               No image yet
             </div>
           )}
-          {isAdmin && (
+          {canUpload && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-sm font-medium uppercase tracking-wide text-white opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
               Click to change
             </div>
@@ -164,8 +161,8 @@ export function ImageUploadField({
       </div>
       <div className="flex flex-wrap items-start gap-4">
         <div
-          role={isAdmin ? "button" : undefined}
-          tabIndex={isAdmin ? 0 : undefined}
+          role={canUpload ? "button" : undefined}
+          tabIndex={canUpload ? 0 : undefined}
           onClick={pickFile}
           onKeyDown={(event) => {
             if (event.key === "Enter" || event.key === " ") {
@@ -175,7 +172,7 @@ export function ImageUploadField({
           }}
           className={cn(
             "relative overflow-hidden rounded-md border border-border/60 bg-muted",
-            isAdmin && "cursor-pointer",
+            canUpload && "cursor-pointer",
             previewSize,
           )}
         >
@@ -207,7 +204,7 @@ export function ImageUploadField({
             disabled={isUploading}
             onChange={(e) => onFileChange(e.target.files?.[0])}
           />
-          {isAdmin ? (
+          {canUpload ? (
             <Button
               type="button"
               variant="outline"

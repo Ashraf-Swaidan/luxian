@@ -1,8 +1,9 @@
 import { Category, Product, ProductImage } from '@prisma/client';
 
-export type ProductWithCategory = Product & {
+export type ProductWithCategory = Omit<Product, 'cost'> & {
   category: Category;
   images?: ProductImage[];
+  cost?: Product['cost'];
 };
 
 export type PaginatedProducts = {

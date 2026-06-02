@@ -18,8 +18,10 @@ import { getCategories } from "@/features/categories/api"
 import { revalidatePublicHomepage } from "@/features/homepage/revalidate"
 import { createProduct, getProducts } from "@/features/products/api"
 import type { ProductListParams } from "@/features/products/types"
+import { canWriteProductCost } from "@/lib/permissions"
 import { toastApiError } from "@/lib/error-message"
 import { queryKeys } from "@/lib/query-keys"
+import { useAuth } from "@/providers/auth-provider"
 
 const PAGE_SIZE = 10
 const ALL_CATEGORIES = "all"
@@ -225,6 +227,8 @@ function NewProductForm({
   categories: { id: string; name: string }[] | undefined
   onCreated: () => void
 }) {
+  const { user } = useAuth()
+  const canEditCost = canWriteProductCost(user)
   const queryClient = useQueryClient()
   const [name, setName] = useState("")
   const [sku, setSku] = useState("")
@@ -257,7 +261,7 @@ function NewProductForm({
         <TextField label="Product name" value={name} onChange={setName} />
         <TextField label="Product code" value={sku} onChange={setSku} />
         <TextField label="Price" type="number" value={price} onChange={setPrice} />
-        <TextField label="Cost" type="number" value={cost} onChange={setCost} />
+        {canEditCost ? <TextField label="Cost" type="number" value={cost} onChange={setCost} /> : null}
         <TextField label="Stock" type="number" value={stock} onChange={setStock} />
         <div className="space-y-2 sm:col-span-2">
           <Label>Category</Label>
@@ -290,7 +294,7 @@ function NewProductForm({
               name,
               sku,
               price: Number.parseFloat(price),
-              cost: Number.parseFloat(cost) || 0,
+              ...(canEditCost ? { cost: Number.parseFloat(cost) || 0 } : {}),
               stock: Number.parseInt(stock, 10) || 0,
               categoryId: defaultCategory,
               description: description || undefined,

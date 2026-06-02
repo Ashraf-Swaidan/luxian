@@ -1,4 +1,19 @@
-export type Role = "USER" | "ADMIN"
+export type Role = "USER" | "ADMIN" | "STAFF"
+
+export type Permission =
+  | "dashboard:read"
+  | "orders:read"
+  | "orders:write"
+  | "products:read"
+  | "products:write"
+  | "products:cost:read"
+  | "products:cost:write"
+  | "media:write"
+  | "homepage:write"
+  | "catalog:write"
+  | "suppliers:read"
+  | "suppliers:write"
+  | "staff:manage"
 
 export type AuthUser = {
   id: string
@@ -6,12 +21,15 @@ export type AuthUser = {
   firstName: string | null
   lastName: string | null
   role: Role
+  permissions: Permission[]
+  staffRoleId: string | null
+  staffRoleName: string | null
+  isStaffActive?: boolean
 }
 
 export type AuthResponse = {
-  accessToken: string
-  refreshToken: string
   user: AuthUser
+  csrfToken: string
 }
 
 export type LoginInput = {

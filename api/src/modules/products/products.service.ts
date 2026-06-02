@@ -16,7 +16,12 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
 import { extractUploadThingKey } from '../media/media.utils';
 import { PersonalizationService } from '../personalization/personalization.service';
-import { PaginatedProducts } from './products.types';
+import { PaginatedProducts, ProductWithCategory } from './products.types';
+import type { Permission } from '../auth/permissions/permission.registry';
+import {
+  sanitizeProductForUser,
+  stripProductCost,
+} from './product-sanitizer';
 
 const productDetailInclude = {
   category: true,
@@ -44,9 +49,7 @@ export class ProductsService {
     private readonly personalizationService: PersonalizationService,
   ) {}
 
-  async findOneActive(
-    id: string,
-  ): Promise<ProductDetail & { incomingStock: number }> {
+  async findOneActive(id: string): Promise<ProductWithCategory & { incomingStock: number }> {
     const product = await this.prisma.product.findFirst({
       where: { id, isActive: true },
       include: productDetailInclude,
@@ -56,7 +59,22 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return this.attachIncomingStock(product);
+    const withStock = await this.attachIncomingStock(product);
+    return stripProductCost(withStock);
+  }
+
+  async findOneForManage(id: string, permissions: Permission[]) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: productDetailInclude,
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const withStock = await this.attachIncomingStock(product);
+    return sanitizeProductForUser(withStock, permissions);
   }
 
   async findProductContext(
@@ -95,7 +113,7 @@ export class ProductsService {
       ...collectionProducts.map((sibling) => sibling.id),
     ]);
     const similarProducts = await this.findSimilarProducts(
-      product,
+      product as ProductDetail,
       excludedIds,
       similarLimit,
       visitorId,
@@ -104,8 +122,8 @@ export class ProductsService {
     return {
       product,
       collection: selectedCollection,
-      collectionProducts,
-      similarProducts,
+      collectionProducts: collectionProducts.map((item) => stripProductCost(item)),
+      similarProducts: similarProducts.map((item) => stripProductCost(item)),
     };
   }
 
@@ -139,9 +157,9 @@ export class ProductsService {
         allMatching,
         { categoryFilterId: query.categoryId },
       );
-      const data = await this.attachIncomingStock(
+      const data = (await this.attachIncomingStock(
         ranked.slice(skip, skip + limit),
-      );
+      )).map((item) => stripProductCost(item));
 
       return {
         data,
@@ -166,7 +184,9 @@ export class ProductsService {
     ]);
 
     return {
-      data: await this.attachIncomingStock(rows),
+      data: (await this.attachIncomingStock(rows)).map((item) =>
+        stripProductCost(item),
+      ),
       meta: {
         page,
         limit,
@@ -419,7 +439,9 @@ export class ProductsService {
     ]);
 
     return {
-      data: await this.attachIncomingStock(rows.map((row) => row.product)),
+      data: (await this.attachIncomingStock(rows.map((row) => row.product))).map(
+        (item) => stripProductCost(item),
+      ),
       meta: {
         page,
         limit,
@@ -470,7 +492,10 @@ export class ProductsService {
     return filters;
   }
 
-  async create(dto: CreateProductDto): Promise<Product> {
+  async create(
+    dto: CreateProductDto,
+    permissions: Permission[],
+  ): Promise<ProductWithCategory> {
     await this.ensureCategoryExists(dto.categoryId);
 
     try {
@@ -506,13 +531,17 @@ export class ProductsService {
         });
       }
 
-      return this.findOneActive(product.id);
+      return this.findOneForManage(product.id, permissions);
     } catch (error) {
       this.handlePrismaError(error, 'Failed to create product');
     }
   }
 
-  async update(id: string, dto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: string,
+    dto: UpdateProductDto,
+    permissions: Permission[],
+  ): Promise<ProductWithCategory> {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Product not found');
@@ -536,10 +565,13 @@ export class ProductsService {
           ownerId: id,
           newUrl: dto.imageUrl,
         });
-        return this.findOneActive(id);
+        return this.findOneForManage(id, permissions);
       }
 
-      return product;
+      return sanitizeProductForUser(
+        await this.attachIncomingStock(product),
+        permissions,
+      ) as ProductWithCategory;
     } catch (error) {
       this.handlePrismaError(error, 'Failed to update product');
     }

@@ -1,14 +1,14 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { Roles } from '../auth/decorators/roles.decorators';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions/permission.registry';
 import { SalesStatsQueryDto, StatsQueryDto } from './dto/stats-query.dto';
 import { StatsService } from './stats.service';
 
 @Controller('admin/stats')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@Permissions(PERMISSIONS.DASHBOARD_READ)
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 

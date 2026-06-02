@@ -6,6 +6,7 @@ import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { canAccessAdmin } from "@/lib/permissions"
 import { useAuth } from "@/providers/auth-provider"
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
       router.replace("/login?redirect=/admin")
       return
     }
-    if (user.role !== "ADMIN") {
+    if (!canAccessAdmin(user)) {
       router.replace("/")
     }
   }, [user, isLoading, router])
@@ -35,7 +36,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user || user.role !== "ADMIN") {
+  if (!user || !canAccessAdmin(user)) {
     return (
       <main className="mx-auto w-full max-w-7xl px-6 py-10">
         <p className="text-sm text-muted-foreground">Admin access required.</p>

@@ -17,6 +17,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
 import { PersonalizationModule } from './modules/personalization/personalization.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { StatsModule } from './modules/stats/stats.module';
+import { StaffModule } from './modules/staff/staff.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { StatsModule } from './modules/stats/stats.module';
     PersonalizationModule,
     SuppliersModule,
     StatsModule,
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [AppService],

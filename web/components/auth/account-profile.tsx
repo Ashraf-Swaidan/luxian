@@ -19,6 +19,7 @@ import { useCart } from "@/features/cart/hooks"
 import { useFavorites } from "@/features/favorites/hooks"
 import { useOrders } from "@/features/orders/hooks"
 import { formatCartSubtotal } from "@/lib/cart-utils"
+import { canAccessAdmin } from "@/lib/permissions"
 import { useAuth } from "@/providers/auth-provider"
 
 function ProfileContent() {
@@ -32,7 +33,11 @@ function ProfileContent() {
   }
 
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Luxian member"
-  const accountType = user.role === "ADMIN" ? "Store admin" : "Customer"
+  const accountType = canAccessAdmin(user)
+    ? user.role === "STAFF"
+      ? `Staff${user.staffRoleName ? ` · ${user.staffRoleName}` : ""}`
+      : "Store admin"
+    : "Customer"
   const orderCount = orders?.length ?? 0
   const bagCount = cart?.cartItems.reduce((sum, item) => sum + item.quantity, 0) ?? 0
   const favoriteCount = favorites?.length ?? 0

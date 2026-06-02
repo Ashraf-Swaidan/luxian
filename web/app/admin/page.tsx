@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -7,29 +9,87 @@ import {
   PackageAddIcon,
   PackageIcon,
   PackageOpenIcon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons"
 
 import { adminSectionStyles, type AdminSectionKey } from "@/lib/admin-section-colors"
+import { hasPermission } from "@/lib/permissions"
+import { PERMISSIONS } from "@/lib/permissions"
+import type { Permission } from "@/lib/types/auth"
+import { useAuth } from "@/providers/auth-provider"
 
 const adminCards: Array<{
   href: string
   title: string
   icon: typeof Folder01Icon
   section: AdminSectionKey
+  permission: Permission | Permission[]
 }> = [
-  { href: "/admin/dashboard", title: "Dashboard", icon: Analytics01Icon, section: "dashboard" },
-  { href: "/admin/categories", title: "Categories", icon: Folder01Icon, section: "categories" },
-  { href: "/admin/products", title: "Products", icon: PackageIcon, section: "products" },
-  { href: "/admin/collections", title: "Collections", icon: PackageOpenIcon, section: "collections" },
-  { href: "/admin/homepage", title: "Homepage", icon: Home11Icon, section: "homepage" },
-  { href: "/admin/suppliers", title: "Suppliers", icon: PackageAddIcon, section: "suppliers" },
-  { href: "/admin/orders", title: "Orders", icon: PackageOpenIcon, section: "orders" },
+  {
+    href: "/admin/dashboard",
+    title: "Dashboard",
+    icon: Analytics01Icon,
+    section: "dashboard",
+    permission: PERMISSIONS.DASHBOARD_READ,
+  },
+  {
+    href: "/admin/categories",
+    title: "Categories",
+    icon: Folder01Icon,
+    section: "categories",
+    permission: PERMISSIONS.CATALOG_WRITE,
+  },
+  {
+    href: "/admin/products",
+    title: "Products",
+    icon: PackageIcon,
+    section: "products",
+    permission: PERMISSIONS.PRODUCTS_READ,
+  },
+  {
+    href: "/admin/collections",
+    title: "Collections",
+    icon: PackageOpenIcon,
+    section: "collections",
+    permission: PERMISSIONS.CATALOG_WRITE,
+  },
+  {
+    href: "/admin/homepage",
+    title: "Homepage",
+    icon: Home11Icon,
+    section: "homepage",
+    permission: PERMISSIONS.HOMEPAGE_WRITE,
+  },
+  {
+    href: "/admin/suppliers",
+    title: "Suppliers",
+    icon: PackageAddIcon,
+    section: "suppliers",
+    permission: PERMISSIONS.SUPPLIERS_READ,
+  },
+  {
+    href: "/admin/orders",
+    title: "Orders",
+    icon: PackageOpenIcon,
+    section: "orders",
+    permission: PERMISSIONS.ORDERS_READ,
+  },
+  {
+    href: "/admin/staff",
+    title: "Staff",
+    icon: UserGroupIcon,
+    section: "dashboard",
+    permission: PERMISSIONS.STAFF_MANAGE,
+  },
 ]
 
 export default function AdminPage() {
+  const { user } = useAuth()
+  const visibleCards = adminCards.filter((card) => hasPermission(user, card.permission))
+
   return (
     <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
-      {adminCards.map((card) => (
+      {visibleCards.map((card) => (
         <Link
           key={card.href}
           href={card.href}
