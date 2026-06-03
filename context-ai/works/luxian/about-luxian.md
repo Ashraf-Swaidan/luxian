@@ -106,12 +106,25 @@ Brand voice in UI copy defaults to **sculptural streetwear / tropical fashion** 
 
 ---
 
+## Deployment (production)
+
+| Layer | URL | Role |
+|-------|-----|------|
+| Storefront | https://luxian-three.vercel.app/ | Next.js on Vercel — **public portfolio link** |
+| API | https://luxian.onrender.com/ | NestJS on Render — `GET /api/v1` health/hello |
+| Browser → API | `/api/v1` on Vercel host | `next.config.mjs` rewrites to `API_UPSTREAM` (Render) — cookies stay same-site for auth |
+| Server → API | `API_INTERNAL_URL` | SSR, UploadThing auth, cache revalidate call Render directly |
+
+**Ops checklist (not for portfolio copy):** Render `CORS_ORIGIN` must include `https://luxian-three.vercel.app`; cookie `Secure`/`SameSite` must match HTTPS production.
+
+---
+
 ## Known gaps (answer honestly)
 
 | Area | Status |
 |------|--------|
 | Stripe / real payments | Not implemented |
-| Public hosting | Not documented in repo |
+| Render cold start | Free/low tier may sleep; first request after idle can be slow |
 | Email notifications | Not present |
 | Shipping carriers | Address string only |
 | AI shopping assistant | Not in scope |

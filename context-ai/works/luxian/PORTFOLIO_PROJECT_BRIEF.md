@@ -73,8 +73,8 @@ There is **no in-product “AI agent”** for shoppers or ops; “Ash AI” on t
 
 ## Honest scope limits
 
-- **Learning monorepo** — README and `LEARNING_REPORT.md` / `FRONTEND_LEARNING_REPORT.md` frame this as an educational build; not positioned as production retail.
-- **No public deploy URL** in repo — demo is **local** (`npm run dev` in `api/` and `web/`). Do not imply a live store URL unless one is added later.
+- **Learning monorepo** — README and learning reports frame much of the build as educational; the **live demo** is still a real deployed stack, not a mockup.
+- **Live demo** — Storefront: [https://luxian-three.vercel.app/](https://luxian-three.vercel.app/) · API: [https://luxian.onrender.com/](https://luxian.onrender.com/) (split deploy: Next on Vercel, Nest on Render, Postgres hosted). **Render cold starts** can add latency on first request after idle — normal for free/low tier, not a performance claim.
 - **Payments** — Stub only; no Stripe UI or webhooks.
 - **E2E tests** — API e2e phase skipped per learning report.
 - **Optional R2** — Documented (`api/CLOUDFLARE_R2_SETUP.md`) but not required for core flows.
@@ -94,7 +94,7 @@ There is **no in-product “AI agent”** for shoppers or ops; “Ash AI” on t
 
 **Safe for capture**
 
-- Seeded fashion product names, Unsplash-style seed image URLs, demo order numbers, local host URLs.
+- Seeded fashion product names, demo order numbers, `https://luxian-three.vercel.app/` in captures (preferred over localhost for portfolio).
 
 ---
 

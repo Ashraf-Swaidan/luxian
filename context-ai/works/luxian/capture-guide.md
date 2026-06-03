@@ -4,6 +4,18 @@ Target: **1920×1080** for hero loop and stills; UI at 100% browser zoom unless 
 
 ## Prerequisites
 
+### Production capture (preferred for portfolio)
+
+| | |
+|--|--|
+| **URL** | [https://luxian-three.vercel.app/](https://luxian-three.vercel.app/) |
+| **Accounts** | `user@demo.com` / `admin@demo.com` — password `Secret1!` |
+| **Cold start** | If the first load is slow, wait for Render API wake-up (or hit `/api/v1` once), then re-record. |
+
+No local terminals required. API is proxied at `/api/v1` from Vercel → `https://luxian.onrender.com`.
+
+### Local capture (fallback)
+
 1. Terminal A: `cd api && npm run dev` (port 3000).
 2. Terminal B: `cd web && npm run dev` (port 3001).
 3. Seed if needed: `cd api && npx prisma migrate dev && npm run db:seed`.
@@ -38,7 +50,7 @@ Target: **1920×1080** for hero loop and stills; UI at 100% browser zoom unless 
 | Do | Don’t |
 |----|--------|
 | `user@demo.com` / `admin@demo.com` | Real emails, real addresses, real card numbers |
-| Localhost URLs | Production API keys on screen |
+| `luxian-three.vercel.app` in frame (shows it’s live) | Render dashboard, Vercel env panels, API keys on screen |
 | Seeded product titles and stock counts | Invented “$2M GMV” overlays |
 | Blur or crop env files if terminal visible | Show `.env` panes |
 

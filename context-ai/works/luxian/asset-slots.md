@@ -6,8 +6,12 @@ Slug on portfolio: **`luxian`**
 
 | Type | Value |
 |------|--------|
-| **Public deploy** | *None in repo* — local demo only (`http://localhost:3001`). Update this row when/if Vercel/Railway deploy exists. |
+| **Live storefront (portfolio link)** | [https://luxian-three.vercel.app/](https://luxian-three.vercel.app/) |
+| **API (NestJS on Render)** | [https://luxian.onrender.com/](https://luxian.onrender.com/) — browser traffic uses same-origin `/api/v1` via Vercel rewrites (`API_UPSTREAM`) |
+| **Local dev** | Web `http://localhost:3001` · API `http://localhost:3000/api/v1` |
 | **GitHub repo** | Confirm with owner — workspace path suggests `luxian-store/luxian`. Placeholder: `https://github.com/ashraf-swaidan/luxian` *(verify before publish)* |
+
+**Portfolio CTA:** Use the **Vercel storefront URL** only (not the raw Render URL) unless the case study has an “architecture” callout for split deploy.
 
 ---
 
